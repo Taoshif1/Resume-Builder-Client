@@ -1,9 +1,10 @@
 import React from "react";
+import SocialProof from "../components/Home/SocialProof";
 
 const Home = () => {
   return (
     <div className="p-10 text-center">
-      <h1 className="text-4xl font-bold">🚀 Resume Builder Coming Alive</h1>
+      <SocialProof></SocialProof>
     </div>
   );
 };
