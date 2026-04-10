@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, NavLink } from "react-router";
+import { Link, NavLink } from "react-router"; 
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -18,7 +18,11 @@ const Navbar = () => {
         <NavLink
           to="/"
           className={({ isActive }) =>
-            isActive ? "text-primary font-bold glow" : "font-medium"
+            `transition-all duration-300 px-4 py-2 rounded-lg ${
+              isActive 
+                ? "text-[#4A70A9] font-bold underline decoration-2 underline-offset-4" 
+                : "text-[#000000] font-medium hover:text-[#4A70A9]"
+            }`
           }
         >
           Home
@@ -28,7 +32,11 @@ const Navbar = () => {
         <NavLink
           to="/dashboard"
           className={({ isActive }) =>
-            isActive ? "text-primary font-bold glow" : "font-medium"
+            `transition-all duration-300 px-4 py-2 rounded-lg ${
+              isActive 
+                ? "text-[#4A70A9] font-bold underline decoration-2 underline-offset-4" 
+                : "text-[#000000] font-medium hover:text-[#4A70A9]"
+            }`
           }
         >
           Dashboard
@@ -44,8 +52,8 @@ const Navbar = () => {
         transition-all duration-500 ease-in-out
         ${
           scrolled
-            ? "bg-base-100/70 w-full max-w-5xl border border-white/10 shadow-lg backdrop-blur-xl rounded-2xl"
-            : "w-full bg-transparent"
+            ? "bg-[#EFECE3]/90 w-full max-w-5xl border border-[#8FABD4]/30 shadow-lg backdrop-blur-xl rounded-2xl"
+            : "w-full bg-[#8FABD4] rounded-2xl shadow-md" 
         }
       `}
       >
@@ -53,10 +61,13 @@ const Navbar = () => {
           {/* Start: Logo & Mobile Menu */}
           <div className="navbar-start">
             <div className="dropdown">
-              <button tabIndex={0} className="btn btn-ghost lg:hidden">
+              <button 
+                tabIndex={0} 
+                className="btn btn-ghost lg:hidden hover:bg-[#4A70A9]/10 transition-colors duration-300 group"
+              >
                 <svg
-                  xmlns="http://w3.org"
-                  className="h-5 w-5"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6 transition-transform duration-300 group-hover:scale-110 text-[#000000]"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -65,35 +76,39 @@ const Navbar = () => {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth="2"
-                    d="4 6h16M4 12h8m-8 6h16"
+                    d="M4 6h16M4 12h16M4 18h16"
                   />
                 </svg>
               </button>
               <ul
                 tabIndex={0}
-                className="menu dropdown-content menu-sm z-[1] mt-3 w-52 rounded-2xl border border-white/10 bg-base-200 p-2 shadow-xl backdrop-blur-xl"
+                className="menu dropdown-content menu-sm z-[1] mt-3 w-52 rounded-2xl border border-[#8FABD4]/20 bg-[#EFECE3] p-4 shadow-xl animate-in fade-in zoom-in duration-300 text-[#000000]"
               >
                 {navLinks}
               </ul>
             </div>
             <Link
               to="/"
-              className="text-xl font-black tracking-tighter text-primary lg:text-2xl"
+              className="text-xl font-black tracking-tighter lg:text-2xl hover:opacity-80 transition-opacity"
             >
-              PERSONA<span className="text-white">CV</span>
+              <span className="text-[#000000]">PERSONA</span>
+              <span className={scrolled ? "text-[#4A70A9]" : "text-[#EFECE3]"}>CV</span>
             </Link>
           </div>
 
           {/* Center: Desktop Links */}
           <div className="navbar-center hidden lg:flex">
-            <ul className="menu menu-horizontal gap-2 px-1">{navLinks}</ul>
+            <ul className="menu menu-horizontal gap-2 px-1">
+                {navLinks}
+            </ul>
           </div>
 
           {/* End: Action Buttons */}
           <div className="navbar-end gap-3">
             <Link
               to="/dashboard"
-              className="btn btn-primary btn-sm rounded-xl px-6 lg:btn-md shadow-[0_0_15px_rgba(0,245,212,0.3)]"
+              style={{ backgroundColor: '#4A70A9' }}
+              className="btn btn-sm border-none text-[#EFECE3] rounded-xl px-6 lg:btn-md shadow-md hover:brightness-110 hover:scale-105 transition-all duration-300"
             >
               Build Resume
             </Link>
