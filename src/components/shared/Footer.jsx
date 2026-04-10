@@ -8,7 +8,7 @@ const Footer = () => {
     }`;
 
   return (
-    <footer className="bg-[#EFECE3] border-t border-[#8FABD4]/30 py-12 px-6">
+    <footer className="bg-[#EFECE3] border-t border-[#8FABD4]/30 py-10 px-4">
       <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
         
         {/* Left Side: Logo & Copyright */}
