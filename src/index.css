@@ -1,2 +1,49 @@
 @import "tailwindcss";
 @plugin "daisyui";
+
+@theme {
+  /* Branding Colors */
+  --color-primary: #00f5d4;
+  --color-secondary: #7b61ff;
+  --color-accent: #ff4d8d;
+  --color-neutral: #111827;
+  --color-base-100: #0b0f19;
+
+  /* Status Colors */
+  --color-info: #3abff8;
+  --color-success: #36d399;
+  --color-warning: #fbbf24;
+  --color-error: #f87272;
+}
+
+
+/* Custom DaisyUI Theme logic for v4 */
+[data-theme="personacv"] {
+  /* HSL version of #00F5D4 */
+  --p: 172 100% 48%;
+  /* HSL version of #7B61FF */
+  --s: 251 100% 69%;
+  /* HSL version of #FF4D8D */
+  --a: 338 100% 65%;
+  /* HSL version of #111827 */
+  --n: 224 39% 11%;
+  /* HSL version of #0B0F19 */
+  --b1: 225 39% 7%;
+  /* Text color on primary (dark) */
+  --pc: 225 39% 7%;
+  /* Text color on secondary (white) */
+  --sc: 0 0% 100%;
+}
+
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+}
+
+/* glow effect */
+.glow {
+  color: #00F5D4;
+  text-shadow:
+    0 0 2px rgba(0, 245, 212, 0.8),
+    0 0 10px rgba(0, 245, 212, 0.4);
+  font-weight: 900;
+}
