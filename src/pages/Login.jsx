@@ -13,7 +13,7 @@ const Login = () => {
       </label>
       <input
         type="email"
-        className="input  text-black bg-[#F2F4F6] rounded-xl"
+        className="input w-full  text-black bg-[#F2F4F6] rounded-xl"
         placeholder="Email"
       />
 
@@ -23,7 +23,7 @@ const Login = () => {
       </label>
       <input
         type="password"
-        className="input   text-black bg-[#F2F4F6] rounded-xl"
+        className="input w-full  text-black bg-[#F2F4F6] rounded-xl"
         placeholder="Password"
       />
 

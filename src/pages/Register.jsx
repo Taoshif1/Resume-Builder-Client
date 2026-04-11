@@ -13,7 +13,7 @@ const Register = () => {
       </label>
       <input
         type="email"
-        className="input bg-[#F2F4F6] rounded-xl text-black "
+        className="input w-full bg-[#F2F4F6] rounded-xl text-black "
         placeholder="Email"
       />
 
@@ -22,7 +22,7 @@ const Register = () => {
       </label>
       <input
         type="text"
-        className="input bg-[#F2F4F6] rounded-xl text-black"
+        className="input w-full bg-[#F2F4F6] rounded-xl text-black"
         placeholder="Photo Url"
       />
 
@@ -33,7 +33,7 @@ const Register = () => {
       </label>
       <input
         type="password"
-        className="input  bg-[#F2F4F6] rounded-xl text-black "
+        className="input w-full bg-[#F2F4F6] rounded-xl text-black "
         placeholder="Password"
       />
 
