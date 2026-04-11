@@ -112,6 +112,13 @@ const Navbar = () => {
             >
               Build Resume
             </Link>
+            <Link
+              to="/get-started"
+              style={{ backgroundColor: '#4A70A9' }}
+              className="btn btn-sm border-none text-[#EFECE3] rounded-xl px-6 lg:btn-md shadow-md hover:brightness-110 hover:scale-105 transition-all duration-300"
+            >
+              Get Started
+            </Link>
           </div>
         </div>
       </div>
