@@ -1,9 +1,14 @@
 import React from "react";
+import PricingDemo from "./HomePage/PricingDemo";
+import SocialProof from "./HomePage/SocialProf";
+import AsistantModes from "./HomePage/AssistantModes";
 
 const Home = () => {
   return (
     <div className="p-10 text-center">
-      <h1 className="text-4xl font-bold">🚀 Resume Builder Coming Alive</h1>
+     <AsistantModes></AsistantModes>
+     <PricingDemo></PricingDemo>
+     <SocialProof></SocialProof>
     </div>
   );
 };
