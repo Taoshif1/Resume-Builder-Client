@@ -89,7 +89,7 @@ const PricingDemo = () => {
         <h1 className="text-5xl font-black lg:text-7xl text-black tracking-tighter">
           Simple, Transparent <span className="text-[#4A70A9]">Pricing</span>
         </h1>
-        <p className="mt-6 text-[#4A70A9] font-semibold text-lg">Drag to find your perfect plan.</p>
+        <p className="mt-6 text-gray-600 font-semibold text-lg">Drag to find your perfect plan.</p>
       </div>
 
       {/* Slider Wrapper */}

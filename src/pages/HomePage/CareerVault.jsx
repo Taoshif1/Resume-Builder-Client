@@ -24,7 +24,7 @@ const CareerVault = () => {
     <section className="bg-[#EFECE3]/20 py-24 px-6 md:px-12 flex flex-col items-center">
       <div className="text-center mb-16 max-w-2xl">
         <h2 className="text-4xl lg:text-5xl font-extrabold text-black tracking-tighter leading-tight">
-          The Career Vault: Your Single Source of Truth
+          The Career Vault: <span className="text-[#4A70A9]">Your Single Source of Truth</span>
         </h2>
         <p className="text-gray-600 mt-6 text-lg leading-relaxed font-medium">
           A repository that grows with your career. Store project details, obscure skills, and key results once. Never hunt for bullet points again.
