@@ -1,102 +1,104 @@
 import React from "react";
-import { NavLink, Outlet } from "react-router";
+import { NavLink, Outlet, Link } from "react-router";
 
 const GetStarted = () => {
   return (
-    <div className="min-h-screen text-black bg-[#d5d8db]">
-      <div className="border-[#d5d8db] border min-h-screen">
+    // মেইন কন্টেইনার
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#d5d8db] py-8 px-4">
+      
+      {/* Back Button Container */}
+      <div className="w-full max-w-5xl mb-4 flex justify-start">
+        <Link 
+          to="/" 
+          className="flex items-center gap-2 text-gray-600 hover:text-[#4648D4] font-semibold transition-colors px-2 py-1 rounded-lg hover:bg-white/50"
+        >
+          {/* Back Arrow SVG */}
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          Back to Home
+        </Link>
+      </div>
+
+      {/* মূল কার্ড */}
+      <div className="w-full max-w-5xl flex flex-col lg:flex-row bg-white rounded-2xl shadow-xl overflow-hidden min-h-[550px]">
         
-        <div className="w-[95%] sm:w-[85%] lg:w-[75%] 
-                        h-auto lg:h-[550px] 
-                        mx-auto mt-5 
-                        flex flex-col lg:flex-row 
-                        justify-center items-center">
+        {/* LEFT SIDE (Image & Info) */}
+        <div className="w-full lg:w-1/2 bg-[#f8f9f8] relative flex flex-col">
+          <div className="h-[250px] lg:h-[70%] w-full">
+            <img
+              className="h-full w-full object-cover"
+              src="/src/assets/bg-started.png"
+              alt="Background"
+            />
+          </div>
           
-          {/* LEFT */}
-          <div className="w-full lg:w-[50%] 
-                          h-auto lg:h-full 
-                          rounded-t-2xl lg:rounded-l-2xl lg:rounded-tr-none
-                          bg-[#f8f9f8] relative flex flex-col">
+          {/* Text Content */}
+          <div className="p-6 lg:absolute lg:bottom-0 lg:left-0 lg:right-0 lg:bg-gradient-to-t lg:from-[#f8f9f8] lg:via-[#f8f9f8] lg:to-transparent lg:pt-12">
+            <h2 className="text-[#4648D4] font-bold text-[22px] lg:text-[28px]">
+              PersonaCV AI
+            </h2>
+            <p className="text-[#464554] mt-1 mb-4 text-[13px] lg:text-[14px]">
+              The digital atelier for your professional identity. <br />
+              Curated by AI, designed by you.
+            </p>
             
-            <div className="h-[200px] sm:h-[250px] lg:h-[76%] relative">
-              <img
-                className="h-full w-full object-cover 
-                           rounded-t-2xl lg:rounded-l-2xl lg:rounded-tr-none"
-                src="/src/assets/bg-started.png"
-              />
-            </div>
-
-            <div className="p-3 
-                            lg:absolute lg:bottom-9.5 lg:left-0 lg:right-0">
-              
-              <h2 className="text-[#4648D4] font-bold text-[22px] lg:text-[28px]">
-                PersonaCV AI
-              </h2>
-
-              <p className="text-[#464554] mb-3 text-[12px] lg:text-[14px]">
-                The digital atelier for your professional identity. <br />
-                Curated by AI,
-                <br />
-                designed by you.
+            <div className="bg-[#a69a9a20] rounded-xl p-3 backdrop-blur-sm">
+              <h4 className="text-[10px] flex items-center gap-2">
+                <img className="w-[12px]" src="/src/assets/Container.png" alt="Icon" />
+                <span className="font-bold text-[#8127CF] tracking-wide">
+                  AI INSIGHT
+                </span>
+              </h4>
+              <p className="mt-2 text-[11px] italic font-medium text-[#191C1E]">
+                "Your profile strength is in the top 5% of Creative Directors.
+                <br /> Add three more project links to reach 100%."
               </p>
-
-              <div className="mt-3 bg-[#a69a9a20] rounded-2xl p-2">
-                <h4 className="text-[10px] flex items-center gap-2">
-                  <img className="w-[11px]" src="/src/assets/Container.png" />
-                  <span className="font-semibold text-[#8127CF]">
-                    AI INSIGHT
-                  </span>
-                </h4>
-
-                <p className="mt-1 text-[11px] italic font-semibold text-[#191C1E]">
-                  "Your profile strength is in the top 5% of Creative Directors.
-                  <br /> Add three more project links to reach 100%."
-                </p>
-              </div>
             </div>
           </div>
-
-          {/* RIGHT */}
-          <div className="w-full lg:w-auto 
-                          h-auto lg:h-full 
-                          bg-[#FFFFFF] 
-                          rounded-b-2xl lg:rounded-r-2xl lg:rounded-bl-none
-                          p-4">
-            
-            <div className="text-black bg-white rounded-box w-full sm:w-xs  p-2 mx-auto">
-              
-              <ul className="flex w-full sm:w-[240px] mx-auto bg-[#46455410] items-center rounded-4xl justify-around p-2">
-                
-                <NavLink
-                  to="/get-started"
-                  end
-                  className={({ isActive }) =>
-                    isActive
-                      ? "text-[#4648D4] font-bold px-4 lg:px-8 py-2 rounded-2xl bg-[#FFFFFF]"
-                      : "px-4 lg:px-8 py-2"
-                  }
-                >
-                  Login
-                </NavLink>
-
-                <NavLink
-                  to="/get-started/register"
-                  className={({ isActive }) =>
-                    isActive
-                      ? "text-[#4648D4] font-bold px-4 lg:px-8 py-2 rounded-2xl bg-[#FFFFFF]"
-                      : "px-4 lg:px-8 py-2"
-                  }
-                >
-                  SignUp
-                </NavLink>
-
-              </ul>
-
-              <Outlet />
-            </div>
-          </div>
-
         </div>
+
+        {/* RIGHT SIDE (Tabs & Form Outlet) */}
+        <div className="w-full lg:w-1/2 bg-white p-6 sm:p-8 flex flex-col items-center">
+          
+          {/* Toggle Tabs */}
+          <div className="w-full max-w-sm mb-6">
+            <ul className="flex w-full bg-[#F2F4F6] items-center rounded-full justify-between p-1">
+              <NavLink
+                to="/get-started"
+                end
+                className={({ isActive }) =>
+                  `w-1/2 text-center py-2.5 rounded-full text-sm font-bold transition-all ${
+                    isActive
+                      ? "text-[#4648D4] bg-white shadow-sm"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`
+                }
+              >
+                Login
+              </NavLink>
+              <NavLink
+                to="/get-started/register"
+                className={({ isActive }) =>
+                  `w-1/2 text-center py-2.5 rounded-full text-sm font-bold transition-all ${
+                    isActive
+                      ? "text-[#4648D4] bg-white shadow-sm"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`
+                }
+              >
+                SignUp
+              </NavLink>
+            </ul>
+          </div>
+
+          {/* Form Outlet */}
+          <div className="w-full max-w-sm flex-1 flex flex-col justify-center">
+            <Outlet />
+          </div>
+          
+        </div>
+
       </div>
     </div>
   );
