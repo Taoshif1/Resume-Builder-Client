@@ -69,9 +69,21 @@ The project is built using **Tailwind CSS v4** and **DaisyUI**, focusing on a hi
 *   **Active States:** Built with `NavLink`, the current page automatically inherits the `.glow` effect and primary branding color.
 *   **Responsive Design:** Fully optimized for all screen sizes, including a custom mobile dropdown menu with backdrop blurring.
 
-### 🕸️Get Started (Login & SignUp)
-*  **Active States: Active elements are indicated using selected tab highlights and focused input field styling. The current tab (Login or Signup) is clearly distinguished with a filled or accent style. Buttons and fields show subtle visual feedback on focus and click to guide user interaction.
-*  **Responsive View: The layout adapts across screen sizes to ensure a consistent and user-friendly experience. On smaller screens, content is stacked vertically with full-width inputs and buttons. Spacing and typography are adjusted for clarity and comfortable touch interaction.
+### 🕸️ Get Started (Login & SignUp)
+*  **Active States:** Active elements are indicated using selected tab highlights and focused input field styling. The current tab (Login or Signup) is clearly distinguished with a filled or accent style. Buttons and fields show subtle visual feedback on focus and click to guide user interaction.
+*  **Responsive View:** The layout adapts across screen sizes to ensure a consistent and user-friendly experience. On smaller screens, content is stacked vertically with full-width inputs and buttons. Spacing and typography are adjusted for clarity and comfortable touch interaction.
+
+## 🤖 PersonaCV AI
+
+### 🎯 Actions
+
+* Generates and improves resume content
+* Answers career-related questions and guides users
+
+### 🆘 Help
+
+* Click the 💬 chat icon at the bottom-right
+* Type your message and press **Enter** or **Send** to get a response
 
 ---
 
