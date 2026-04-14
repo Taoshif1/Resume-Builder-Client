@@ -87,6 +87,26 @@ The project is built using **Tailwind CSS v4** and **DaisyUI**, focusing on a hi
 
 ---
 
+### 🚀 Firebase Authentication Integration
+
+#### ✅ Features Added:
+- Email & Password Authentication
+- Google Sign-In
+- Firebase configuration using .env
+- Auth service layer (modular & scalable)
+
+#### 🧠 Notes:
+- No UI changes were made
+- Integrated with existing Login & Register pages
+- Ready for global auth state integration
+
+#### 🔥 Next Steps:
+- Global auth state (Zustand)
+- Protected routes
+- User session persistence
+
+---
+
 ## 🚀 Getting Started
 
 1.  **Clone the repository:**
