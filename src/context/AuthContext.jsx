@@ -1,12 +1,17 @@
 import { createContext, useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "../services/firebase";
+import { logoutUser } from "../services/auth";
 
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  const logout = async () => {
+    await logoutUser();
+  };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -20,6 +25,7 @@ export const AuthProvider = ({ children }) => {
   const authInfo = {
     user,
     loading,
+    logout,
   };
 
   return (

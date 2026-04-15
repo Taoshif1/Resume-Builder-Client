@@ -165,6 +165,8 @@ client
 │  │     ├─ Footer.jsx
 │  │     ├─ Logo.jsx
 │  │     └─ Navbar.jsx
+│  ├─ context
+│  │  └─ AuthContext.jsx
 │  ├─ index.css
 │  ├─ layouts
 │  │  └─ MainLayout.jsx
@@ -185,6 +187,7 @@ client
 │  │  ├─ Pricing.jsx
 │  │  └─ Register.jsx
 │  ├─ routes
+│  │  ├─ PrivateRouter.jsx
 │  │  └─ router.jsx
 │  └─ services
 │     ├─ auth.js
