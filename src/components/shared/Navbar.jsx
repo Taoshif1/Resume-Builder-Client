@@ -16,7 +16,7 @@ const Navbar = () => {
 
   return (
     <div className="w-full bg-[#fcfcfc] border-b border-gray-200 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto navbar px-4 lg:px-8 min-h-[70px]">
+      <div className="max-w-7xl mx-auto navbar px-4 lg:px-8 min-h-[60px]">
         <div className="navbar-start relative">
           {/* Mobile Menu Toggle Button */}
           <button
