@@ -1,16 +1,22 @@
 import React from "react";
 import { useState } from "react";
 import { loginUser, googleLogin } from "../services/auth";
+import { useNavigate } from "react-router";
+import toast from "react-hot-toast";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
       await loginUser(email, password);
+      toast.success("Login successful!");
+      navigate("/dashboard");
     } catch (error) {
+      toast.error("Invalid email or password.");
       console.error("Error logging in:", error);
     }
   };
@@ -18,7 +24,11 @@ const Login = () => {
   const handleGoogleLogin = async () => {
     try {
       await googleLogin();
+      toast.success("Google login successful!");
+      navigate("/dashboard");
+
     } catch (error) {
+      toast.error("Error with Google login.");
       console.error("Error with Google login:", error);
     }
   };

@@ -1,17 +1,24 @@
 import React from "react";
 import { useState } from "react";
 import { registerUser, googleLogin } from "../services/auth";
+import { useNavigate } from "react-router";
+import toast from "react-hot-toast";
 
 const Register = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   // const [photoUrl, setPhotoUrl] = useState("");
+  const navigate = useNavigate();
+
 
   const handleRegister = async (e) => {
     e.preventDefault();
     try {
       await registerUser(email, password);
+      toast.success("Registration successful!");
+      navigate("/login");
     } catch (error) {
+      toast.error("Error registering.");
       console.error("Error registering:", error);
     }
   };
@@ -19,7 +26,10 @@ const Register = () => {
   const handleGoogleLogin = async () => {
     try {
       await googleLogin();
+      toast.success("Google login successful!");
+      navigate("/login");
     } catch (error) {
+      toast.error("Error with Google login.");
       console.error("Error with Google login:", error);
     }
   };
