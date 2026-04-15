@@ -6,7 +6,7 @@ import { Link } from 'react-router';
 
 const HeroSection = () => {
   return (
-    <section className="bg-[#EFECE3]/30 pt-16 md:pt-24 pb-12 ">
+    <section className="bg-[#EFECE3]/30 pt-6 md:pt-4 pb-12 ">
       <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
 {/* left side */}
         <div className="space-y-8 max-w-2xl lg:max-w-none">

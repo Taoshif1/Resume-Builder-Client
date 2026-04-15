@@ -173,6 +173,12 @@ client
 │  ├─ main.jsx
 │  ├─ pages
 │  │  ├─ Dashboard.jsx
+│  │  ├─ Features
+│  │  │  ├─ AIHighlight.jsx
+│  │  │  ├─ CoreFeatures.jsx
+│  │  │  ├─ CTASection.jsx
+│  │  │  ├─ HeroFeatures.jsx
+│  │  │  └─ Workflow.jsx
 │  │  ├─ Features.jsx
 │  │  ├─ GetStarted.jsx
 │  │  ├─ Home.jsx
