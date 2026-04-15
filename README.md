@@ -87,6 +87,26 @@ The project is built using **Tailwind CSS v4** and **DaisyUI**, focusing on a hi
 
 ---
 
+### 🚀 Firebase Authentication Integration
+
+#### ✅ Features Added:
+- Email & Password Authentication
+- Google Sign-In
+- Firebase configuration using .env
+- Auth service layer (modular & scalable)
+
+#### 🧠 Notes:
+- No UI changes were made
+- Integrated with existing Login & Register pages
+- Ready for global auth state integration
+
+#### 🔥 Next Steps:
+- Global auth state (Zustand)
+- Protected routes
+- User session persistence
+
+---
+
 ## 🚀 Getting Started
 
 1.  **Clone the repository:**
@@ -120,7 +140,7 @@ The project is built using **Tailwind CSS v4** and **DaisyUI**, focusing on a hi
 ## 🛠️ Project Structure
 
 ```bash
-cllient
+client
 ├─ eslint.config.js
 ├─ index.html
 ├─ package-lock.json
@@ -131,22 +151,47 @@ cllient
 ├─ README.md
 ├─ src
 │  ├─ assets
+│  │  ├─ aisistant.jpg
+│  │  ├─ bg-started.png
+│  │  ├─ Container.png
+│  │  ├─ google.png
 │  │  ├─ hero.png
+│  │  ├─ heroIMG.png
 │  │  ├─ react.svg
 │  │  └─ vite.svg
 │  ├─ components
 │  │  └─ shared
+│  │     ├─ FloatingChatbot.jsx
+│  │     ├─ Footer.jsx
 │  │     ├─ Logo.jsx
 │  │     └─ Navbar.jsx
+│  ├─ context
+│  │  └─ AuthContext.jsx
 │  ├─ index.css
 │  ├─ layouts
 │  │  └─ MainLayout.jsx
 │  ├─ main.jsx
 │  ├─ pages
 │  │  ├─ Dashboard.jsx
-│  │  └─ Home.jsx
-│  └─ routes
-│     └─ router.jsx
+│  │  ├─ Features.jsx
+│  │  ├─ GetStarted.jsx
+│  │  ├─ Home.jsx
+│  │  ├─ HomePage
+│  │  │  ├─ AssistantModes.jsx
+│  │  │  ├─ CareerVault.jsx
+│  │  │  ├─ HeroSection.jsx
+│  │  │  ├─ PricingDemo.jsx
+│  │  │  ├─ SocialProf.jsx
+│  │  │  └─ Sponsors.jsx
+│  │  ├─ Login.jsx
+│  │  ├─ Pricing.jsx
+│  │  └─ Register.jsx
+│  ├─ routes
+│  │  ├─ PrivateRouter.jsx
+│  │  └─ router.jsx
+│  └─ services
+│     ├─ auth.js
+│     └─ firebase.js
 └─ vite.config.js
 
 ```
