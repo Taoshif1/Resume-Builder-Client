@@ -1,13 +1,17 @@
 import { createBrowserRouter } from "react-router";
 import { MainLayout } from "../layouts/MainLayout";
 import Home from "../pages/Home";
-import Dashboard from "../pages/Dashboard";
 import Features from "../pages/Features"; // নতুন যোগ করা হয়েছে
 import Pricing from "../pages/Pricing"; // নতুন যোগ করা হয়েছে
 import GetStarted from "../pages/GetStarted";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
 import PrivateRoute from "./PrivateRouter";
+import { DashboardLayout } from "../layouts/DashboardLayout";
+import Overview from "../pages/dashboard/Overview";
+import Resumes from "../pages/dashboard/Resumes";
+import Create from "../pages/dashboard/Create";
+import Profile from "../pages/dashboard/Profile";
 
 export const router = createBrowserRouter([
   {
@@ -21,9 +25,15 @@ export const router = createBrowserRouter([
         path: "dashboard",
         element: (
           <PrivateRoute>
-            <Dashboard />
+            <DashboardLayout />
           </PrivateRoute>
         ),
+        children: [
+          { index: true, element: <Overview /> },
+          { path: "resumes", element: <Resumes /> },
+          { path: "create", element: <Create /> },
+          { path: "profile", element: <Profile /> },
+        ],
       },
     ],
   },

@@ -107,6 +107,22 @@ The project is built using **Tailwind CSS v4** and **DaisyUI**, focusing on a hi
 
 ---
 
+## 🚀 Pricing Page Implementation
+
+### ✨ Features:
+- GSAP animated pricing cards
+- Draggable slider interaction
+- Monthly / Yearly toggle (conversion focused)
+- Highlighted "Most Popular" & "Best Value" plans
+- Premium visual scaling effect
+
+### 🎯 Business Value:
+- Improves user decision making
+- Encourages upgrade (highlight + UX psychology)
+- Interactive UI increases engagement
+
+---
+
 ## 🚀 Getting Started
 
 1.  **Clone the repository:**
@@ -160,6 +176,11 @@ client
 │  │  ├─ react.svg
 │  │  └─ vite.svg
 │  ├─ components
+│  │  ├─ dashboard
+│  │  │  ├─ ActivityFeed.jsx
+│  │  │  ├─ Sidebar.jsx
+│  │  │  ├─ StatCard.jsx
+│  │  │  └─ Topbar.jsx
 │  │  └─ shared
 │  │     ├─ FloatingChatbot.jsx
 │  │     ├─ Footer.jsx
@@ -169,9 +190,15 @@ client
 │  │  └─ AuthContext.jsx
 │  ├─ index.css
 │  ├─ layouts
+│  │  ├─ DashboardLayout.jsx
 │  │  └─ MainLayout.jsx
 │  ├─ main.jsx
 │  ├─ pages
+│  │  ├─ dashboard
+│  │  │  ├─ Create.jsx
+│  │  │  ├─ Overview.jsx
+│  │  │  ├─ Profile.jsx
+│  │  │  └─ Resumes.jsx
 │  │  ├─ Dashboard.jsx
 │  │  ├─ Features
 │  │  │  ├─ AIHighlight.jsx
