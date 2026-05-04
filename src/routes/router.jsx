@@ -12,6 +12,7 @@ import Overview from "../pages/dashboard/Overview";
 import Resumes from "../pages/dashboard/Resumes";
 import Create from "../pages/dashboard/Create";
 import Profile from "../pages/dashboard/Profile";
+import ResumeBuilder from "../resume/pages/ResumeBuilder";
 
 export const router = createBrowserRouter([
   {
@@ -21,6 +22,10 @@ export const router = createBrowserRouter([
       { index: true, element: <Home></Home> }, // এটি ন্যাভবারের "Product" হিসেবে কাজ করবে
       { path: "features", element: <Features></Features> }, // Features পেজের রাউট
       { path: "pricing", element: <Pricing></Pricing> }, // Pricing পেজের রাউট
+      {
+        path: "resume/new",
+        element: <ResumeBuilder />,
+      },
       {
         path: "dashboard",
         element: (

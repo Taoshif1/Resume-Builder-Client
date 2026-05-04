@@ -123,6 +123,176 @@ The project is built using **Tailwind CSS v4** and **DaisyUI**, focusing on a hi
 
 ---
 
+## 🚀 Overview
+
+This PR introduces a complete dashboard system refactor, transforming the previous basic dashboard into a scalable, modular SaaS-style architecture.
+
+---
+
+# 🔥 Dashboard
+
+## 🧱 Key Improvements
+
+### 🧩 Architecture
+- Implemented `DashboardLayout` for clean separation of concerns
+- Introduced nested routing using React Router v7 (Data Router pattern)
+- Modular page structure under `pages/dashboard/`
+
+### 📦 Pages Added
+- Overview (default dashboard landing)
+- Resumes
+- Create Resume
+- Profile
+
+### 🎨 UI Components
+- Sidebar (collapsible, icon-based navigation)
+- Topbar (search, notifications, avatar)
+- StatCard (reusable analytics component)
+- ActivityFeed (extensible for future logs)
+
+### 🤖 Features
+- Floating AI Chatbot integrated globally in dashboard
+- Responsive layout for better UX across devices
+
+---
+
+## 🧹 Refactoring
+- Split large Dashboard.jsx into smaller reusable components
+- Improved folder structure for scalability
+- Cleaned unused/duplicate logic
+
+---
+
+# 🚀Resume Builder Engine + Template System + DnD Foundation
+
+## 🧠 What We Built Today
+
+Today’s work focused on building the **core Resume Rendering Engine** — the system that powers how user data flows into multiple resume templates and renders dynamically.
+
+We also stabilized the **data persistence layer (localStorage + state sync)** and fixed **template rendering issues (especially Projects section visibility bugs).**
+
+---
+
+## ⚙️ Core Systems Implemented
+
+### 🧩 1. Resume Data Engine (useResume Hook)
+
+A fully modular state engine for managing resume data:
+
+- Personal Info
+- Experience (CRUD + reorder support)
+- Education (CRUD system)
+- Skills (array-based dynamic system)
+- Projects (CRUD + reorder system)
+- Template switching system
+
+👉 Built with:
+- Immutable state updates
+- localStorage persistence layer
+- UUID-based entity tracking
+
+💡 **Business Impact:**  
+This turns the app into a *SaaS-grade editable document system*, not a static form.
+
+---
+
+### 🗂️ 2. Template Rendering System
+
+We implemented a **multi-template architecture**:
+
+#### 🧾 Templates Added:
+- `ModernTemplate`
+- `MinimalTemplate`
+- `CorporateTemplate`
+
+Each template:
+- Accepts unified `data` prop
+- Dynamically renders sections (Experience, Skills, Projects, Education)
+- Uses responsive Tailwind layout system
+
+💡 **Key Fix Today:**
+- Fixed **Projects not rendering issue** in ModernTemplate
+- Ensured safe default destructuring:
+```js
+projects = []
+```
+
+
+### 📦 3. Data Flow Architecture (IMPORTANT)
+
+We now have a clean pipeline:
+
+```bash
+localStorage → useResume Hook → Resume State → TemplateRenderer → UI Templates
+```
+
+This ensures:
+
+- Persistent user resume state
+- Cross-refresh stability
+-  Template-agnostic rendering system
+
+### 🧱 4. Dynamic Resume Sections Engine
+
+Each section is fully modular:
+
+- Experience → mapped cards
+- Education → structured timeline blocks
+- Skills → tag-based UI system
+- Projects → interactive live-link cards
+
+All sections are:
+✔ Reusable
+✔ Data-driven
+✔ Template-independent
+
+
+### 🎯 5. TemplateRenderer System
+
+We now dynamically switch templates:
+
+```js
+template === "modern" → ModernTemplate
+template === "minimal" → MinimalTemplate
+template === "corporate" → CorporateTemplate
+```
+
+Always default arrays safely:
+
+```js
+projects = []
+experience = []
+education = []
+skills = []
+```
+
+## 📈 Business Impact
+
+- Improves user onboarding flow after login
+- Sets foundation for monetization features (resume builder, premium plans)
+- Enhances UX → higher retention & engagement
+- Ready for future AI integrations and analytics dashboards
+
+---
+
+## 🔥 Next Steps
+
+- Resume Builder UI (core feature)
+- Connect backend APIs (resume + AI)
+- Add real analytics data
+- Enhance search functionality
+
+---
+
+## 🧪 Testing
+
+- Verified navigation across all dashboard routes
+- Checked responsive behavior
+- Sidebar collapse/expand working
+- Layout rendering properly with Outlet
+
+---
+
 ## 🚀 Getting Started
 
 1.  **Clone the repository:**
@@ -199,7 +369,6 @@ client
 │  │  │  ├─ Overview.jsx
 │  │  │  ├─ Profile.jsx
 │  │  │  └─ Resumes.jsx
-│  │  ├─ Dashboard.jsx
 │  │  ├─ Features
 │  │  │  ├─ AIHighlight.jsx
 │  │  │  ├─ CoreFeatures.jsx
@@ -219,6 +388,40 @@ client
 │  │  ├─ Login.jsx
 │  │  ├─ Pricing.jsx
 │  │  └─ Register.jsx
+│  ├─ resume
+│  │  ├─ builder
+│  │  │  ├─ panels
+│  │  │  │  ├─ EducationForm.jsx
+│  │  │  │  ├─ ExperienceForm.jsx
+│  │  │  │  ├─ PersonalInfoForm.jsx
+│  │  │  │  ├─ ProjectsForm.jsx
+│  │  │  │  └─ SkillsForm.jsx
+│  │  │  ├─ preview
+│  │  │  │  ├─ ResumeEducation.jsx
+│  │  │  │  ├─ ResumeExperience.jsx
+│  │  │  │  ├─ ResumeHeader.jsx
+│  │  │  │  └─ ResumeSkills.jsx
+│  │  │  └─ ResumeEditor.jsx
+│  │  ├─ components
+│  │  │  └─ sortable
+│  │  │     ├─ SortableExperienceItem.jsx
+│  │  │     └─ SortableProjectItem.jsx
+│  │  ├─ data
+│  │  │  └─ defaultResume.js
+│  │  ├─ hooks
+│  │  │  └─ useResume.js
+│  │  ├─ pages
+│  │  │  ├─ ResumeBuilder.jsx
+│  │  │  ├─ ResumePreview.jsx
+│  │  │  └─ ResumeTemplates.jsx
+│  │  ├─ renderer
+│  │  │  └─ TemplateRenderer.jsx
+│  │  ├─ templates
+│  │  │  ├─ CorporateTemplate.jsx
+│  │  │  ├─ MinimalTemplate.jsx
+│  │  │  └─ ModernTemplate.jsx
+│  │  └─ utils
+│  │     └─ exportPdf.js
 │  ├─ routes
 │  │  ├─ PrivateRouter.jsx
 │  │  └─ router.jsx
