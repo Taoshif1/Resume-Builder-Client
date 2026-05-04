@@ -16,7 +16,7 @@ const Register = () => {
     try {
       await registerUser(email, password);
       toast.success("Registration successful!");
-      navigate("/login");
+      navigate("/get-started");
     } catch (error) {
       toast.error("Error registering.");
       console.error("Error registering:", error);
@@ -27,7 +27,7 @@ const Register = () => {
     try {
       await googleLogin();
       toast.success("Google login successful!");
-      navigate("/login");
+      navigate("/get-started");
     } catch (error) {
       toast.error("Error with Google login.");
       console.error("Error with Google login:", error);
@@ -70,6 +70,7 @@ const Register = () => {
 
       <button 
         className="btn rounded-xl bg-gradient-to-r from-[#4648D4] to-[#8127CF] border-none mt-4"
+        type="button"
         onClick={handleRegister}
       >
         SignUp
@@ -85,6 +86,7 @@ const Register = () => {
 
       <button 
         className="btn border-none bg-[#F2F4F6] rounded-xl flex justify-center items-center gap-3 text-[#191C1E]  mt-4"
+        type="button"
         onClick={handleGoogleLogin}
       >
         <img src="/src/assets/google.png" />

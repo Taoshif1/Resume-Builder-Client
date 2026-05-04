@@ -41,7 +41,7 @@ const Sidebar = () => {
       </div>
 
       {/* Navigation Links */}
-      <nav className="flex flex-col gap-2 px-4 flex-1 overflow-y-auto scrollbar-thin">
+      <nav className="flex flex-col gap-2 px-4 flex-1 overflow-y-auto overflow-x-hidden">
         {" "}
         {links.map((link) => (
           <NavLink

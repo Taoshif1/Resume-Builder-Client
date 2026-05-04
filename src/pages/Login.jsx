@@ -3,6 +3,7 @@ import { useState } from "react";
 import { loginUser, googleLogin } from "../services/auth";
 import { useNavigate } from "react-router";
 import toast from "react-hot-toast";
+import googleLogo from "../assets/google.png";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -14,7 +15,7 @@ const Login = () => {
     try {
       await loginUser(email, password);
       toast.success("Login successful!");
-      navigate("/dashboard");
+      navigate("/dashboard", { replace: true });
     } catch (error) {
       toast.error("Invalid email or password.");
       console.error("Error logging in:", error);
@@ -25,7 +26,7 @@ const Login = () => {
     try {
       await googleLogin();
       toast.success("Google login successful!");
-      navigate("/dashboard");
+      navigate("/dashboard", { replace: true });
 
     } catch (error) {
       toast.error("Error with Google login.");
@@ -67,6 +68,7 @@ const Login = () => {
 
       <button
         className="btn bg-gradient-to-r from-[#4648D4] to-[#8127CF] text-white rounded-xl border-none mt-4"
+        type="button"
         onClick={handleLogin}
       >
         Login
@@ -82,13 +84,14 @@ const Login = () => {
 
       <button
         className="btn rounded-xl border-none bg-[#F2F4F6] flex justify-center items-center gap-3 text-[#191C1E] mt-4"
+        type="button"
         onClick={handleGoogleLogin}
       >
-        <img src="/src/assets/google.png" alt="Google" />
+        <img src={googleLogo} alt="Google" />
         <span>Continue with Google</span>
       </button>
 
-      {/* এখানে কালার এবং হোভার ইফেক্ট ঠিক করা হয়েছে */}
+      {/* এখানে কালার এবং হোভার ইফেক্ট ঠিক করা হয়েছে */}
       <p className="text-center mt-4 text-sm text-[#464554]">
         By continuing, you agree to PersonaCV AI's{" "}
         <span className="text-[#8127CF] font-bold cursor-pointer hover:underline">
