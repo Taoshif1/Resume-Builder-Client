@@ -1,212 +1,219 @@
-import { useState, useEffect } from "react";
-import { defaultResume } from "../data/defaultResume";
+import { useContext, useEffect, useMemo, useState } from "react";
+import { AuthContext } from "../../context/AuthContext";
+import {
+  createWorkspace,
+  newId,
+  requireValid,
+} from "../data/workspace.js";
+import { resolveResume } from "../data/resolveResume.js";
+import {
+  createLegacyMigrationCandidate,
+} from "../data/legacyMigration.js";
+import { loadWorkspace, saveWorkspace } from "../storage/workspaceStorage.js";
 
-const getInitialResume = () => {
-  const savedResume = localStorage.getItem("resume-data");
-  try {
-    return savedResume
-      ? {
-          ...defaultResume,
-          ...JSON.parse(savedResume),
-        }
-      : defaultResume;
-  } catch (error) {
-    console.error("Error parsing local storage", error);
-    return defaultResume;
-  }
+const emptyResume = {
+  template: "modern",
+  personalInfo: {
+    fullName: "", title: "", email: "", phone: "", location: "", summary: "",
+  },
+  experience: [], education: [], skills: [], projects: [],
 };
 
-export const useResume = () => {
-  const [resume, setResume] = useState(getInitialResume);
+export const useResume = ({ storage } = {}) => {
+  const { user, loading } = useContext(AuthContext);
+  const [workspace, setWorkspace] = useState(null);
+  const [migrationCandidate, setMigrationCandidate] = useState(null);
+  const [storageError, setStorageError] = useState(null);
 
   useEffect(() => {
-    localStorage.setItem("resume-data", JSON.stringify(resume));
-  }, [resume]);
+    if (loading) return;
+    if (!user?.uid) {
+      // Auth transitions must clear the previous account before another can load.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setWorkspace(null);
+      setMigrationCandidate(null);
+      return;
+    }
+    try {
+      const loaded = loadWorkspace(user.uid, storage);
+      const next = loaded ?? createWorkspace(user.uid);
+      setWorkspace(next);
+      if (!loaded) saveWorkspace(next, storage);
+      setMigrationCandidate(createLegacyMigrationCandidate(storage));
+      setStorageError(null);
+    } catch (error) {
+      console.error("Unable to initialize resume workspace.", error);
+      setWorkspace(null);
+      setMigrationCandidate(null);
+      setStorageError(error);
+    }
+  }, [loading, user?.uid, storage]);
 
-  // ===============================
-  // PERSONAL INFO
-  // ===============================
+  useEffect(() => {
+    if (!workspace || loading || !user?.uid || workspace.ownerUid !== user.uid) return;
+    try {
+      saveWorkspace(workspace, storage);
+    } catch (error) {
+      console.error("Unable to persist resume workspace.", error);
+      // Surface persistence failure without treating the edit as saved.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setStorageError(error);
+    }
+  }, [workspace, loading, user?.uid, storage]);
 
-  const updatePersonalInfo = (field, value) => {
-    setResume((prev) => ({
-      ...prev,
-      personalInfo: {
-        ...prev.personalInfo,
-        [field]: value,
+  const variant = workspace?.resumeVariants[0];
+  const resume = useMemo(
+    () => (workspace ? resolveResume(workspace, variant?.id) : emptyResume),
+    [workspace, variant?.id],
+  );
+
+  const updateWorkspace = (updater) => {
+    setWorkspace((current) => (current ? updater(current) : current));
+  };
+  const updateVariant = (updater) => updateWorkspace((current) => ({
+    ...current,
+    resumeVariants: current.resumeVariants.map((item, index) =>
+      index === 0 ? updater(item) : item),
+  }));
+
+  const updatePersonalInfo = (field, value) =>
+    updateWorkspace((current) => ({
+      ...current,
+      profile: {
+        ...current.profile,
+        personalInfo: { ...current.profile.personalInfo, [field]: value },
       },
     }));
-  };
-
-  // ===============================
-  // TEMPLATE
-  // ===============================
-
-  const updateTemplate = (template) => {
-    setResume((prev) => ({
-      ...prev,
-      template,
-    }));
-  };
-
-  // ===============================
-  // EXPERIENCE
-  // ===============================
+  const updateTemplate = (template) => updateVariant((current) => ({ ...current, template }));
 
   const addExperience = () => {
-    const newExperience = {
-      id: crypto.randomUUID(),
-      company: "",
-      role: "",
-      startDate: "",
-      endDate: "",
-      description: "",
-    };
-
-    setResume((prev) => ({
-      ...prev,
-      experience: [...prev.experience, newExperience],
+    const item = { id: newId(), company: "", role: "", startDate: "", endDate: "", description: "" };
+    updateWorkspace((current) => ({
+      ...current,
+      profile: { ...current.profile, experience: [...current.profile.experience, item] },
     }));
+    updateVariant((current) => ({ ...current, experienceIds: [...current.experienceIds, item.id] }));
   };
-
-  const updateExperience = (id, field, value) => {
-    setResume((prev) => ({
-      ...prev,
-      experience: prev.experience.map((item) =>
-        item.id === id ? { ...item, [field]: value } : item,
-      ),
-    }));
-  };
-
+  const updateExperience = (id, field, value) => updateWorkspace((current) => ({
+    ...current,
+    profile: {
+      ...current.profile,
+      experience: current.profile.experience.map((item) =>
+        item.id === id ? { ...item, [field]: value } : item),
+    },
+  }));
   const removeExperience = (id) => {
-    setResume((prev) => ({
-      ...prev,
-      experience: prev.experience.filter((item) => item.id !== id),
+    updateWorkspace((current) => ({
+      ...current,
+      profile: { ...current.profile, experience: current.profile.experience.filter((item) => item.id !== id) },
+    }));
+    updateVariant((current) => ({
+      ...current,
+      experienceIds: current.experienceIds.filter((itemId) => itemId !== id),
+      overrides: { ...current.overrides, experience: Object.fromEntries(Object.entries(current.overrides.experience).filter(([itemId]) => itemId !== id)) },
     }));
   };
-
-  const reorderExperience = (newOrder) => {
-    setResume((prev) => ({
-      ...prev,
-      experience: newOrder,
-    }));
-  };
-
-  // ===============================
-  // EDUCATION
-  // ===============================
+  const reorderExperience = (newOrder) => setWorkspace((current) => {
+    if (!current) return current;
+    const ids = newOrder.map((item) => item.id);
+    return {
+      ...current,
+      profile: { ...current.profile, experience: newOrder },
+      resumeVariants: current.resumeVariants.map((item, index) =>
+        index === 0 ? { ...item, experienceIds: ids } : item),
+    };
+  });
 
   const addEducation = () => {
-    const newEducation = {
-      id: crypto.randomUUID(),
-      institution: "",
-      degree: "",
-      startDate: "",
-      endDate: "",
-    };
-
-    setResume((prev) => ({
-      ...prev,
-      education: [...prev.education, newEducation],
+    const item = { id: newId(), institution: "", degree: "", startDate: "", endDate: "" };
+    updateWorkspace((current) => ({
+      ...current,
+      profile: { ...current.profile, education: [...current.profile.education, item] },
     }));
+    updateVariant((current) => ({ ...current, educationIds: [...current.educationIds, item.id] }));
   };
-
-  const updateEducation = (id, field, value) => {
-    setResume((prev) => ({
-      ...prev,
-      education: prev.education.map((item) =>
-        item.id === id ? { ...item, [field]: value } : item,
-      ),
-    }));
-  };
-
+  const updateEducation = (id, field, value) => updateWorkspace((current) => ({
+    ...current,
+    profile: { ...current.profile, education: current.profile.education.map((item) =>
+      item.id === id ? { ...item, [field]: value } : item) },
+  }));
   const removeEducation = (id) => {
-    setResume((prev) => ({
-      ...prev,
-      education: prev.education.filter((item) => item.id !== id),
-    }));
+    updateWorkspace((current) => ({ ...current, profile: { ...current.profile, education: current.profile.education.filter((item) => item.id !== id) } }));
+    updateVariant((current) => ({ ...current, educationIds: current.educationIds.filter((itemId) => itemId !== id) }));
   };
-
-  // ===============================
-  // SKILLS
-  // ===============================
 
   const addSkill = (skill) => {
     if (!skill.trim()) return;
-
-    setResume((prev) => ({
-      ...prev,
-      skills: [...prev.skills, skill],
-    }));
+    const item = { id: newId(), name: skill.trim() };
+    updateWorkspace((current) => ({ ...current, profile: { ...current.profile, skills: [...current.profile.skills, item] } }));
+    updateVariant((current) => ({ ...current, skillIds: [...current.skillIds, item.id] }));
   };
-
-  const removeSkill = (skillToRemove) => {
-    setResume((prev) => ({
-      ...prev,
-      skills: prev.skills.filter((skill) => skill !== skillToRemove),
-    }));
+  const removeSkill = (skill) => {
+    const removedIds = new Set(
+      workspace?.profile.skills
+        .filter((item) => item.name === skill)
+        .map((item) => item.id),
+    );
+    updateWorkspace((current) => ({ ...current, profile: { ...current.profile, skills: current.profile.skills.filter((item) => item.name !== skill) } }));
+    updateVariant((current) => ({ ...current, skillIds: current.skillIds.filter((id) => !removedIds.has(id)) }));
   };
-
-  // ===============================
-  // PROJECTS
-  // ===============================
 
   const addProject = () => {
-    const newProject = {
-      id: crypto.randomUUID(),
-      title: "",
-      techStack: "",
-      liveLink: "",
-      description: "",
-    };
-
-    setResume((prev) => ({
-      ...prev,
-      projects: [...prev.projects, newProject],
-    }));
+    const item = { id: newId(), source: "manual", sourceData: {}, resumeData: { title: "", techStack: "", liveLink: "", description: "" } };
+    updateWorkspace((current) => ({ ...current, projects: [...current.projects, item] }));
+    updateVariant((current) => ({ ...current, projectIds: [...current.projectIds, item.id] }));
   };
-
-  const updateProject = (id, field, value) => {
-    setResume((prev) => ({
-      ...prev,
-      projects: prev.projects.map((project) =>
-        project.id === id ? { ...project, [field]: value } : project,
-      ),
-    }));
-  };
-
+  const updateProject = (id, field, value) => updateWorkspace((current) => ({
+    ...current,
+    projects: current.projects.map((project) => project.id === id
+      ? { ...project, resumeData: { ...project.resumeData, [field]: value } } : project),
+  }));
   const removeProject = (id) => {
-    setResume((prev) => ({
-      ...prev,
-      projects: prev.projects.filter((project) => project.id !== id),
-    }));
+    updateWorkspace((current) => ({ ...current, projects: current.projects.filter((project) => project.id !== id) }));
+    updateVariant((current) => ({ ...current, projectIds: current.projectIds.filter((itemId) => itemId !== id) }));
   };
+  const reorderProjects = (newOrder) => setWorkspace((current) => {
+    if (!current) return current;
+    const projects = newOrder
+      .map((project) => current.projects.find((item) => item.id === project.id))
+      .filter(Boolean);
+    return {
+      ...current,
+      projects,
+      resumeVariants: current.resumeVariants.map((item, index) =>
+        index === 0 ? { ...item, projectIds: projects.map((project) => project.id) } : item),
+    };
+  });
 
-  const reorderProjects = (newOrder) => {
-    setResume((prev) => ({
-      ...prev,
-      projects: newOrder,
+  const setResume = (nextResume) => {
+    const value = typeof nextResume === "function" ? nextResume(resume) : nextResume;
+    requireValid(value && value.personalInfo, "Invalid resume update.");
+    updateWorkspace((current) => ({
+      ...current,
+      profile: { ...current.profile, personalInfo: { ...current.profile.personalInfo, ...value.personalInfo } },
     }));
+    updateVariant((current) => ({ ...current, template: value.template || current.template }));
   };
 
   return {
     resume,
+    workspace,
+    loading,
+    authenticated: Boolean(user?.uid) && !loading,
+    storageError,
+    migrationCandidate,
     setResume,
-
     updatePersonalInfo,
     updateTemplate,
-
     addExperience,
     updateExperience,
     removeExperience,
     reorderExperience,
-
     addEducation,
     updateEducation,
     removeEducation,
-
     addSkill,
     removeSkill,
-
     addProject,
     updateProject,
     removeProject,

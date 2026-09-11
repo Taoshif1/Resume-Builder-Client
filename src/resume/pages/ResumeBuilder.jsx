@@ -5,6 +5,9 @@ const ResumeBuilder = () => {
   const {
     resume,
     setResume,
+    loading,
+    authenticated,
+    storageError,
 
     addExperience,
     updateExperience,
@@ -23,6 +26,12 @@ const ResumeBuilder = () => {
     removeProject,
     reorderProjects,
   } = useResume();
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center">Loading resume...</div>;
+  }
+  if (!authenticated || storageError) {
+    return <div className="min-h-screen flex items-center justify-center">Unable to load resume workspace.</div>;
+  }
   return (
     <div className="h-screen overflow-hidden bg-[#F5F7FA] grid grid-cols-12">
       {/* LEFT */}

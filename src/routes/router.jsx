@@ -24,7 +24,11 @@ export const router = createBrowserRouter([
       { path: "pricing", element: <Pricing></Pricing> }, // Pricing পেজের রাউট
       {
         path: "resume/new",
-        element: <ResumeBuilder />,
+        element: (
+          <PrivateRoute>
+            <ResumeBuilder />
+          </PrivateRoute>
+        ),
       },
       {
         path: "dashboard",
