@@ -5,9 +5,9 @@ import { AuthContext } from "../../context/AuthContext";
 
 const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false); // Profile dropdown state
   const { user, logout } = useContext(AuthContext);
 
-  // মেনু আইটেমগুলোর লিস্ট
   const navItems = [
     { name: "Product", path: "/" },
     { name: "Features", path: "/features" },
@@ -18,13 +18,12 @@ const Navbar = () => {
     <div className="w-full bg-[#fcfcfc] border-b border-gray-200 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto navbar px-4 lg:px-8 min-h-[60px]">
         <div className="navbar-start relative">
-          {/* Mobile Menu Toggle Button */}
+          {/* Mobile Menu Toggle */}
           <button
             className="btn btn-ghost lg:hidden mr-2 p-2 hover:bg-gray-100"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           >
             {isMobileMenuOpen ? (
-              // ❌ RED CLOSE ICON
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="h-6 w-6 text-red-500"
@@ -40,7 +39,6 @@ const Navbar = () => {
                 />
               </svg>
             ) : (
-              // ☰ MENU ICON (3 Lines)
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="h-6 w-6 text-gray-800"
@@ -58,7 +56,7 @@ const Navbar = () => {
             )}
           </button>
 
-          {/* Mobile Menu Content - Controlled strictly by React State */}
+          {/* Mobile Menu Content */}
           {isMobileMenuOpen && (
             <ul className="absolute top-[65px] left-0 z-50 p-4 shadow-2xl bg-white rounded-xl w-64 border border-gray-100 flex flex-col gap-2 list-none">
               {navItems.map((item) => (
@@ -121,11 +119,10 @@ const Navbar = () => {
         {/* End: Action Buttons */}
         <div className="navbar-end gap-6 items-center">
           {user ? (
-            <div className="dropdown dropdown-end">
-              {/* Trigger: Image + Info Row */}
+            <div className="relative">
+              {/* Trigger */}
               <div
-                tabIndex={0}
-                role="button"
+                onClick={() => setIsProfileOpen(!isProfileOpen)}
                 className="cursor-pointer flex items-center gap-3 hover:bg-gray-100 p-1.5 rounded-full transition-colors"
               >
                 <img
@@ -133,7 +130,6 @@ const Navbar = () => {
                   alt="user"
                   className="w-9 h-9 rounded-full border border-gray-200 object-cover"
                 />
-                {/* Name and Email visible on Navbar */}
                 <div className="hidden sm:flex flex-col items-start leading-tight pr-2">
                   <span className="text-[14px] font-bold text-[#191C1E]">
                     {user?.displayName || "User"}
@@ -146,51 +142,56 @@ const Navbar = () => {
                 </div>
               </div>
 
-              {/* Dropdown Menu */}
-              <ul
-                tabIndex={0}
-                className="dropdown-content mt-3 z-[1] p-4 shadow-xl bg-white rounded-2xl w-64 border border-gray-100 flex flex-col gap-1"
-              >
-                <li className="px-2 py-1 mb-1">
-                  <p className="text-xs font-bold text-[#4648D4] uppercase tracking-wider">
-                    Account Status
-                  </p>
-                  <p className="text-sm font-semibold text-gray-600">
-                    Free Plan
-                  </p>
-                </li>
+              {/* Dropdown Menu - Conditionally Rendered */}
+              {isProfileOpen && (
+                <>
+                  {/* Overlay to close dropdown when clicking outside */}
+                  <div
+                    className="fixed inset-0 z-10"
+                    onClick={() => setIsProfileOpen(false)}
+                  ></div>
 
-                <div className="divider my-1"></div>
-
-                <li>
-                  <Link
-                    to="/dashboard"
-                    className="flex items-center gap-3 hover:bg-gray-50 p-2.5 rounded-xl transition-colors text-[#464554] font-medium"
-                  >
-                    <span className="text-lg">📊</span> Dashboard
-                  </Link>
-                </li>
-
-                <li>
-                  <Link
-                    to="/my-resumes"
-                    className="flex items-center gap-3 hover:bg-gray-50 p-2.5 rounded-xl transition-colors text-[#464554] font-medium"
-                  >
-                    <span className="text-lg">📄</span> My Resumes
-                  </Link>
-                </li>
-
-                <div className="divider my-1"></div>
-
-                <li>
-                  <button
-                    onClick={logout}
-                    className="w-full flex items-center gap-3 text-red-500 hover:bg-red-50 p-2.5 rounded-xl transition-colors font-medium"
-                  >
-                    <span className="text-lg">🚪</span> Logout
-                  </button>
-                </li>
-              </ul>
+                  <ul className="absolute right-0 mt-3 z-20 p-4 shadow-xl bg-white rounded-2xl w-64 border border-gray-100 flex flex-col gap-1 list-none">
+                    <li className="px-2 py-1 mb-1">
+                      <p className="text-xs font-bold text-[#4648D4] uppercase tracking-wider">
+                        Account Status
+                      </p>
+                      <p className="text-sm font-semibold text-gray-600">
+                        Free Plan
+                      </p>
+                    </li>
+                    <div className="divider my-1"></div>
+                    <li onClick={() => setIsProfileOpen(false)}>
+                      <Link
+                        to="/dashboard"
+                        className="flex items-center gap-3 hover:bg-gray-50 p-2.5 rounded-xl transition-colors text-[#464554] font-medium"
+                      >
+                        <span className="text-lg">📊</span> Dashboard
+                      </Link>
+                    </li>
+                    <li onClick={() => setIsProfileOpen(false)}>
+                      <Link
+                        to="/my-resumes"
+                        className="flex items-center gap-3 hover:bg-gray-50 p-2.5 rounded-xl transition-colors text-[#464554] font-medium"
+                      >
+                        <span className="text-lg">📄</span> My Resumes
+                      </Link>
+                    </li>
+                    <div className="divider my-1"></div>
+                    <li>
+                      <button
+                        onClick={() => {
+                          logout();
+                          setIsProfileOpen(false);
+                        }}
+                        className="w-full flex items-center gap-3 text-red-500 hover:bg-red-50 p-2.5 rounded-xl transition-colors font-medium"
+                      >
+                        <span className="text-lg">🚪</span> Logout
+                      </button>
+                    </li>
+                  </ul>
+                </>
+              )}
             </div>
           ) : (
             <>
