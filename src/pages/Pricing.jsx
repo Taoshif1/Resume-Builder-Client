@@ -1,4 +1,6 @@
-import React, { useRef, useState } from "react";
+import React, { useRef } from "react";
+import { useNavigate } from "react-router";
+import { PLANS } from "../product/plans";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { Draggable } from "gsap/Draggable";
@@ -8,56 +10,35 @@ gsap.registerPlugin(Draggable);
 const Pricing = () => {
   const containerRef = useRef();
   const sliderRef = useRef();
-  const [yearly, setYearly] = useState(false);
+  const navigate = useNavigate();
 
   const plans = [
     {
-      name: "Starter",
-      price: yearly ? "$0" : "$0",
-      features: ["1 Resume Build", "Standard Templates", "Basic AI Support"],
+      name: "Free",
+      price: "$0",
+      features: [
+        `${PLANS.free.maxVariants} resume variants`,
+        `${PLANS.free.maxProjects} reusable projects`,
+        "Public GitHub import",
+        "ATS-friendly PDF export",
+      ],
       button: "Start Free",
       bg: "bg-[#EFECE3]",
       text: "text-black",
     },
     {
-      name: "Professional",
-      price: yearly ? "$15" : "$19",
+      name: "Pro",
+      price: "By request",
       features: [
-        "Unlimited Resumes",
-        "Premium Templates",
-        "Advanced AI Writer",
-        "Priority Support",
+        `${PLANS.pro.maxVariants} resume variants`,
+        `${PLANS.pro.maxProjects} projects`,
+        "Job targeting and history",
+        "All templates; optional AI writing",
       ],
-      button: "Upgrade Now",
+      button: "Request Pro access",
       bg: "bg-[#4A70A9]",
       text: "text-white",
       popular: true,
-    },
-    {
-      name: "Enterprise",
-      price: yearly ? "$39" : "$49",
-      features: [
-        "Team Access",
-        "Custom Branding",
-        "API Integration",
-        "Dedicated Account Manager",
-      ],
-      button: "Contact Sales",
-      bg: "bg-[#8FABD4]",
-      text: "text-black",
-    },
-    {
-      name: "Ultimate",
-      price: yearly ? "$79" : "$99",
-      features: [
-        "Everything in Enterprise",
-        "Lifetime Updates",
-        "1-on-1 Coaching",
-      ],
-      button: "Go Elite",
-      bg: "bg-black",
-      text: "text-white",
-      premium: true,
     },
   ];
 
@@ -130,28 +111,10 @@ const Pricing = () => {
         </p>
       </div>
 
-      {/* Yearly Toggle */}
-      <div className="flex justify-center items-center gap-4 mb-16">
-        <span
-          className={`font-bold ${!yearly ? "text-black" : "text-gray-400"}`}
-        >
-          Monthly
-        </span>
-        <input
-          type="checkbox"
-          className="toggle toggle-primary"
-          checked={yearly}
-          onChange={() => setYearly(!yearly)}
-        />
-        <span
-          className={`font-bold ${yearly ? "text-black" : "text-gray-400"}`}
-        >
-          Yearly
-        </span>
-        <span className="badge badge-success gap-2 py-3 font-bold">
-          Save 20%
-        </span>
-      </div>
+      <p className="text-center text-gray-600 mb-10">
+        Online billing is not configured. Pro access is assigned by the owner on
+        request.
+      </p>
 
       {/* Slider Wrapper */}
       <div
@@ -180,11 +143,8 @@ const Pricing = () => {
               <h3 className="text-sm font-black mb-6 uppercase tracking-[0.3em] opacity-60">
                 {plan.name}
               </h3>
-              <h2 className="text-7xl font-black mb-12 flex items-baseline tracking-tighter">
+              <h2 className="text-4xl font-black mb-12 flex items-baseline tracking-tighter">
                 {plan.price}
-                <span className="text-xl font-medium opacity-40 ml-2">
-                  /{yearly ? "yr" : "mo"}
-                </span>
               </h2>
               <ul className="space-y-6 mb-12">
                 {plan.features.map((feature, i) => (
@@ -217,6 +177,13 @@ const Pricing = () => {
             </div>
 
             <button
+              onClick={() =>
+                navigate(
+                  plan.name === "Free"
+                    ? "/get-started/register"
+                    : "/dashboard/settings",
+                )
+              }
               className={`w-full py-6 rounded-3xl font-black text-xs uppercase tracking-[0.2em] transition-all active:scale-95 shadow-xl ${
                 plan.bg === "bg-black" || plan.bg === "bg-[#4A70A9]"
                   ? "bg-white text-black"

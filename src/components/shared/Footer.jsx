@@ -8,8 +8,6 @@ const Footer = () => {
     { name: "Privacy Policy", path: "/privacy-policy" },
     { name: "Terms of Service", path: "/terms-of-service" },
     { name: "Contact", path: "/contact" },
-    { name: "Twitter", path: "#" },
-    { name: "LinkedIn", path: "#" },
   ];
 
   return (

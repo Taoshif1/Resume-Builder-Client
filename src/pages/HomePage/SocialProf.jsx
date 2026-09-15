@@ -39,16 +39,15 @@ const SocialProof = () => {
             Ready to build your professional empire?
           </h1>
           <p className="text-[#EFECE3]/80 my-5 font-medium max-w-xl mx-auto">
-            Join 50,000+ top-tier professionals who have revolutionized their job
-            search with PersonaCV AI.
+            Maintain your developer profile once and create focused resumes for your next opportunity.
           </p>
           
           <div className="flex gap-4 justify-center items-center mt-8">
             <Link
-              to="/dashboard"
+              to="/contact"
               className="btn btn-sm lg:btn-md border-none bg-[#EFECE3] text-[#4A70A9] rounded-xl px-8 shadow-md hover:scale-105 transition-all"
             >
-              Book a Demo
+              Contact us
             </Link>
             <Link
               to="/dashboard"

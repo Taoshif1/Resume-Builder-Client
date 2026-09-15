@@ -1,0 +1,9 @@
+node_modules
+dist
+.git
+.env*
+artifacts
+.artifacts
+*.log
+*service-account*.json
+*-adminsdk-*.json

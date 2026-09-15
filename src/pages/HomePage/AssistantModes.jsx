@@ -1,3 +1,4 @@
+import { Link } from "react-router";
 import React, { useRef } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
@@ -36,12 +37,12 @@ const AsistantModes = () => {
           <div className="canvas-card bg-white rounded-3xl p-8 shadow-lg">
             <div className="flex justify-between items-center mb-8">
               <h3 className="font-bold text-gray-800">Persona Selection</h3>
-              <span className="bg-[#4A70A9]/10 text-[#4A70A9] text-[10px] font-bold px-3 py-1 rounded-full uppercase">AI Mode: Active</span>
+              <span className="bg-[#4A70A9]/10 text-[#4A70A9] text-[10px] font-bold px-3 py-1 rounded-full uppercase">Illustrative example</span>
             </div>
 
             <div className="space-y-4">
               {/* Creative Lead Option */}
-              <div className="flex items-center justify-between p-4 bg-[#4A70A9] text-white rounded-xl cursor-pointer">
+              <div className="flex items-center justify-between p-4 bg-[#4A70A9] text-white rounded-xl ">
                 <div className="flex items-center gap-3">
                     <div className="w-5 h-5 rounded-full border-2 border-white flex items-center justify-center">
                         <div className="w-2 h-2 bg-white rounded-full"></div>
@@ -51,7 +52,7 @@ const AsistantModes = () => {
               </div>
 
               {/* Startup Founder Option */}
-              <div className="flex items-center justify-between p-4 border border-gray-100 rounded-xl cursor-pointer hover:bg-gray-50">
+              <div className="flex items-center justify-between p-4 border border-gray-100 rounded-xl  hover:bg-gray-50">
                 <div className="flex items-center gap-3">
                     <div className="w-5 h-5 rounded-full border-2 border-gray-300"></div>
                     <span className="font-semibold text-sm text-gray-500">Startup Founder Role</span>
@@ -59,21 +60,8 @@ const AsistantModes = () => {
               </div>
             </div>
 
-            <div className="mt-10">
-                <label className="text-[10px] font-black text-[#4A70A9] uppercase mb-2 block tracking-widest">Job Description URL</label>
-                <div className="relative">
-                    <input 
-                        type="text" 
-                        placeholder="https://careers.company.com/job/123" 
-                        className="w-full bg-gray-50 border-none rounded-xl p-4 text-xs pr-12 focus:ring-2 focus:ring-[#4A70A9]/20"
-                    />
-                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[#4A70A9]">🔗</span>
-                </div>
-            </div>
-
-            <button className="w-full mt-6 bg-[#4A70A9] text-white py-4 rounded-xl font-bold shadow-lg hover:brightness-110 transition-all">
-                Generate Optimized Copy
-            </button>
+            <p className="mt-6 text-sm text-gray-600">Illustrative resume content. In your workspace, paste a job description to compare existing skills on Pro.</p>
+            <Link to="/dashboard/resumes" className="block w-full mt-6 bg-[#4A70A9] text-white py-4 rounded-xl font-bold">Open your resume workspace</Link>
           </div>
 
           {/* Right Side: Preview Section */}
@@ -102,12 +90,12 @@ const AsistantModes = () => {
 
              <div className="grid grid-cols-2 gap-4 mt-10">
                 <div className="bg-gray-50 p-6 rounded-2xl">
-                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2">ATS Score</span>
-                    <h4 className="text-3xl font-bold text-[#4A70A9]">98%</h4>
+                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2">Review guidance</span>
+                    <h4 className="text-3xl font-bold text-[#4A70A9]">Review</h4>
                 </div>
                 <div className="bg-gray-50 p-6 rounded-2xl">
-                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2">Persona Match</span>
-                    <h4 className="text-3xl font-bold text-[#4A70A9]">High</h4>
+                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2">Target role</span>
+                    <h4 className="text-3xl font-bold text-[#4A70A9]">Selected</h4>
                 </div>
              </div>
           </div>

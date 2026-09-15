@@ -20,15 +20,15 @@ const HeroSection = () => {
           </h1>
 
           <p className="text-[#4A70A9]/80 text-lg md:text-xl font-medium leading-relaxed max-w-xl">
-            Stop starting from scratch. Your <span className="font-bold text-black">Career Vault</span> centralizes every achievement, skill, and role—ready to be deployed into AI-tailored personas for any job.
+            Stop starting from scratch. Your <span className="font-bold text-black">Career Vault</span> centralizes every achievement, skill, and role—ready to be deployed into targeted resumes for each opportunity.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-5 pt-4">
-            <Link className="btn  lg:btn-md border-[#4A70A9] bg-[#EFECE3] text-[#4A70A9] rounded-xl px-8 shadow-md hover:scale-105 transition-all ">
+            <Link to="/get-started/register" className="btn  lg:btn-md border-[#4A70A9] bg-[#EFECE3] text-[#4A70A9] rounded-xl px-8 shadow-md hover:scale-105 transition-all ">
               <HiOutlineUserAdd className="text-2xl" />
               Get Started for Free
             </Link>
-            <Link className="btn  lg:btn-md border-[#4A70A9] bg-[#4A70A9] text-[#EFECE3] rounded-xl px-8 shadow-md hover:scale-105 transition-all ">
+            <Link to="/resume/new" className="btn  lg:btn-md border-[#4A70A9] bg-[#4A70A9] text-[#EFECE3] rounded-xl px-8 shadow-md hover:scale-105 transition-all ">
               <VscFileSymlinkFile className="text-2xl opacity-60" />
               View Templates
             </Link>
