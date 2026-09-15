@@ -1,0 +1,45 @@
+.pcv-section-order {
+  position: relative;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  min-height: 48px;
+  padding: 8px 6px;
+  border: 1px solid transparent;
+  border-bottom-color: #e5eaf2;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.pcv-section-order[data-dragging="true"] {
+  border-color: #8fb0df;
+  background: #eef4fc;
+  box-shadow: 0 8px 24px #17345f1a;
+  opacity: 0.82;
+}
+
+.pcv-drag-handle {
+  flex: 0 0 auto;
+  touch-action: none;
+  user-select: none;
+  cursor: grab !important;
+  font-size: 18px !important;
+  line-height: 1;
+}
+
+.pcv-drag-handle:active,
+.pcv-drag-handle[aria-pressed="true"] {
+  cursor: grabbing !important;
+}
+
+.pcv-section-label {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  margin-right: auto;
+  text-transform: capitalize;
+  cursor: pointer;
+}
+
+.pcv-section-order .pcv-order {
+  flex: 0 0 auto;
+}

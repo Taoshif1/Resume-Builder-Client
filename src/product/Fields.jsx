@@ -29,10 +29,12 @@ export function Field({
     </label>
   );
 }
+
 export function OrderButtons({ index, length, onMove, name = "item" }) {
   return (
     <span className="pcv-order">
       <button
+        type="button"
         aria-label={`Move ${name} up`}
         disabled={index === 0}
         onClick={() => onMove(-1)}
@@ -40,6 +42,7 @@ export function OrderButtons({ index, length, onMove, name = "item" }) {
         ↑
       </button>
       <button
+        type="button"
         aria-label={`Move ${name} down`}
         disabled={index === length - 1}
         onClick={() => onMove(1)}

@@ -4,6 +4,7 @@ import {
   DndContext,
   KeyboardSensor,
   PointerSensor,
+  closestCenter,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
@@ -28,19 +29,35 @@ import ResumePreview from "./ResumePreview";
 import { api, downloadBlob } from "./api";
 
 function SectionOrder({ id, children }) {
-  const { attributes, listeners, setNodeRef, transform, transition } =
-    useSortable({ id });
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    setActivatorNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id });
+
   return (
     <div
       ref={setNodeRef}
-      style={{ transform: CSS.Transform.toString(transform), transition }}
+      data-dragging={isDragging ? "true" : "false"}
+      style={{
+        transform: CSS.Transform.toString(transform),
+        transition,
+        zIndex: isDragging ? 2 : undefined,
+      }}
       className="pcv-row pcv-section-order"
     >
       <button
+        ref={setActivatorNodeRef}
+        type="button"
+        className="pcv-drag-handle"
         {...attributes}
         {...listeners}
         aria-label={`Drag ${id} section`}
-        style={{ touchAction: "none" }}
+        aria-pressed={isDragging}
       >
         ⠿
       </button>
@@ -48,6 +65,7 @@ function SectionOrder({ id, children }) {
     </div>
   );
 }
+
 export default function EditorPage() {
   const { id } = useParams();
   const { workspace, update, entitlements, features, save, saving, dirty } =
@@ -60,11 +78,12 @@ export default function EditorPage() {
   const [guidance, setGuidance] = useState(null);
   const [suggestion, setSuggestion] = useState(null);
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     }),
   );
+
   if (!variant)
     return (
       <main className="pcv-page">
@@ -72,6 +91,7 @@ export default function EditorPage() {
         <Link to="/dashboard/resumes">Back to resumes</Link>
       </main>
     );
+
   const model = resumeDocument(workspace, variant.id);
   const checks = qualityChecks(model);
   const edit = (fn) =>
@@ -82,6 +102,7 @@ export default function EditorPage() {
         v.updatedAt = new Date().toISOString();
       }),
     );
+
   async function action(fn) {
     setBusy(true);
     setMessage("");
@@ -93,6 +114,7 @@ export default function EditorPage() {
       setBusy(false);
     }
   }
+
   async function exportPdf() {
     await action(async () => {
       if (dirty) await save();
@@ -105,6 +127,7 @@ export default function EditorPage() {
       setMessage("PDF downloaded.");
     });
   }
+
   const groups = [
     [
       "experience",
@@ -121,6 +144,7 @@ export default function EditorPage() {
     ],
     ["skills", "skillIds", workspace.profile.skills, ["name"]],
   ];
+
   return (
     <main className="pcv-editor">
       <header className="pcv-editor-header">
@@ -302,20 +326,24 @@ export default function EditorPage() {
           <section className="pcv-card">
             <h2>Section order</h2>
             <p>
-              Drag the handle, use arrow buttons, or press Space on a handle and
-              use arrow keys.
+              Drag the handle, use arrow buttons, or focus a handle and press
+              Space followed by the arrow keys.
             </p>
             <DndContext
               sensors={sensors}
+              collisionDetection={closestCenter}
               onDragEnd={({ active, over }) => {
-                if (over && active.id !== over.id)
-                  edit((v) => {
-                    v.sectionOrder = arrayMove(
-                      v.sectionOrder,
-                      v.sectionOrder.indexOf(active.id),
-                      v.sectionOrder.indexOf(over.id),
-                    );
-                  });
+                if (!over || active.id === over.id) return;
+                edit((v) => {
+                  const oldIndex = v.sectionOrder.indexOf(active.id);
+                  const newIndex = v.sectionOrder.indexOf(over.id);
+                  if (oldIndex < 0 || newIndex < 0) return;
+                  v.sectionOrder = arrayMove(
+                    v.sectionOrder,
+                    oldIndex,
+                    newIndex,
+                  );
+                });
               }}
             >
               <SortableContext
@@ -324,7 +352,7 @@ export default function EditorPage() {
               >
                 {variant.sectionOrder.map((section, index) => (
                   <SectionOrder id={section} key={section}>
-                    <label>
+                    <label className="pcv-section-label">
                       <input
                         type="checkbox"
                         checked={!variant.hiddenSections?.includes(section)}
@@ -338,7 +366,7 @@ export default function EditorPage() {
                           })
                         }
                       />{" "}
-                      {section}
+                      <span>{section}</span>
                     </label>
                     <OrderButtons
                       index={index}
