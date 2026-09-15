@@ -1,6 +1,7 @@
 import { createRoot } from "react-dom/client";
 import "./index.css";
 import "./product/product.css";
+import "./product/dnd.css";
 import ErrorBoundary from "./product/ErrorBoundary";
 import { RouterProvider } from "react-router";
 import { router } from "./routes/router";
