@@ -6,15 +6,15 @@ const Sponsors = () => {
   const containerRef = useRef();
   const sliderRef = useRef();
   const sponsors = [
-    { name: "MICROSOFT" },
-    { name: "STRIPE" },
-    { name: "GOOGLE" },
-    { name: "AIRBNB" },
-    { name: "NOTION" },
-    { name: "AMAZON" },
-    { name: "TESLA" },
-    { name: "META" },
-    { name: "ADOBE" },
+    { name: "JAVASCRIPT" },
+    { name: "PYTHON" },
+    { name: "TYPESCRIPT" },
+    { name: "REACT" },
+    { name: "NODE.JS" },
+    { name: "POSTGRES" },
+    { name: "DOCKER" },
+    { name: "GIT" },
+    { name: "ACCESSIBILITY" },
   ];
 
   useGSAP(() => {
@@ -35,7 +35,7 @@ const Sponsors = () => {
     <section className="bg-[#EFECE3]/20 py-24 overflow-hidden border-y border-black/5" ref={containerRef}>
       <div className="flex flex-col items-center gap-14">
         <p className="text-[#4A70A9]/60 text-xs font-black tracking-[0.4em] uppercase">
-          Trusted by Professionals Hired at
+          Built for your developer toolkit
         </p>
         
         <div className="relative w-full overflow-hidden flex">

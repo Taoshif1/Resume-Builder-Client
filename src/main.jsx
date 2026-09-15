@@ -1,13 +1,17 @@
 import { createRoot } from "react-dom/client";
 import "./index.css";
+import "./product/product.css";
+import ErrorBoundary from "./product/ErrorBoundary";
 import { RouterProvider } from "react-router";
 import { router } from "./routes/router";
-import { AuthProvider } from "./context/AuthContext";
+import { AuthProvider } from "./context/AuthProvider";
 import { Toaster } from "react-hot-toast";
 
 createRoot(document.getElementById("root")).render(
-  <AuthProvider>
-    <RouterProvider router={router} />
-    <Toaster position="top-right" reverseOrder={false} />
-  </AuthProvider>,
+  <ErrorBoundary>
+    <AuthProvider>
+      <RouterProvider router={router} />
+      <Toaster position="top-right" reverseOrder={false} />
+    </AuthProvider>
+  </ErrorBoundary>,
 );

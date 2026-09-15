@@ -1,235 +1,109 @@
-import React, { useRef, useState } from "react";
-import { useGSAP } from "@gsap/react";
-import gsap from "gsap";
-import { Draggable } from "gsap/Draggable";
+import { useState } from "react";
+import { useNavigate } from "react-router";
+import { PLANS, PUBLIC_PLAN_FEATURES } from "../product/plans";
 
-gsap.registerPlugin(Draggable);
+const cards = [
+  {
+    id: "free",
+    cta: "Start Free",
+    className: "bg-[#EFECE3] text-black",
+  },
+  {
+    id: "pro",
+    cta: "Request Pro access",
+    badge: "Full product",
+    className: "bg-[#4A70A9] text-white",
+  },
+];
 
-const Pricing = () => {
-  const containerRef = useRef();
-  const sliderRef = useRef();
+export default function Pricing() {
   const [yearly, setYearly] = useState(false);
-
-  const plans = [
-    {
-      name: "Starter",
-      price: yearly ? "$0" : "$0",
-      features: ["1 Resume Build", "Standard Templates", "Basic AI Support"],
-      button: "Start Free",
-      bg: "bg-[#EFECE3]",
-      text: "text-black",
-    },
-    {
-      name: "Professional",
-      price: yearly ? "$15" : "$19",
-      features: [
-        "Unlimited Resumes",
-        "Premium Templates",
-        "Advanced AI Writer",
-        "Priority Support",
-      ],
-      button: "Upgrade Now",
-      bg: "bg-[#4A70A9]",
-      text: "text-white",
-      popular: true,
-    },
-    {
-      name: "Enterprise",
-      price: yearly ? "$39" : "$49",
-      features: [
-        "Team Access",
-        "Custom Branding",
-        "API Integration",
-        "Dedicated Account Manager",
-      ],
-      button: "Contact Sales",
-      bg: "bg-[#8FABD4]",
-      text: "text-black",
-    },
-    {
-      name: "Ultimate",
-      price: yearly ? "$79" : "$99",
-      features: [
-        "Everything in Enterprise",
-        "Lifetime Updates",
-        "1-on-1 Coaching",
-      ],
-      button: "Go Elite",
-      bg: "bg-black",
-      text: "text-white",
-      premium: true,
-    },
-  ];
-
-  useGSAP(
-    () => {
-      // 1. Entry Animation
-      gsap.from(".pricing-card", {
-        y: 100,
-        opacity: 0,
-        duration: 1,
-        stagger: 0.2,
-        ease: "power3.out",
-      });
-
-      const cards = gsap.utils.toArray(".pricing-card");
-
-      // 2. Scroll/Drag Effects
-      const updateEffects = () => {
-        if (!containerRef.current) return;
-        const containerRect = containerRef.current.getBoundingClientRect();
-        const containerCenter = containerRect.left + containerRect.width / 2;
-
-        cards.forEach((card) => {
-          const rect = card.getBoundingClientRect();
-          const cardCenter = rect.left + rect.width / 2;
-          const distance = Math.abs(containerCenter - cardCenter);
-
-          // Dynamic focus effect based on center distance
-          const opacity = gsap.utils.mapRange(0, 400, 1, 0.6, distance);
-          const scaleValue = card.classList.contains("premium-scale") ? 1.1 : 1;
-          const scale = gsap.utils.mapRange(0, 400, scaleValue, 0.85, distance);
-
-          gsap.set(card, {
-            opacity: opacity,
-            scale: scale,
-            overwrite: "auto",
-          });
-        });
-      };
-
-      Draggable.create(sliderRef.current, {
-        type: "x",
-        edgeResistance: 0.8,
-        bounds: containerRef.current,
-        inertia: true,
-        onDrag: updateEffects,
-        onThrowUpdate: updateEffects,
-        onRelease: updateEffects,
-      });
-
-      updateEffects();
-      window.addEventListener("resize", updateEffects);
-      return () => window.removeEventListener("resize", updateEffects);
-    },
-    { scope: containerRef },
-  );
+  const navigate = useNavigate();
 
   return (
-    <div
-      className="py-24 px-6 bg-[#EFECE3]/30 mb-20 overflow-hidden"
-      ref={containerRef}
-    >
-      {/* Header */}
-      <div className="text-center mb-10">
-        <h1 className="text-5xl font-black lg:text-7xl text-black tracking-tighter">
-          Simple, Transparent <span className="glow">Pricing</span>
+    <main className="py-20 px-6 bg-[#EFECE3]/30">
+      <header className="text-center max-w-2xl mx-auto mb-10 text-black">
+        <h1 className="text-5xl font-black tracking-tighter">
+          Simple, transparent <span className="glow">pricing</span>
         </h1>
-        <p className="mt-6 text-gray-600 font-semibold text-lg">
-          Drag to find your perfect plan.
+        <p className="mt-5 text-gray-600">
+          Free covers the core resume workflow. Pro adds higher limits, all
+          templates, history, job targeting and optional configured writing
+          assistance.
         </p>
-      </div>
-
-      {/* Yearly Toggle */}
-      <div className="flex justify-center items-center gap-4 mb-16">
-        <span
-          className={`font-bold ${!yearly ? "text-black" : "text-gray-400"}`}
-        >
+        <label className="inline-flex items-center gap-3 mt-6 font-bold">
           Monthly
-        </span>
-        <input
-          type="checkbox"
-          className="toggle toggle-primary"
-          checked={yearly}
-          onChange={() => setYearly(!yearly)}
-        />
-        <span
-          className={`font-bold ${yearly ? "text-black" : "text-gray-400"}`}
-        >
+          <input
+            type="checkbox"
+            className="toggle toggle-primary"
+            checked={yearly}
+            onChange={(event) => setYearly(event.target.checked)}
+          />
           Yearly
-        </span>
-        <span className="badge badge-success gap-2 py-3 font-bold">
-          Save 20%
-        </span>
-      </div>
+          <span className="badge badge-success">2 months included</span>
+        </label>
+        <p className="mt-4 text-sm text-gray-600">
+          Online checkout is not enabled yet. Pro access is currently assigned
+          by the Owner after a request.
+        </p>
+      </header>
 
-      {/* Slider Wrapper */}
-      <div
-        ref={sliderRef}
-        className="flex gap-10 cursor-grab active:cursor-grabbing w-max px-[10vw]"
+      <section
+        className="grid max-w-4xl mx-auto gap-6 md:grid-cols-2"
+        aria-label="PersonaCV plans"
       >
-        {plans.map((plan, index) => (
-          <div
-            key={index}
-            className={`pricing-card flex-shrink-0 w-[300px] md:w-[400px] h-[550px] ${plan.bg} ${plan.text} p-12 rounded-[50px] shadow-2xl flex flex-col justify-between relative border transition-shadow duration-300 hover:shadow-[0_20px_60px_rgba(74,112,169,0.25)] select-none 
-            ${plan.premium ? "border-yellow-400 premium-scale" : "border-black/5"}`}
-          >
-            {plan.popular && (
-              <span className="absolute top-4 right-10 bg-black text-white text-[10px] font-black px-4 py-2 rounded-full uppercase tracking-[0.2em] shadow-lg">
-                Most Popular
-              </span>
-            )}
-
-            {plan.premium && (
-              <span className="absolute top-4 left-6 bg-yellow-400 text-black text-[10px] font-black px-4 py-2 rounded-full uppercase tracking-widest shadow-lg">
-                Best Value 💎
-              </span>
-            )}
-
-            <div>
-              <h3 className="text-sm font-black mb-6 uppercase tracking-[0.3em] opacity-60">
-                {plan.name}
-              </h3>
-              <h2 className="text-7xl font-black mb-12 flex items-baseline tracking-tighter">
-                {plan.price}
-                <span className="text-xl font-medium opacity-40 ml-2">
+        {cards.map((card) => {
+          const plan = PLANS[card.id];
+          const price = plan.price[yearly ? "yearly" : "monthly"];
+          return (
+            <article
+              key={card.id}
+              className={
+                "relative rounded-[2rem] p-8 shadow-xl flex flex-col " +
+                card.className
+              }
+            >
+              {card.badge && (
+                <span className="absolute -top-3 left-8 rounded-full bg-yellow-300 text-black px-3 py-1 text-xs font-black uppercase">
+                  {card.badge}
+                </span>
+              )}
+              <h2 className="text-2xl font-black">{plan.label}</h2>
+              <p className="mt-4 text-4xl font-black">
+                ${price}
+                <span className="text-base font-medium opacity-70">
                   /{yearly ? "yr" : "mo"}
                 </span>
-              </h2>
-              <ul className="space-y-6 mb-12">
-                {plan.features.map((feature, i) => (
-                  <li
-                    key={i}
-                    className="flex items-center gap-4 font-bold text-sm"
-                  >
-                    <div
-                      className={`w-6 h-6 rounded-full flex items-center justify-center ${plan.text === "text-white" ? "bg-white/20" : "bg-black/10"}`}
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-3 w-3"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="4"
-                          d="M5 13l4 4L19 7"
-                        />
-                      </svg>
-                    </div>
-                    {feature}
-                  </li>
+              </p>
+              {yearly && price > 0 && (
+                <p className="text-sm mt-1 opacity-80">Planned annual price</p>
+              )}
+              <ul className="mt-7 space-y-3 flex-1">
+                {PUBLIC_PLAN_FEATURES[card.id].map((feature) => (
+                  <li key={feature}>• {feature}</li>
                 ))}
               </ul>
-            </div>
-
-            <button
-              className={`w-full py-6 rounded-3xl font-black text-xs uppercase tracking-[0.2em] transition-all active:scale-95 shadow-xl ${
-                plan.bg === "bg-black" || plan.bg === "bg-[#4A70A9]"
-                  ? "bg-white text-black"
-                  : "bg-black text-white"
-              }`}
-            >
-              {plan.button}
-            </button>
-          </div>
-        ))}
-      </div>
-    </div>
+              <button
+                className={
+                  "mt-8 w-full rounded-2xl py-4 font-black " +
+                  (card.id === "free"
+                    ? "bg-black text-white"
+                    : "bg-white text-black")
+                }
+                onClick={() =>
+                  navigate(
+                    card.id === "free"
+                      ? "/get-started/register"
+                      : "/dashboard/settings",
+                  )
+                }
+              >
+                {card.cta}
+              </button>
+            </article>
+          );
+        })}
+      </section>
+    </main>
   );
-};
-
-export default Pricing;
+}

@@ -7,7 +7,7 @@ export default function FloatingChatbot() {
   const [loading, setLoading] = useState(false);
 
   const bottomRef = useRef(null);
-  const sessionId = "user1";
+  
 
   // Auto scroll to latest message
   useEffect(() => {
@@ -20,31 +20,13 @@ export default function FloatingChatbot() {
     const userMsg = { role: "user", content: input };
     setMessages((prev) => [...prev, userMsg]);
 
-    const userInput = input;
+
     setInput("");
     setLoading(true);
 
     try {
-      const res = await fetch("http://localhost:5000/api/chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          sessionId,
-          message: userInput,
-        }),
-      });
-
-      const data = await res.json();
-
-      const botMsg = {
-        role: "assistant",
-        content: data.reply,
-      };
-
-      setMessages((prev) => [...prev, botMsg]);
-    } catch (err) {
+      setMessages((prev) => [...prev, { role: "assistant", content: "AI writing is available inside the resume editor for Pro accounts when a provider is configured. Open a resume to review writing suggestions." }]);
+    } catch {
       setMessages((prev) => [
         ...prev,
         { role: "assistant", content: "Server error ❌" },
