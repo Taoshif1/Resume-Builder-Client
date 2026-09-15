@@ -2,36 +2,64 @@
 
 ## Audit - 2026-09-15
 
-- Base: origin/main c904001, merged foundation PR #18 (366f32f).
-- All fetched remote branches are ancestors of main. Working tree was clean.
-- Preserve React/Vite, Firebase Auth, schema validation, UID-scoped storage,
-  explicit legacy migration, stable IDs, source/authored separation and resolver.
-- Baseline: 6 Node tests pass, build passes; lint fails on unused chatbot error
-  and mixed AuthContext/component exports.
-- No backend exists. Profile/resume list are placeholders, PDF utility is empty,
-  editor only addresses first variant, chatbot uses localhost/shared session ID.
+- Base: `main` at `c904001`, including the reusable-workspace foundation from PR #18.
+- Completion work lives on `feat/personacv-v1-completion` and remains ahead of `main` until the final PR is reviewed and merged.
+- The application keeps React/Vite, Firebase Auth, strict workspace validation, UID-scoped cloud storage, explicit legacy migration, stable IDs, source/authored project separation, and the resume resolver.
+- The V1 server is a Node HTTP API backed by Firebase Admin + Firestore. The old README description of a MERN/MongoDB backend was stale and has been replaced.
 
-## Completion checklist
+## Product closeout
 
-- [x] Audit branches, PRs, architecture and baseline checks; create fresh branch.
-- [x] Secure Firebase-authenticated API, cloud persistence, plans and admin controls.
-- [x] Extend compatible workspace model and reusable CRUD operations.
-- [x] Master profile, project library, safe public GitHub import/refresh.
-- [x] Variant CRUD, selections, independent overrides and accessible ordering.
-- [x] ATS preview, multi-page PDF, quality guidance and Pro targeting/history.
-- [x] Account/settings, password recovery, honest optional AI/billing behavior.
-- [x] Admin users, metrics, settings, feedback and secure bootstrap.
-- [x] Security tests, dependency audit, lint/test/build.
-- [x] Deployment/environment documentation, logical commits, push and PR.
+- [x] Secure Firebase-authenticated API and cloud persistence.
+- [x] Master Developer Profile and reusable Project Library.
+- [x] Safe public GitHub import/refresh without overwriting authored resume content.
+- [x] Independent resume variants, selections, overrides, ordering and templates.
+- [x] ATS-oriented live preview and multi-page Unicode PDF export.
+- [x] Free/Pro entitlement enforcement on the server.
+- [x] Owner/Super Admin authorization separated from subscription plans.
+- [x] Pro job targeting/history and optional configured AI writing assistance.
+- [x] Password recovery, protected routes and safe post-auth redirects.
+- [x] Admin users, metrics, settings, feedback and secure Owner bootstrap.
+- [x] Deny-by-default browser Firestore rules.
+- [x] Vercel SPA deep-link configuration and explicit PDF-font function bundling.
+- [x] GitHub Actions verification plus isolated Firebase Auth/Firestore emulator integration.
+- [x] Accurate environment, security and deployment documentation.
 
-External configuration must be documented and never represented as deployed
-or tested against a live account without evidence.
+## Scope corrections made during final audit
 
+- Removed the accidental public `Premium` subscription tier. The supported product model is **Free + Pro**, while `owner` remains a privileged administrative role.
+- Legacy pre-release records containing `plan: "premium"` are treated as Pro so test or preview data is not silently downgraded, but Premium is no longer exposed as a selectable plan.
+- Fixed a corrupted UTF-8 feedback validation message.
+- Restored strict local-path validation for post-auth redirects.
+- Rewrote stale pricing copy so it does not imply live checkout; billing is not implemented in V1.
+- Rewrote the README to describe the actual Firebase/Node architecture instead of MERN/MongoDB.
 
-## Final verification - 2026-09-15
+## Verification performed - 2026-09-15
 
-- npm test: 15 tests pass, covering authorization, payload hardening, ownership, entitlement limits, GitHub input safety, migration, and multi-page Unicode PDF extraction.
-- npm run lint: passes.
-- npm audit --omit=dev: 0 production vulnerabilities.
-- npm run build: passes. Vite reports a non-blocking 649 kB JavaScript chunk warning; code splitting can be considered after V1.
-- Firebase integration test requires the isolated demo-personacv Auth and Firestore emulators, which were unavailable locally. The Vite server started successfully, but the installed agent-browser executable was unavailable for browser journeys; neither browser nor Firebase integration was claimed as executed.
+GitHub Actions run `34974990720` executed on the completion branch after the closeout changes.
+
+### Lint, test, build and audit job
+
+- `npm ci`: passed.
+- `npm run lint`: passed.
+- `npm test`: passed.
+- `npm run build`: passed.
+- `npm audit --omit=dev --audit-level=high`: passed.
+
+### Firebase emulator integration job
+
+The isolated `demo-personacv` Firebase Auth + Firestore emulator suite executed successfully. It covers real emulator authentication through the HTTP API, Firestore workspace isolation, stable IDs, stale-save conflicts, Free limits, Pro upgrades, Owner/admin separation, private admin notes, history, PDF export, feedback, suspension/reactivation, direct Firestore denial and account deletion.
+
+This closes the earlier verification gap where the emulator integration suite existed but had not actually been executed.
+
+### Vercel preview
+
+- Git-backed preview deployment `dpl_7Ab9BRry1ax3a8bQWxsC7UqN6kSY` reached `READY`.
+- The preview root returned HTTP 200 and served the built PersonaCV application.
+- Vercel reported no build failure. The remaining large-JavaScript-chunk message is a non-blocking performance warning that can be handled with code splitting after V1.
+- The preview is protected by Vercel authentication, so a complete automated browser journey against that deployment is not claimed here.
+
+## Release boundary
+
+V1 still intentionally excludes live billing checkout, private GitHub repository OAuth/import, and a distributed rate-limiting service. Optional AI writing requires a configured server-side provider. These are documented product boundaries rather than hidden placeholder functionality.
+
+A production release still requires real Firebase/Auth environment configuration and an authenticated deployed-environment smoke test before treating the production domain as verified.
