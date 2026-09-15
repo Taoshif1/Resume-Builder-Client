@@ -10,6 +10,15 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_appId,
 };
 
+for (const key of Object.keys(firebaseConfig))
+  firebaseConfig[key] = firebaseConfig[key]?.trim();
+if (import.meta.env.DEV)
+  console.info("PersonaCV Firebase configuration", {
+    projectId: firebaseConfig.projectId,
+    authDomain: firebaseConfig.authDomain,
+    environment: import.meta.env.MODE,
+    requiredConfigPresent: Object.values(firebaseConfig).every(Boolean),
+  });
 const app = initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
