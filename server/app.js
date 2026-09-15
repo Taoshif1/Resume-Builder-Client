@@ -25,6 +25,39 @@ async function readBody(req) {
   }
 }
 
+const rejectedSessionCodes = new Set([
+  "auth/id-token-revoked",
+  "auth/user-disabled",
+]);
+
+async function verifyIdentity(auth, token) {
+  try {
+    return await auth.verifyIdToken(token, true);
+  } catch (revocationError) {
+    if (rejectedSessionCodes.has(revocationError.code)) throw revocationError;
+
+    try {
+      const identity = await auth.verifyIdToken(token, false);
+      console.warn(
+        "Firebase token signature is valid, but the revoked-token lookup failed. Continuing with the signature-verified session.",
+        {
+          code: revocationError.code || "auth/revocation-check-failed",
+          message: revocationError.message,
+          projectId: auth.app?.options?.projectId || "unknown",
+        },
+      );
+      return identity;
+    } catch (verificationError) {
+      console.error("Firebase ID token verification failed", {
+        code: verificationError.code || revocationError.code || "auth/invalid-token",
+        message: verificationError.message,
+        projectId: auth.app?.options?.projectId || "unknown",
+      });
+      throw verificationError;
+    }
+  }
+}
+
 export function createApp({
   auth,
   db,
@@ -82,7 +115,7 @@ export function createApp({
       if (!match) return json({ error: "Sign in required." }, 401);
       let identity;
       try {
-        identity = await auth.verifyIdToken(match[1], true);
+        identity = await verifyIdentity(auth, match[1]);
       } catch {
         return json({ error: "Session expired. Please sign in again." }, 401);
       }
