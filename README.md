@@ -225,16 +225,28 @@ Create the server environment file:
 cp .env.server.example .env.server
 ```
 
-Minimum production server configuration:
+Local server configuration (`.env.server`):
 
 ```dotenv
-NODE_ENV=production
 PORT=3000
-APP_ORIGIN=https://your-personacv-domain.example
-FIREBASE_PROJECT_ID=your-firebase-project-id
+APP_ORIGIN=http://localhost:5173
+FIREBASE_PROJECT_ID=<same project as VITE_projectId>
+GOOGLE_APPLICATION_CREDENTIALS=/absolute/path/to/service-account.json
 ```
 
-Provide Firebase Admin credentials using the hosting platform's secret/identity mechanism. If a workload identity is not available, `FIREBASE_SERVICE_ACCOUNT_JSON` can contain the service-account JSON as a server-only secret.
+Alternatively set `FIREBASE_SERVICE_ACCOUNT_JSON` to complete service-account JSON on one line. The server validates project ID, client email and private key and normalizes escaped newlines. It refuses mismatched client/server projects and missing credentials with HTTP 503.
+
+`npm run dev:full` starts the API on port 3000 and Vite on port 5173. `npm run server:dev` and `npm run dev` also work separately. Node 22's `--env-file-if-exists=.env.server` loads backend settings; `server/env.js` additionally loads `.env.server`, `.env.local`, and `.env` (existing process values win), including when invoking `node server/index.js` directly. Vercel uses runtime variables instead of local env files.
+
+Vercel Production requires all six `VITE_*` Web configuration values above, plus these **server runtime** variables:
+
+```dotenv
+APP_ORIGIN=https://personacv.vercel.app
+FIREBASE_PROJECT_ID=<same project as VITE_projectId>
+FIREBASE_SERVICE_ACCOUNT_JSON=<complete service account JSON>
+```
+
+Store the JSON as a secret. Changing variables requires a new deployment. Preview needs its own matching configuration and origin; never assume Production secrets are inherited by Preview. No implicit workstation or hosting metadata credentials are used.
 
 Do not commit `.env`, `.env.server`, service-account files or secret JSON. The repository `.gitignore` blocks them by default.
 
@@ -245,7 +257,7 @@ For a real deployment:
 1. Create/select a Firebase project.
 2. Enable Email/Password authentication if it will be offered.
 3. Enable Google authentication if Google sign-in will be offered.
-4. Create a Firestore database.
+4. Enable the Cloud Firestore API and create the `(default)` Firestore database. Admin credentials must have Firestore data access; enabling APIs requires separate project administration permissions.
 5. Deploy `firestore.rules` so browser Firestore access remains denied.
 6. Configure server-side Firebase Admin credentials.
 
@@ -398,7 +410,7 @@ Production startup deliberately refuses emulator configuration and requires `APP
 
 ## CI
 
-`.github/workflows/ci.yml` runs two jobs on the completion branch and pull requests to `main`:
+`.github/workflows/ci.yml` runs two jobs on `main`, the Firebase production fix branch, and pull requests to `main`:
 
 1. lint, unit/security/PDF tests, production build and production dependency audit
 2. isolated Firebase Auth + Firestore emulator integration tests
@@ -414,3 +426,23 @@ A merge should not be treated as verified until these checks are green.
 - browser end-to-end journeys still require a configured preview/production deployment or a dedicated browser-test setup
 
 These are explicit boundaries, not hidden placeholder functionality.
+
+## Authenticated readiness and smoke verification
+
+`GET /api/health` returns safe project/credential presence flags and checks credential exchange plus a Firestore read. It returns 503 when configuration or infrastructure is unavailable. Presence flags are not proof of readiness: check both HTTP status and `ok`.
+
+- 401: missing, invalid, expired, revoked, or disabled session; the browser retries once with a refreshed token.
+- 403: authorization/origin rejection.
+- 409: revision conflict; preserve local changes before reloading.
+- 429: rate limit.
+- 503: server configuration or infrastructure failure; the user remains signed in.
+
+For a dedicated real test account, put `SMOKE_EMAIL` and `SMOKE_PASSWORD` in an ignored `.env.smoke.local`. Run:
+
+```bash
+node --env-file=.env.local --env-file=.env.server --env-file=.env.smoke.local server/smoke-authenticated.mjs
+```
+
+Set `SMOKE_BASE_URL=https://personacv.vercel.app` to test production. The script signs in, checks account/workspace, saves a temporary profile marker, reloads, signs out/in, verifies persistence and restores the original workspace. It prints HTTP statuses, never tokens or passwords. It deliberately stops at the first failure. Use only a dedicated account, without concurrent edits.
+
+Also verify the browser journey: register, login, dashboard, profile/projects/resumes, create/edit/save a resume, refresh, logout/login, and confirm saved content. Health, build and emulator success alone do not establish production functionality. Verify `/api/account` and `/api/workspace` 200s in Vercel runtime logs before merging.
