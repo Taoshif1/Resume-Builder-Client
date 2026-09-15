@@ -19,6 +19,10 @@ import {
 const fail = (message, status = 400) => {
   throw Object.assign(new Error(message), { status });
 };
+
+const normalizeAccount = (record) =>
+  record?.plan === "premium" ? { ...record, plan: "pro" } : record;
+
 export function validatePayload(workspace, uid) {
   try {
     assertWorkspace(workspace, uid);
@@ -46,14 +50,17 @@ export function createService(db, auth) {
   const users = db.collection("users");
   const workspaces = db.collection("workspaces");
   const settingsRef = db.collection("system").doc("settings");
+
   async function account(uid) {
     const data = (await users.doc(uid).get()).data();
     assertActive(data);
-    return data;
+    return normalizeAccount(data);
   }
+
   async function settings() {
     return (await settingsRef.get()).data() || {};
   }
+
   async function initialize(identity) {
     const ref = users.doc(identity.uid);
     await db.runTransaction(async (tx) => {
@@ -86,6 +93,7 @@ export function createService(db, auth) {
       settings: { supportEmail: config.supportEmail || "" },
     };
   }
+
   async function load(uid) {
     await account(uid);
     return db.runTransaction(async (tx) => {
@@ -101,6 +109,7 @@ export function createService(db, auth) {
       return data;
     });
   }
+
   async function save(uid, body) {
     validatePayload(body.workspace, uid);
     if (!Number.isSafeInteger(body.revision) || body.revision < 0)
@@ -139,6 +148,7 @@ export function createService(db, auth) {
       return data;
     });
   }
+
   async function history(uid, body) {
     assertCapability(await account(uid), "history", await settings());
     const ref = workspaces.doc(uid).collection("history");
@@ -161,6 +171,7 @@ export function createService(db, auth) {
       ).docs.map((d) => ({ id: d.id, ...d.data() })),
     };
   }
+
   async function guidance(uid, body) {
     const user = await account(uid);
     assertCapability(user, "advancedATS", await settings());
@@ -171,14 +182,14 @@ export function createService(db, auth) {
       match: matchJob(model, String(body.description || "").slice(0, 20000)),
     };
   }
+
   async function adminList(uid) {
     assertOwner(await account(uid));
-    const records = (await users.get()).docs.map((d) => d.data());
+    const records = (await users.get()).docs.map((d) => normalizeAccount(d.data()));
     const metrics = {
       users: records.length,
       free: records.filter((u) => u.plan === "free").length,
       pro: records.filter((u) => u.plan === "pro").length,
-      premium: records.filter((u) => u.plan === "premium").length,
       suspended: records.filter((u) => u.status !== "active").length,
       projects: records.reduce((s, u) => s + (u.projects || 0), 0),
       variants: records.reduce((s, u) => s + (u.variants || 0), 0),
@@ -198,6 +209,7 @@ export function createService(db, auth) {
       ).docs.map((d) => ({ id: d.id, ...d.data() })),
     };
   }
+
   async function adminUpdate(uid, target, patch) {
     assertOwner(await account(uid));
     if (!target || target.includes("/")) fail("Invalid user ID.");
@@ -209,7 +221,7 @@ export function createService(db, auth) {
         fail("Owner accounts cannot be changed through this dashboard.", 403);
       const update = {};
       if (patch.plan !== undefined) {
-        if (!["free", "pro", "premium"].includes(patch.plan)) fail("Invalid plan.");
+        if (!["free", "pro"].includes(patch.plan)) fail("Invalid plan.");
         update.plan = patch.plan;
       }
       if (patch.status !== undefined) {
@@ -230,6 +242,7 @@ export function createService(db, auth) {
     if (patch.status === "suspended") await auth.revokeRefreshTokens(target);
     return { ok: true };
   }
+
   async function deleteAccount(uid, target) {
     assertOwner(await account(uid));
     const current = (await users.doc(target).get()).data();
@@ -248,6 +261,7 @@ export function createService(db, auth) {
     await users.doc(target).delete();
     return { ok: true };
   }
+
   async function updateSettings(uid, body) {
     assertOwner(await account(uid));
     const next = {};
@@ -259,12 +273,19 @@ export function createService(db, auth) {
     if (body.supportEmail !== undefined)
       next.supportEmail = String(body.supportEmail).slice(0, 200);
     if (body.enabledTemplates !== undefined) {
-      if (!Array.isArray(body.enabledTemplates) || !body.enabledTemplates.includes('modern') || !body.enabledTemplates.every(t => ['modern','minimal','corporate'].includes(t))) fail('Keep the Free template enabled and choose valid templates.');
+      if (
+        !Array.isArray(body.enabledTemplates) ||
+        !body.enabledTemplates.includes("modern") ||
+        !body.enabledTemplates.every((template) =>
+          ["modern", "minimal", "corporate"].includes(template),
+        )
+      )
+        fail("Keep the Free template enabled and choose valid templates.");
       next.enabledTemplates = [...new Set(body.enabledTemplates)];
     }
     if (body.plans !== undefined) {
       next.plans = {};
-      for (const plan of ["free", "pro", "premium"]) {
+      for (const plan of ["free", "pro"]) {
         const config = body.plans[plan];
         if (!config) continue;
         next.plans[plan] = {};
@@ -282,6 +303,7 @@ export function createService(db, auth) {
     await settingsRef.set(next, { merge: true });
     return { ok: true };
   }
+
   async function recordExport(uid) {
     await db.runTransaction(async (tx) => {
       const ref = users.doc(uid);
@@ -290,6 +312,7 @@ export function createService(db, auth) {
       tx.update(ref, { exports: (data.exports || 0) + 1 });
     });
   }
+
   async function feedback(uid, body) {
     await account(uid);
     if (
@@ -297,23 +320,23 @@ export function createService(db, auth) {
       !body.message.trim() ||
       body.message.length > 5000
     )
-      fail("Feedback must contain 1â€“5000 characters.");
-    await db
-      .collection("feedback")
-      .add({
-        uid,
-        message: body.message.trim(),
-        status: "open",
-        createdAt: new Date().toISOString(),
-      });
+      fail("Feedback must contain 1–5000 characters.");
+    await db.collection("feedback").add({
+      uid,
+      message: body.message.trim(),
+      status: "open",
+      createdAt: new Date().toISOString(),
+    });
     return { ok: true };
   }
+
   async function resolveFeedback(uid, id) {
     assertOwner(await account(uid));
     if (!/^[\w-]+$/.test(id)) fail("Invalid feedback ID.");
     await db.collection("feedback").doc(id).update({ status: "resolved" });
     return { ok: true };
   }
+
   return {
     initialize,
     account,
