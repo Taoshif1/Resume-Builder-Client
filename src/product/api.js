@@ -1,25 +1,58 @@
 import { auth } from "../services/firebase";
 
-export async function api(path, { method = "GET", body, signal, blob = false } = {}) {
+async function errorPayload(response) {
+  const contentType = response.headers.get("content-type") || "";
+  if (!contentType.includes("application/json")) return {};
+  return response.json().catch(() => ({}));
+}
+
+export async function api(
+  path,
+  { method = "GET", body, signal, blob = false } = {},
+) {
   const user = auth.currentUser;
   if (!user) throw new Error("Sign in required.");
+
   const token = await user.getIdToken();
   const baseUrl = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
   const response = await fetch(baseUrl + "/api" + path, {
-    method, signal,
-    headers: { Authorization: "Bearer " + token, ...(body ? { "Content-Type": "application/json" } : {}) },
+    method,
+    signal,
+    headers: {
+      Authorization: "Bearer " + token,
+      ...(body ? { "Content-Type": "application/json" } : {}),
+    },
     body: body ? JSON.stringify(body) : undefined,
   });
-  if (auth.currentUser?.uid !== user.uid) throw new Error("Account changed. Please retry.");
+
+  if (auth.currentUser?.uid !== user.uid)
+    throw new Error("Account changed. Please retry.");
+
   if (!response.ok) {
-    const data = await response.json().catch(() => ({}));
-    throw Object.assign(new Error(data.error || "Unable to contact PersonaCV. Please try again."), { status: response.status });
+    const data = await errorPayload(response);
+    throw Object.assign(
+      new Error(data.error || "Unable to contact PersonaCV. Please try again."),
+      { status: response.status },
+    );
   }
-  return blob ? response.blob() : response.json();
+
+  if (blob) return response.blob();
+
+  const contentType = response.headers.get("content-type") || "";
+  if (!contentType.includes("application/json")) {
+    throw new Error(
+      "PersonaCV API returned an invalid response. Please retry or contact support.",
+    );
+  }
+
+  return response.json();
 }
+
 export function downloadBlob(blob, filename) {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
-  link.href = url; link.download = filename; link.click();
+  link.href = url;
+  link.download = filename;
+  link.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
