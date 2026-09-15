@@ -95,5 +95,5 @@ test("PDF produces real multipage text documents with safe links", async () => {
   assert.ok(extracted.includes('Alice D\u00e9veloppeur'), 'Unicode name survives PDF extraction');
   for (let i=0; i<45; i++) assert.ok(extracted.includes(`Engineer ${i}`), 'every experience heading survives');
   assert.equal((extracted.match(/25%/g)||[]).length, 45*8, 'all repeated body content survives pagination');
-  await parsed.destroy();
+  if (parsed.destroy) await parsed.destroy();
 });
