@@ -178,6 +178,7 @@ export function createService(db, auth) {
       users: records.length,
       free: records.filter((u) => u.plan === "free").length,
       pro: records.filter((u) => u.plan === "pro").length,
+      premium: records.filter((u) => u.plan === "premium").length,
       suspended: records.filter((u) => u.status !== "active").length,
       projects: records.reduce((s, u) => s + (u.projects || 0), 0),
       variants: records.reduce((s, u) => s + (u.variants || 0), 0),
@@ -208,7 +209,7 @@ export function createService(db, auth) {
         fail("Owner accounts cannot be changed through this dashboard.", 403);
       const update = {};
       if (patch.plan !== undefined) {
-        if (!["free", "pro"].includes(patch.plan)) fail("Invalid plan.");
+        if (!["free", "pro", "premium"].includes(patch.plan)) fail("Invalid plan.");
         update.plan = patch.plan;
       }
       if (patch.status !== undefined) {
@@ -263,7 +264,7 @@ export function createService(db, auth) {
     }
     if (body.plans !== undefined) {
       next.plans = {};
-      for (const plan of ["free", "pro"]) {
+      for (const plan of ["free", "pro", "premium"]) {
         const config = body.plans[plan];
         if (!config) continue;
         next.plans[plan] = {};
@@ -296,7 +297,7 @@ export function createService(db, auth) {
       !body.message.trim() ||
       body.message.length > 5000
     )
-      fail("Feedback must contain 1–5000 characters.");
+      fail("Feedback must contain 1â€“5000 characters.");
     await db
       .collection("feedback")
       .add({
