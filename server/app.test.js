@@ -25,7 +25,10 @@ test("HTTP API verifies revoked tokens, blocks unauthenticated and Pro admin req
     auth: {
       verifyIdToken: async (token, revoked) => {
         checkRevoked = revoked;
-        if (token === "bad") throw new Error("invalid");
+        if (token === "bad")
+          throw Object.assign(new Error("invalid"), {
+            code: "auth/argument-error",
+          });
         return { uid: "alice" };
       },
     },
@@ -160,7 +163,10 @@ test("PDF produces real multipage text documents with safe links", async () => {
     "Unicode name survives PDF extraction",
   );
   for (let i = 0; i < 45; i++)
-    assert.ok(extracted.includes(`Engineer ${i}`), "every experience heading survives");
+    assert.ok(
+      extracted.includes(`Engineer ${i}`),
+      "every experience heading survives",
+    );
   assert.equal(
     (extracted.match(/25%/g) || []).length,
     45 * 8,
