@@ -171,7 +171,7 @@ const Navbar = () => {
                     </li>
                     <li onClick={() => setIsProfileOpen(false)}>
                       <Link
-                        to="/my-resumes"
+                        to="/dashboard/resumes"
                         className="flex items-center gap-3 hover:bg-gray-50 p-2.5 rounded-xl transition-colors text-[#464554] font-medium"
                       >
                         <span className="text-lg">📄</span> My Resumes
