@@ -32,7 +32,7 @@ async function user(label) {
     },
   );
   const data = await response.json();
-  assert.ok(data.idToken, JSON.stringify(data));
+  assert.ok(data.idToken, "Emulator signup must return an ID token");
   return { uid: data.localId, token: data.idToken };
 }
 async function request(user, path, method = "GET", body) {
@@ -72,6 +72,12 @@ try {
   first.workspace.profile.personalInfo.email = "alice@example.test";
   const saved = await request(alice, "/api/workspace", "PUT", first);
   assert.equal(saved.status, 200, JSON.stringify(saved));
+  assert.equal(
+    (await request(alice, "/api/workspace")).data.workspace.profile.personalInfo
+      .fullName,
+    "Alice Developer",
+    "saved profile survives reload",
+  );
   assert.equal(
     (await request(alice, "/api/workspace", "PUT", first)).status,
     409,

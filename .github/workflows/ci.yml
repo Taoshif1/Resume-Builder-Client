@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - feat/personacv-v1-completion
+      - fix/personacv-firebase-production
   pull_request:
     branches:
       - main

@@ -44,7 +44,8 @@ export default function AuthForm({ register = false }) {
         "auth/popup-closed-by-user": "Google sign-in was cancelled.",
       };
       setMessage(
-        messages[error.code] || "Unable to complete the request. Please try again.",
+        messages[error.code] ||
+          "Unable to complete the request. Please try again.",
       );
     } finally {
       setBusy(false);
@@ -80,7 +81,11 @@ export default function AuthForm({ register = false }) {
         (register ? "pcv-auth-signup" : "pcv-auth-login")
       }
     >
-      <form className="pcv-card space-y-4" onSubmit={submit}>
+      <form
+        data-theme="light"
+        className="pcv-card pcv-auth-card space-y-4"
+        onSubmit={submit}
+      >
         <p className="pcv-eyebrow">PERSONACV</p>
         <h1>{title}</h1>
         <p>{intro}</p>
@@ -153,7 +158,9 @@ export default function AuthForm({ register = false }) {
             className="btn btn-ghost w-full"
             type="button"
             disabled={busy || !email}
-            onClick={() => action(() => sendPasswordResetEmail(auth, email), false)}
+            onClick={() =>
+              action(() => sendPasswordResetEmail(auth, email), false)
+            }
           >
             Forgot Password
           </button>

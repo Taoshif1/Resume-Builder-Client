@@ -28,40 +28,42 @@ async function readBody(req) {
 const rejectedSessionCodes = new Set([
   "auth/id-token-revoked",
   "auth/user-disabled",
+  "auth/user-not-found",
+  "auth/id-token-expired",
+  "auth/argument-error",
+  "auth/invalid-id-token",
 ]);
 
 async function verifyIdentity(auth, token) {
   try {
     return await auth.verifyIdToken(token, true);
-  } catch (revocationError) {
-    if (rejectedSessionCodes.has(revocationError.code)) throw revocationError;
-
-    try {
-      const identity = await auth.verifyIdToken(token, false);
-      console.warn(
-        "Firebase token signature is valid, but the revoked-token lookup failed. Continuing with the signature-verified session.",
-        {
-          code: revocationError.code || "auth/revocation-check-failed",
-          message: revocationError.message,
-          projectId: auth.app?.options?.projectId || "unknown",
-        },
-      );
-      return identity;
-    } catch (verificationError) {
-      console.error("Firebase ID token verification failed", {
-        code: verificationError.code || revocationError.code || "auth/invalid-token",
-        message: verificationError.message,
-        projectId: auth.app?.options?.projectId || "unknown",
-      });
-      throw verificationError;
-    }
+  } catch (error) {
+    const invalid = rejectedSessionCodes.has(error.code);
+    console.error("Firebase ID token verification failed", {
+      code: error.code || "infrastructure",
+      projectId: auth.app?.options?.projectId || "unknown",
+    });
+    throw Object.assign(
+      new Error(
+        invalid
+          ? "Session expired or invalid. Please sign in again."
+          : "PersonaCV server authentication is unavailable. Your session is still signed in.",
+      ),
+      { status: invalid ? 401 : 503 },
+    );
   }
 }
 
 export function createApp({
   auth,
   db,
-  service = createService(db, auth),
+  service = db ? createService(db, auth) : null,
+  configurationError,
+  readiness = async () => {},
+  firebase = {
+    projectConfigured: Boolean(auth),
+    adminCredentialConfigured: Boolean(auth),
+  },
   dist = resolve("dist"),
 }) {
   const limits = new Map();
@@ -77,7 +79,22 @@ export function createApp({
     try {
       const url = new URL(req.url, "http://request.internal");
       const path = url.pathname;
-      if (path === "/api/health") return json({ ok: true });
+      if (path === "/api/health") {
+        try {
+          if (configurationError) throw configurationError;
+          await readiness();
+          return json({ ok: true, firebase });
+        } catch {
+          return json(
+            {
+              ok: false,
+              firebase,
+              error: "Firebase Admin is not configured or unavailable.",
+            },
+            503,
+          );
+        }
+      }
       if (!path.startsWith("/api/")) {
         if (req.method !== "GET" && req.method !== "HEAD")
           return json({ error: "Method not allowed." }, 405);
@@ -108,17 +125,14 @@ export function createApp({
         }
         return;
       }
+      if (configurationError) throw configurationError;
       const origin = req.headers.origin;
       if (origin && process.env.APP_ORIGIN && origin !== process.env.APP_ORIGIN)
         return json({ error: "Origin not allowed." }, 403);
       const match = /^Bearer (.+)$/.exec(req.headers.authorization || "");
       if (!match) return json({ error: "Sign in required." }, 401);
-      let identity;
-      try {
-        identity = await verifyIdentity(auth, match[1]);
-      } catch {
-        return json({ error: "Session expired. Please sign in again." }, 401);
-      }
+      await readiness();
+      const identity = await verifyIdentity(auth, match[1]);
       const now = Date.now();
       const bucket = limits.get(identity.uid) || { start: now, count: 0 };
       if (now - bucket.start > 60000) {
@@ -315,7 +329,6 @@ export function createApp({
       if (!error.status || error.status >= 500)
         console.error("API request failed", {
           code: error.code || "internal",
-          message: error.message,
         });
       if (!res.headersSent)
         json(

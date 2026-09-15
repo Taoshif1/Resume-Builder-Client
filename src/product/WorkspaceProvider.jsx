@@ -72,7 +72,11 @@ function AccountWorkspace({ uid, children }) {
         );
       } catch (e) {
         if (!controller.signal.aborted) {
-          setError(e.message);
+          setError(
+            e.status === 503
+              ? "PersonaCV server configuration is unavailable. Your session is still signed in."
+              : e.message,
+          );
           setStatus("Unable to load cloud workspace");
         }
       }
