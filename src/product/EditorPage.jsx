@@ -131,6 +131,11 @@ export default function EditorPage() {
         body: { variantId: variant.id },
         blob: true,
       });
+      if (
+        blob.type !== "application/pdf" ||
+        (await blob.slice(0, 5).text()) !== "%PDF-"
+      )
+        throw new Error("The PDF response is invalid. Please try again.");
       downloadBlob(blob, pdfFilename(model.name, variant.name));
       setMessage("PDF downloaded.");
     });
