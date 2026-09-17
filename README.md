@@ -177,7 +177,7 @@ server/
   integration.mjs       Auth + Firestore emulator integration suite
 src/
   product/               V1 workspace, editor, admin and product logic
-  resume/                workspace schema, resolver, templates and migrations
+  resume/                shared workspace schema, resolver, migration and local backup
   services/              Firebase client authentication
   routes/                application routing and protected route handling
 public/fonts/             PDF Unicode fonts
@@ -400,7 +400,7 @@ APP_ORIGIN=https://your-production-domain.example
 
 Add optional AI variables only if writing assistance is intentionally enabled.
 
-Do not claim a deployment is production-ready until the preview deployment has been exercised with real environment configuration. In particular, test registration/login, workspace persistence, a second resume variant, PDF export, logout/login persistence and Owner access on the deployed environment.
+The production Firebase/authentication repair at `867ea3c` has already completed authenticated cloud-workspace verification. This product-polish branch was tested locally with real Firebase and isolated emulators; it has not replaced production. Preview environments may not inherit Production Firebase secrets. Verify any newly configured preview and the reviewed production release separately.
 
 ## Docker / normal Node deployment
 
@@ -423,7 +423,7 @@ A merge should not be treated as verified until these checks are green.
 - no private GitHub repository import
 - AI writing depends on optional external provider configuration
 - the built-in request limiter is per server instance, not a distributed abuse-prevention system
-- browser end-to-end journeys still require a configured preview/production deployment or a dedicated browser-test setup
+- local browser regression uses a dedicated Firebase smoke account; deployed preview/production checks remain environment-specific
 
 These are explicit boundaries, not hidden placeholder functionality.
 
@@ -445,4 +445,20 @@ node --env-file=.env.local --env-file=.env.server --env-file=.env.smoke.local se
 
 Set `SMOKE_BASE_URL=https://personacv.vercel.app` to test production. The script signs in, checks account/workspace, saves a temporary profile marker, reloads, signs out/in, verifies persistence and restores the original workspace. It prints HTTP statuses, never tokens or passwords. It deliberately stops at the first failure. Use only a dedicated account, without concurrent edits.
 
-Also verify the browser journey: register, login, dashboard, profile/projects/resumes, create/edit/save a resume, refresh, logout/login, and confirm saved content. Health, build and emulator success alone do not establish production functionality. Verify `/api/account` and `/api/workspace` 200s in Vercel runtime logs before merging.
+The product-polish phase completed the local authenticated browser journey, including public/workspace navigation, profile/projects/resumes, save/reload, mouse/keyboard/touch ordering, PDF, backup and logout/login persistence. The dedicated smoke workspace was restored afterward. See [verification evidence](docs/PRODUCT-POLISH-VERIFICATION.md). Health/build success alone is insufficient for a new deployment; repeat the deployed-environment checks after release.
+
+
+## Product shell and architecture
+
+The active app is `PrivateRoute → WorkspaceProvider → ProductLayout → src/product/*`. Desktop uses a sidebar; mobile uses a keyboard-accessible expandable menu. Workspace branding and Back to website return home, and the public account navigation offers Dashboard and My Resumes without inventing a plan.
+
+- `/dashboard`: actual counts, recent resumes and a field-derived setup checklist.
+- `/dashboard/profile`: master data grouped into reusable sections.
+- `/dashboard/projects`: manual/public GitHub projects; source facts remain separate from authored content.
+- `/dashboard/resumes`: create, search, duplicate, archive, restore and delete variants.
+- `/resume/:id`: Basics, Content, Order, Targeting and Review; master/override indicators; live preview and server PDF. Mobile switches between Edit and Preview.
+- `/dashboard/settings`: actual account/usage, Pro requests, backups, history and support.
+- `/admin`: server-authorized Owner controls. Owner is a role, never a third subscription.
+- `/resume/new` and `/dashboard/create`: redirects to resume management.
+
+The old dashboard and competing builder were removed after reference auditing. Shared schema, resolver, local storage and legacy migration remain. [Architecture and every removed file](docs/PRODUCT-ARCHITECTURE.md). Heavy product pages are lazily loaded; pricing is intentionally shared with the Home page.

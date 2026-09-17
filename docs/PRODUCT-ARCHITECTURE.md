@@ -10,7 +10,7 @@ Starting main: 867ea3ce6e54949ad50493817f3f547e6ff9473b.
 - Protected routes → PrivateRoute → WorkspaceProvider → ProductLayout → product pages.
 - EditorPage → dnd-kit, Fields, operations, ResumePreview, document and API.
 - WorkspaceProvider → api → Firebase ID tokens; workspace validation, UID-scoped storage and explicit legacy migration.
-- api/index.js / server/index.js → server/app.js → service.js → Firebase Admin Auth + Firestore.
+- api/[...path].js / server/index.js → server/app.js → service.js → Firebase Admin Auth + Firestore.
 - server/pdf.js → product/document.js → resume/data/resolveResume.js.
 - Route-level lazy pages keep editor/DnD and admin UI out of the public entry bundle.
 
@@ -62,3 +62,9 @@ The old defaultResume.js was also unreferenced; current defaults come from works
 ## Routes
 
 /dashboard is the overview; /dashboard/profile, /dashboard/projects, /dashboard/resumes and /dashboard/settings are the workspace collections and controls. /resume/:id is the only editor entry. Both /resume/new and /dashboard/create redirect to resume management. /admin requires Owner authorization on the server. Public 404 offers Home and Sign in, or Dashboard for signed-in users.
+
+## Final responsive repair
+
+Home nested 40px horizontal padding inside the public layout, then embedded pricing with further padding, non-wrapping cycle controls and intrinsic grid widths. At 360px this overflowed the main content. Home now uses responsive gutters; Pricing uses a semantic section, wrapping cycle controls, a shrinkable single-column grid, smaller mobile card padding and responsive headings. No global overflow-hiding rule was added.
+
+Profile and project EntryEditor disclosure state is independent of edited field values, preventing an editor from closing while a user types. The data schema is unchanged. Final validation is recorded in [PRODUCT-POLISH-VERIFICATION.md](PRODUCT-POLISH-VERIFICATION.md).
