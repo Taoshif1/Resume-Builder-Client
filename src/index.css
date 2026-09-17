@@ -58,3 +58,32 @@ body,
     0 0 10px rgba(0, 245, 212, 0.4);
   font-weight: 900;
 }
+/* Shared control affordances; low specificity preserves component styling. */
+:where(button:not(:disabled), a[href], summary, [role="button"]):not([aria-disabled="true"]) {
+  cursor: pointer;
+}
+:where(button:disabled, input:disabled, select:disabled, textarea:disabled, [aria-disabled="true"]) {
+  cursor: not-allowed !important;
+}
+:where(button, a[href], summary, [role="button"]):focus-visible {
+  outline: 3px solid #5981bc;
+  outline-offset: 3px;
+}
+:where(button, .btn, .pcv-button, [role="button"]):not(.pcv-drag-handle) {
+  transition: background-color 180ms ease, box-shadow 180ms ease, filter 180ms ease;
+}
+@media (hover: hover) {
+  :where(button, .btn, .pcv-button, [role="button"]):not(:disabled):not([aria-disabled="true"]):not(.pcv-drag-handle):hover {
+    filter: brightness(0.97);
+    box-shadow: 0 2px 5px #17203318;
+  }
+}
+:where(button, .btn, .pcv-button, [role="button"]):not(:disabled):not([aria-disabled="true"]):not(.pcv-drag-handle):active {
+  filter: brightness(0.93);
+  box-shadow: inset 0 1px 3px #17203320;
+}
+@media (prefers-reduced-motion: reduce) {
+  :where(button, a[href], summary, [role="button"]):not(.pcv-drag-handle) {
+    transition: none !important;
+  }
+}
