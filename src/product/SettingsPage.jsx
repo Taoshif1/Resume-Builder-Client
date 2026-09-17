@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useRef, useState } from "react";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { AuthContext } from "../context/AuthContext";
 import { auth } from "../services/firebase";
@@ -11,6 +11,7 @@ export default function SettingsPage() {
   const { user, logout } = useContext(AuthContext);
   const { workspace, update, account, entitlements, backup, save, dirty } =
     useWorkspace();
+  const supportRef = useRef(null);
   const [message, setMessage] = useState("");
   const [feedback, setFeedback] = useState("");
   const [history, setHistory] = useState([]);
@@ -29,6 +30,7 @@ export default function SettingsPage() {
   return (
     <main className="pcv-page">
       <header>
+        <p className="pcv-eyebrow">MAKE IT YOURS</p>
         <h1>Account & settings</h1>
         <p>Your data, plan and account controls.</p>
       </header>
@@ -68,16 +70,18 @@ export default function SettingsPage() {
           Sign out
         </button>
       </section>
-      <section className="pcv-card">
+      <section className="pcv-card" id="plan">
         <h2>Plan & usage</h2>
         <p>
           Projects: {workspace.projects.length} /{" "}
-          {entitlements.maxProjects ?? "unlimited"}
+          {account.role === "owner" ? "Unlimited" : entitlements.maxProjects}
         </p>
+        {account.role !== "owner" && <progress className="pcv-usage" aria-label="Project usage" value={workspace.projects.length} max={entitlements.maxProjects} />}
         <p>
           Resumes: {workspace.resumeVariants.length} /{" "}
-          {entitlements.maxVariants ?? "unlimited"}
+          {account.role === "owner" ? "Unlimited" : entitlements.maxVariants}
         </p>
+        {account.role !== "owner" && <progress className="pcv-usage" aria-label="Resume usage" value={workspace.resumeVariants.length} max={entitlements.maxVariants} />}
         <p>
           Free includes master profile, 10 projects, 3 resumes, public GitHub
           import and PDF export. Pro adds more capacity, templates, history and
@@ -88,15 +92,13 @@ export default function SettingsPage() {
           owner can assign your plan.
         </p>
         <button
-          onClick={() =>
-            setFeedback("I would like to request Pro access for my account.")
-          }
+          onClick={() => { setFeedback("I would like to request Pro access for my account."); supportRef.current?.scrollIntoView(); supportRef.current?.querySelector("textarea")?.focus(); }}
         >
-          Prepare Pro access request
+          Request Pro access
         </button>
       </section>
       <section className="pcv-card">
-        <h2>Data controls</h2>
+        <h2>Data & backup</h2>
         <button onClick={() => backup()}>Download full workspace backup</button>
         <label className="pcv-field">
           Restore a backup for this account
@@ -188,7 +190,7 @@ export default function SettingsPage() {
           </p>
         )}
       </section>
-      <section className="pcv-card">
+      <section className="pcv-card" id="support" ref={supportRef}>
         <h2>Feedback & support</h2>
         <Field
           label="Message to the owner"

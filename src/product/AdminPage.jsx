@@ -58,6 +58,7 @@ export default function AdminPage() {
   return (
     <main className="pcv-page">
       <header>
+        <p className="pcv-eyebrow">OWNER ADMINISTRATION</p>
         <h1>Owner dashboard</h1>
         <p>Account access, usage and product configuration.</p>
       </header>
@@ -116,13 +117,7 @@ export default function AdminPage() {
                   <div className="pcv-actions">
                     <button
                       disabled={busy}
-                      onClick={() =>
-                        action(
-                          `/admin/users/${encodeURIComponent(u.uid)}`,
-                          "PATCH",
-                          { plan: u.plan === "pro" ? "free" : "pro" },
-                        )
-                      }
+                      onClick={() => { if (window.confirm(`Change this account to ${u.plan === "pro" ? "Free" : "Pro"}? Existing data is retained; new limits apply to future additions.`)) action(`/admin/users/${encodeURIComponent(u.uid)}`, "PATCH", { plan: u.plan === "pro" ? "free" : "pro" }); }}
                     >
                       {u.plan === "pro"
                         ? "Downgrade to Free"

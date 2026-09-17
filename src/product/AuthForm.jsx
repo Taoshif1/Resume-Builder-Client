@@ -168,7 +168,7 @@ export default function AuthForm({ register = false }) {
         <button
           className="btn btn-outline w-full"
           type="button"
-          disabled={busy}
+          disabled={busy || (register && !terms)}
           onClick={() => action(googleLogin)}
         >
           Continue with Google

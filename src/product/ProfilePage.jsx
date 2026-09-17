@@ -34,7 +34,8 @@ export default function ProfilePage() {
           variant editor.
         </p>
       </header>
-      <section className="pcv-card">
+      <nav className="pcv-section-links" aria-label="Profile sections">{["personal", ...Object.keys(collections)].map(key => <a key={key} href={`#${key}`}>{key === "personal" ? "Personal information" : title(key)}</a>)}</nav>
+      <section className="pcv-card pcv-profile-section" id="personal">
         <h2>Personal information</h2>
         <div className="pcv-fields">
           {PERSONAL_FIELDS.map((field) => (
@@ -54,9 +55,10 @@ export default function ProfilePage() {
         </div>
       </section>
       {Object.entries(collections).map(([collection, fields]) => (
-        <section className="pcv-card" key={collection}>
+        <details className="pcv-card pcv-profile-section" key={collection} id={collection} open={collection === "skills" || undefined}>
+          <summary>{title(collection)} <span className="pcv-badge">{(workspace.profile[collection] || []).length} entries</span></summary>
           <div className="pcv-row">
-            <h2>{title(collection)}</h2>
+            <p className="pcv-muted">Reusable across your resumes. Customize individual entries in the resume editor.</p>
             <button
               onClick={() =>
                 edit((w) => {
@@ -121,6 +123,7 @@ export default function ProfilePage() {
                   </button>
                 </div>
               </div>
+              <details open={!fields.some(field => record[field]) || undefined}><summary>Edit entry</summary>
               <div className="pcv-fields">
                 {fields.map((field) => (
                   <Field
@@ -138,9 +141,10 @@ export default function ProfilePage() {
                   />
                 ))}
               </div>
+              </details>
             </article>
           ))}
-        </section>
+        </details>
       ))}
     </main>
   );

@@ -9,6 +9,8 @@ export default function VariantsPage() {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [archived, setArchived] = useState(false);
+  const limitReached = workspace.resumeVariants.length >= entitlements.maxVariants;
+  const visible = workspace.resumeVariants.filter(v => Boolean(v.archived) === archived && `${v.name} ${v.labels || ""} ${v.targetRole || ""} ${v.company || ""}`.toLowerCase().includes(search.toLowerCase()));
   function create(original) {
     const next = addVariant(workspace, original);
     update(next);
@@ -26,7 +28,7 @@ export default function VariantsPage() {
       <section className="pcv-card">
         <div className="pcv-row">
           <h2>{workspace.resumeVariants.length} resumes</h2>
-          <button
+          <button className="pcv-primary"
             disabled={
               workspace.resumeVariants.length >= entitlements.maxVariants
             }
@@ -35,8 +37,9 @@ export default function VariantsPage() {
             Create resume
           </button>
         </div>
+        {limitReached && <p className="pcv-notice" role="status">You have reached your resume limit ({entitlements.maxVariants}). Delete an unused variant to free space, or <Link to="/dashboard/settings#plan">request Pro access in Settings</Link>. Archived resumes count toward this limit.</p>}
         <Field
-          label="Search resumes or labels"
+          label="Search names, roles, companies or labels"
           value={search}
           onChange={setSearch}
         />
@@ -49,16 +52,9 @@ export default function VariantsPage() {
           Show archived
         </label>
       </section>
+      {!visible.length && <section className="pcv-card"><h2>{search ? "No matching resumes" : archived ? "No archived resumes" : "Your next opportunity starts here"}</h2><p>{search ? "Try a different name, role or label." : archived ? "Archived resumes will appear here. Restore one whenever you need it." : "Create a resume, choose your strongest evidence, and tailor it to a role."}</p>{search && <button onClick={() => setSearch("")}>Clear search</button>}</section>}
       <div className="pcv-grid">
-        {workspace.resumeVariants
-          .filter(
-            (v) =>
-              Boolean(v.archived) === archived &&
-              `${v.name} ${v.labels || ""}`
-                .toLowerCase()
-                .includes(search.toLowerCase()),
-          )
-          .map((v) => (
+        {visible.map((v) => (
             <article key={v.id} className="pcv-card">
               <h2>
                 <Link to={`/resume/${v.id}`}>{v.name}</Link>
@@ -71,6 +67,8 @@ export default function VariantsPage() {
                 {v.projectIds.length} projects · {v.experienceIds.length}{" "}
                 experience entries
               </p>
+              <p><span className="pcv-badge">{v.template} template</span>{v.archived && <span className="pcv-badge">Archived</span>}{v.labels && <span className="pcv-badge">{v.labels}</span>}</p>
+              <p className="pcv-muted">Updated {v.updatedAt ? new Date(v.updatedAt).toLocaleString() : "date unavailable"}</p>
               <div className="pcv-actions">
                 <Link className="pcv-button" to={`/resume/${v.id}`}>
                   Edit resume

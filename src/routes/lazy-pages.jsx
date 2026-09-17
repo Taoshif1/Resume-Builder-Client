@@ -1,0 +1,13 @@
+import { lazy } from "react";
+export const Features = lazy(() => import("../pages/Features"));
+export const Pricing = lazy(() => import("../pages/Pricing"));
+export const GetStarted = lazy(() => import("../pages/GetStarted"));
+export const Login = lazy(() => import("../pages/Login"));
+export const Register = lazy(() => import("../pages/Register"));
+export const OverviewPage = lazy(() => import("../product/OverviewPage"));
+export const ProfilePage = lazy(() => import("../product/ProfilePage"));
+export const ProjectsPage = lazy(() => import("../product/ProjectsPage"));
+export const VariantsPage = lazy(() => import("../product/VariantsPage"));
+export const SettingsPage = lazy(() => import("../product/SettingsPage"));
+export const EditorPage = lazy(() => import("../product/EditorPage"));
+export const AdminPage = lazy(() => import("../product/AdminPage"));
