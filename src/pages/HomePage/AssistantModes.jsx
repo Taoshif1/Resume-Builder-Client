@@ -8,6 +8,7 @@ const AsistantModes = () => {
   const container = useRef();
 
   useGSAP(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     // সেকশন লোডিং অ্যানিমেশন
     gsap.from(".canvas-card", {
       y: 60,
@@ -29,13 +30,13 @@ const AsistantModes = () => {
       </div>
 
       {/* Main Container */}
-      <div className="bg-[#DCE2F7] rounded-[40px] p-8 lg:p-12 w-full max-w-6xl shadow-2xl border border-white/20 relative overflow-hidden">
+      <div className="bg-[#DCE2F7] rounded-[40px] p-4 sm:p-8 lg:p-12 w-full max-w-6xl shadow-2xl border border-white/20 relative overflow-hidden">
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
           
           {/* Left Side: Persona Selection */}
-          <div className="canvas-card bg-white rounded-3xl p-8 shadow-lg">
-            <div className="flex justify-between items-center mb-8">
+          <div className="canvas-card bg-white rounded-3xl p-4 sm:p-8 shadow-lg">
+            <div className="flex flex-wrap gap-3 justify-between items-center mb-8">
               <h3 className="font-bold text-gray-800">Persona Selection</h3>
               <span className="bg-[#4A70A9]/10 text-[#4A70A9] text-[10px] font-bold px-3 py-1 rounded-full uppercase">Illustrative example</span>
             </div>
@@ -65,7 +66,7 @@ const AsistantModes = () => {
           </div>
 
           {/* Right Side: Preview Section */}
-          <div className="canvas-card bg-white rounded-3xl p-8 shadow-lg">
+          <div className="canvas-card bg-white rounded-3xl p-4 sm:p-8 shadow-lg">
              <div className="flex items-center gap-4 mb-8">
                 <img 
                     src={assistant}
@@ -88,7 +89,7 @@ const AsistantModes = () => {
                 </p>
              </div>
 
-             <div className="grid grid-cols-2 gap-4 mt-10">
+             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-10">
                 <div className="bg-gray-50 p-6 rounded-2xl">
                     <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2">Review guidance</span>
                     <h4 className="text-3xl font-bold text-[#4A70A9]">Review</h4>

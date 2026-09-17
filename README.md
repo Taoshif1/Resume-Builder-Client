@@ -75,7 +75,7 @@ PersonaCV does not claim that its editorial checks predict a hiring result or re
 
 ### Owner / Super Admin
 
-The Owner can manage user accounts, Free/Pro assignments, suspensions, platform usage, plan limits, template availability, feature flags, feedback and private admin notes.
+Owner is a server-authorized administrative role, not a third subscription tier. The Owner can manage user accounts, Free/Pro assignments, suspensions, platform usage, plan limits, template availability, feature flags, feedback and private admin notes.
 
 Online billing is not implemented in V1. Pro access is currently assigned administratively after a request.
 
@@ -174,7 +174,7 @@ V1 imports public repositories through GitHub's public API. Imported repository 
 
 The repository includes Vercel configuration for SPA deep links and server PDF assets. Production requires matching Firebase client configuration, Firebase Admin server credentials and the correct `APP_ORIGIN`.
 
-Do not treat a deployment as production-ready until real authentication, workspace persistence, resume editing, PDF export, logout/login persistence and Owner access have been exercised on the deployed environment.
+Production Firebase authentication and cloud-workspace smoke verification were completed in the repairs at `867ea3c`. The product-polish UI was verified locally against real Firebase without replacing stable production. Preview may not inherit Production Firebase secrets; verify each newly configured deployment and the reviewed production release separately.
 
 ## Current V1 Boundaries
 
@@ -182,7 +182,35 @@ Do not treat a deployment as production-ready until real authentication, workspa
 - No private GitHub repository import
 - AI writing depends on optional external provider configuration
 - Built-in request throttling is per server instance
-- Browser end-to-end journeys still require production smoke testing
+- New deployments need environment-specific smoke checks; the polish branch has passed local authenticated and responsive browser verification
+
+## Product Shell and Routes
+
+The protected app remains **PrivateRoute → WorkspaceProvider → ProductLayout → src/product/**. Desktop uses a sidebar and mobile uses an accessible expandable menu. Workspace branding and Back to website return home; public account navigation offers Dashboard and My Resumes.
+
+| Route | Purpose |
+| --- | --- |
+| `/dashboard` | Actual workspace counts, recent resumes and a field-derived setup checklist |
+| `/dashboard/profile` | Grouped reusable master information |
+| `/dashboard/projects` | Manual/public GitHub projects, separate source facts and authored content |
+| `/dashboard/resumes` | Create, search, duplicate, archive, restore and delete variants |
+| `/resume/:id` | Grouped editor controls, explicit overrides, live preview and PDF |
+| `/dashboard/settings` | Actual account/usage, Pro requests, backups, history and support |
+| `/admin` | Server-authorized Owner controls |
+
+Both `/resume/new` and `/dashboard/create` redirect to resume management. Mobile editor users switch between Edit and Preview. Source refresh never replaces authored content or resume overrides.
+
+The old competing dashboard/builder is removed. Shared schema, resolver, migration and UID-scoped storage remain in `src/resume`. Heavy product pages load lazily. See [the import audit and complete deletion list](docs/PRODUCT-ARCHITECTURE.md).
+
+## Verified Release State
+
+Run `npm run dev:full` for API port 3000 and Vite port 5173. Configure matching Firebase Web and Admin projects using the example environment files. Keep all credentials and smoke-account data untracked.
+
+The final polish work passed lint, all 35 unit/security/PDF tests, build, a production audit with zero vulnerabilities, and isolated Firebase emulator integration. The local real-Firebase journey passed editing, save/reload, mouse/keyboard/touch ordering, PDF, backup and logout/login persistence. A simulated backend 503 retained the session and allowed save retry. The original smoke workspace was safely restored.
+
+The responsive sweep passed 80 route/viewport combinations across 360, 390, 768, 1366 and 1440px with no body/main overflow or runtime exceptions. The entry bundle is 523.57 KB (170.61 KB gzip); a non-blocking 500 KB warning remains. Pro/Owner authorization was verified through unit/emulator tests; a real Owner browser session and Google OAuth completion were not exercised.
+
+[Final verification evidence and limitations](docs/PRODUCT-POLISH-VERIFICATION.md) · [V1 history](docs/V1-COMPLETION.md)
 
 ## Work With Gazi Taoshif
 

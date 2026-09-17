@@ -37,7 +37,7 @@ export const PUBLIC_PLAN_FEATURES = {
     "50 resume variants",
     "100 reusable projects",
     "All resume templates",
-    "Advanced ATS analysis",
+    "Resume checks & keyword comparison",
     "Job-targeted variants",
     "Resume history",
     "Optional configured AI writing assistance",

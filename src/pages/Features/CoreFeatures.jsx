@@ -3,13 +3,13 @@ import { VscSparkle, VscGraph, VscRepo } from "react-icons/vsc";
 const features = [
   {
     icon: <VscSparkle />,
-    title: "AI Resume Builder",
-    desc: "Generate optimized resumes tailored to any job role instantly.",
+    title: "Resume variants",
+    desc: "Choose content from your master profile and tailor it to each opportunity.",
   },
   {
     icon: <VscGraph />,
-    title: "ATS Optimization",
-    desc: "Boost your chances with AI-powered keyword and scoring system.",
+    title: "Resume checks",
+    desc: "Review editorial guidance and ATS-friendly formatting. Pro adds keyword comparison, without a hiring score.",
   },
   {
     icon: <VscRepo />,

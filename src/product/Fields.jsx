@@ -1,3 +1,4 @@
+import { useState } from "react";
 export function Field({
   label,
   value,
@@ -50,5 +51,18 @@ export function OrderButtons({ index, length, onMove, name = "item" }) {
         ↓
       </button>
     </span>
+  );
+}
+
+export function EntryEditor({ initiallyOpen = false, label, children }) {
+  const [open, setOpen] = useState(initiallyOpen);
+  return (
+    <details
+      open={open}
+      onToggle={(event) => setOpen(event.currentTarget.open)}
+    >
+      <summary>{label}</summary>
+      {children}
+    </details>
   );
 }

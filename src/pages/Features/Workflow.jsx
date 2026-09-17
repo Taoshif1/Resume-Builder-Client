@@ -1,8 +1,8 @@
 const steps = [
   "Add your career details",
   "Select job role",
-  "AI generates optimized resume",
-  "Apply with confidence 🚀",
+  "Choose content and review the live preview",
+  "Download your PDF",
 ];
 
 const Workflow = () => {

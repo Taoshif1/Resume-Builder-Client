@@ -58,6 +58,7 @@ export default function AdminPage() {
   return (
     <main className="pcv-page">
       <header>
+        <p className="pcv-eyebrow">OWNER ADMINISTRATION</p>
         <h1>Owner dashboard</h1>
         <p>Account access, usage and product configuration.</p>
       </header>
@@ -116,13 +117,18 @@ export default function AdminPage() {
                   <div className="pcv-actions">
                     <button
                       disabled={busy}
-                      onClick={() =>
-                        action(
-                          `/admin/users/${encodeURIComponent(u.uid)}`,
-                          "PATCH",
-                          { plan: u.plan === "pro" ? "free" : "pro" },
+                      onClick={() => {
+                        if (
+                          window.confirm(
+                            `Change this account to ${u.plan === "pro" ? "Free" : "Pro"}? Existing data is retained; new limits apply to future additions.`,
+                          )
                         )
-                      }
+                          action(
+                            `/admin/users/${encodeURIComponent(u.uid)}`,
+                            "PATCH",
+                            { plan: u.plan === "pro" ? "free" : "pro" },
+                          );
+                      }}
                     >
                       {u.plan === "pro"
                         ? "Downgrade to Free"
@@ -260,7 +266,42 @@ export default function AdminPage() {
           <button disabled={busy}>Save limits</button>
         </form>
         <h3>Template catalog</h3>
-        {['minimal','corporate'].map(template => <label className="pcv-check" key={template}><input type="checkbox" disabled={busy} checked={(data.settings.enabledTemplates || ['modern','minimal','corporate']).includes(template)} onChange={e => action('/admin/settings','PUT',{enabledTemplates:e.target.checked?[...(data.settings.enabledTemplates || ['modern','minimal','corporate']),template]:(data.settings.enabledTemplates || ['modern','minimal','corporate']).filter(t=>t!==template)})}/>{template} available for new selections</label>)}
+        {["minimal", "corporate"].map((template) => (
+          <label className="pcv-check" key={template}>
+            <input
+              type="checkbox"
+              disabled={busy}
+              checked={(
+                data.settings.enabledTemplates || [
+                  "modern",
+                  "minimal",
+                  "corporate",
+                ]
+              ).includes(template)}
+              onChange={(e) =>
+                action("/admin/settings", "PUT", {
+                  enabledTemplates: e.target.checked
+                    ? [
+                        ...(data.settings.enabledTemplates || [
+                          "modern",
+                          "minimal",
+                          "corporate",
+                        ]),
+                        template,
+                      ]
+                    : (
+                        data.settings.enabledTemplates || [
+                          "modern",
+                          "minimal",
+                          "corporate",
+                        ]
+                      ).filter((t) => t !== template),
+                })
+              }
+            />
+            {template} available for new selections
+          </label>
+        ))}
         <p>
           Modern: Free · Minimal and Corporate: Pro. All use semantic,
           single-column export content.

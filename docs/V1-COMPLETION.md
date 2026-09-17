@@ -1,9 +1,9 @@
 # PersonaCV V1 completion
 
-## Audit - 2026-09-15
+## Historical audit - 2026-09-15
 
 - Base: `main` at `c904001`, including the reusable-workspace foundation from PR #18.
-- Completion work lives on `feat/personacv-v1-completion` and remains ahead of `main` until the final PR is reviewed and merged.
+- That completion phase was merged through PR #23. Subsequent Firebase repairs reached main at `867ea3c`; the current polish branch is `feat/personacv-product-polish`.
 - The application keeps React/Vite, Firebase Auth, strict workspace validation, UID-scoped cloud storage, explicit legacy migration, stable IDs, source/authored project separation, and the resume resolver.
 - The V1 server is a Node HTTP API backed by Firebase Admin + Firestore. The old README description of a MERN/MongoDB backend was stale and has been replaced.
 
@@ -62,4 +62,12 @@ This closes the earlier verification gap where the emulator integration suite ex
 
 V1 still intentionally excludes live billing checkout, private GitHub repository OAuth/import, and a distributed rate-limiting service. Optional AI writing requires a configured server-side provider. These are documented product boundaries rather than hidden placeholder functionality.
 
-A production release still requires real Firebase/Auth environment configuration and an authenticated deployed-environment smoke test before treating the production domain as verified.
+Production Firebase authentication and cloud-workspace smoke verification were completed during the repairs now on main at `867ea3c`. This polish phase validates the new UI locally against real Firebase; it does not deploy over the stable production site. Verify the reviewed release on production separately after merge.
+
+## Product polish verification — 2026-09-17
+
+See [the final polish report](PRODUCT-POLISH-VERIFICATION.md) for the current release evidence, responsive matrix, remaining boundaries and smoke-workspace restoration. See [the architecture audit](PRODUCT-ARCHITECTURE.md) for the complete legacy deletion list and retained shared modules.
+
+Start local development with `npm run dev:full` (API 3000, Vite 5173). The active protected path remains PrivateRoute → WorkspaceProvider → ProductLayout → product pages. The editor is `/resume/:id`; `/resume/new` and `/dashboard/create` redirect to resume management. The sidebar/mobile menu connects Overview, Master Profile, Projects, Resumes, Settings, Owner-only Admin and the public website.
+
+The product now provides real workspace metrics, reusable profile groups, separate source/authored project content, detailed resume cards, editor control groups, explicit override state, a mobile Edit/Preview switch, account usage and backup/support controls. No schema or Firebase persistence architecture was replaced.

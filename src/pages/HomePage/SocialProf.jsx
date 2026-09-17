@@ -7,6 +7,7 @@ const SocialProof = () => {
   const containerRef = useRef();
 
   useGSAP(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     gsap.to('.bg-line', {
       rotation: 360, 
       duration: 15, 
@@ -42,7 +43,7 @@ const SocialProof = () => {
             Maintain your developer profile once and create focused resumes for your next opportunity.
           </p>
           
-          <div className="flex gap-4 justify-center items-center mt-8">
+          <div className="flex flex-wrap gap-4 justify-center items-center mt-8">
             <Link
               to="/contact"
               className="btn btn-sm lg:btn-md border-none bg-[#EFECE3] text-[#4A70A9] rounded-xl px-8 shadow-md hover:scale-105 transition-all"

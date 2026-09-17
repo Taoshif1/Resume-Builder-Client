@@ -68,11 +68,19 @@ function SectionOrder({ id, children }) {
 
 export default function EditorPage() {
   const { id } = useParams();
-  const { workspace, update, entitlements, features, save, saving, dirty } =
-    useWorkspace();
-  const variant =
-    workspace.resumeVariants.find((v) => v.id === id) ||
-    (!id ? workspace.resumeVariants[0] : null);
+  const {
+    workspace,
+    update,
+    entitlements,
+    features,
+    save,
+    saving,
+    dirty,
+    error,
+  } = useWorkspace();
+  const variant = workspace.resumeVariants.find((v) => v.id === id);
+  const [tab, setTab] = useState("Basics");
+  const [view, setView] = useState("edit");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [guidance, setGuidance] = useState(null);
@@ -146,17 +154,54 @@ export default function EditorPage() {
   ];
 
   return (
-    <main className="pcv-editor">
+    <main className="pcv-editor" data-view={view}>
       <header className="pcv-editor-header">
         <div>
-          <Link to="/dashboard/resumes">← Resume variants</Link>
+          <Link to="/dashboard/resumes">← Back to Resumes</Link>
           <h1>{variant.name}</h1>
           <p>Edits here apply only to this resume.</p>
         </div>
-        <button disabled={busy || saving} onClick={exportPdf}>
-          {busy ? "Working…" : "Download PDF"}
-        </button>
+        <div className="pcv-actions">
+          <span className="pcv-editor-save-state" role="status">
+            {saving
+              ? "Saving…"
+              : error
+                ? "Save needs attention"
+                : dirty
+                  ? "Unsaved changes"
+                  : "Saved"}
+          </span>
+          <button
+            disabled={saving || !dirty}
+            onClick={() => action(() => save())}
+          >
+            Save
+          </button>
+          <button
+            className="pcv-primary"
+            disabled={busy || saving}
+            onClick={exportPdf}
+          >
+            {busy ? "Working…" : "Download PDF"}
+          </button>
+        </div>
       </header>
+      {error && (
+        <p className="pcv-notice" role="alert">
+          {error}
+        </p>
+      )}
+      <div className="pcv-mobile-view" aria-label="Editor view">
+        <button aria-pressed={view === "edit"} onClick={() => setView("edit")}>
+          Edit
+        </button>
+        <button
+          aria-pressed={view === "preview"}
+          onClick={() => setView("preview")}
+        >
+          Preview
+        </button>
+      </div>
       {message && (
         <p className="pcv-notice" role="status">
           {message}
@@ -164,7 +209,20 @@ export default function EditorPage() {
       )}
       <div className="pcv-editor-columns">
         <div className="pcv-editor-controls">
-          <section className="pcv-card">
+          <nav className="pcv-editor-tabs" aria-label="Editor sections">
+            {["Basics", "Content", "Order", "Targeting", "Review"].map(
+              (label) => (
+                <button
+                  key={label}
+                  aria-pressed={tab === label}
+                  onClick={() => setTab(label)}
+                >
+                  {label}
+                </button>
+              ),
+            )}
+          </nav>
+          <section className="pcv-card" hidden={tab !== "Basics"}>
             <h2>Resume details</h2>
             <Field
               label="Resume name"
@@ -256,8 +314,13 @@ export default function EditorPage() {
               </select>
             </label>
           </section>
-          <section className="pcv-card">
+          <section className="pcv-card" hidden={tab !== "Content"}>
             <h2>Summary for this resume</h2>
+            <p className="pcv-badge">
+              {variant.overrides.personalInfo.summary !== undefined
+                ? "Customized for this resume"
+                : "Using master summary"}
+            </p>
             <Field
               label="Summary"
               multiline
@@ -278,7 +341,7 @@ export default function EditorPage() {
                 })
               }
             >
-              Use master summary
+              Reset to master summary
             </button>
             {entitlements.aiTools && (
               <button
@@ -323,7 +386,7 @@ export default function EditorPage() {
               </aside>
             )}
           </section>
-          <section className="pcv-card">
+          <section className="pcv-card" hidden={tab !== "Order"}>
             <h2>Section order</h2>
             <p>
               Drag the handle, use arrow buttons, or focus a handle and press
@@ -406,7 +469,7 @@ export default function EditorPage() {
             ))}
           </section>
           {groups.map(([collection, key, records, fields]) => (
-            <section className="pcv-card" key={key}>
+            <section className="pcv-card" key={key} hidden={tab !== "Content"}>
               <h2>{collection}</h2>
               {!records.length && (
                 <p>
@@ -470,11 +533,22 @@ export default function EditorPage() {
                       </div>
                       {selected && (
                         <details>
-                          <summary>Edit for this resume</summary>
+                          <summary>
+                            {Object.keys(
+                              variant.overrides[collection][record.id] || {},
+                            ).length
+                              ? "Customized for this resume"
+                              : "Using master content"}{" "}
+                            · Edit
+                          </summary>
+                          <p className="pcv-muted">
+                            Changes here affect this resume only. Deselecting a
+                            project keeps it in your Project Library.
+                          </p>
                           {fields.map((field) => (
                             <Field
                               key={field}
-                              label={field.replace(/([A-Z])/g, " $1")}
+                              label={`${field.replace(/([A-Z])/g, " $1")} · ${variant.overrides[collection][record.id]?.[field] !== undefined ? "Customized" : "Master"}`}
                               multiline={field === "description"}
                               value={
                                 variant.overrides[collection][record.id]?.[
@@ -507,8 +581,8 @@ export default function EditorPage() {
                 })}
             </section>
           ))}
-          <section className="pcv-card">
-            <h2>Resume quality guidance</h2>
+          <section className="pcv-card" hidden={tab !== "Review"}>
+            <h2>Resume checks</h2>
             <p>
               Editorial checks, not an authoritative ATS score or hiring
               prediction.
@@ -523,7 +597,7 @@ export default function EditorPage() {
               <p>Basic checks passed. Review every detail before submitting.</p>
             )}
           </section>
-          <section className="pcv-card">
+          <section className="pcv-card" hidden={tab !== "Targeting"}>
             <h2>Job targeting · Pro</h2>
             {entitlements.jobMatching ? (
               <>
