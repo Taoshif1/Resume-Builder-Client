@@ -24,7 +24,7 @@ const Footer = () => {
             PERSONA<span className="text-[#4A70A9]">CV</span>
           </Link>
           <p className="text-[#71717A] text-[14px] font-medium mt-1">
-            © {currentYear} PersonaCV AI. All rights reserved.
+            © {currentYear} PersonaCV. All rights reserved.
           </p>
         </div>
 

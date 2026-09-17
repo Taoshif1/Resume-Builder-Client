@@ -5,18 +5,18 @@ const CareerVault = () => {
   const vaultFeatures = [
     {
       icon: <VscShield className="text-3xl text-[#4A70A9]" />, // মেইন কালার আইকন
-      title: "Immutable Identity",
-      description: "Encrypted storage for your entire career history. No data loss, ever."
+      title: "Reusable profile",
+      description: "Save your career history to your account and keep independent JSON backups."
     },
     {
       icon: <VscServerProcess className="text-3xl text-[#4A70A9]" />,
-      title: "Dynamic Linking",
-      description: "Connect results to specific skills. The AI learns which stories win interviews."
+      title: "Independent resumes",
+      description: "Select relevant experience and projects for each role. Resume overrides leave your master profile intact."
     },
     {
       icon: <VscCloudDownload className="text-3xl text-[#4A70A9]" />,
-      title: "Auto-Update",
-      description: "Sync with LinkedIn or GitHub to automatically ingest new accomplishments."
+      title: "Public GitHub import",
+      description: "Import public repository facts on demand. Refresh them without replacing your authored achievements."
     }
   ];
 

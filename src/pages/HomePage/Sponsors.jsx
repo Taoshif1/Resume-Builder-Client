@@ -18,6 +18,7 @@ const Sponsors = () => {
   ];
 
   useGSAP(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const slider = sliderRef.current;
     const totalWidth = slider.scrollWidth;
     gsap.to(slider, {

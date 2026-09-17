@@ -509,3 +509,5 @@ body:has(.pcv-editor) .pcv-savebar { display:none; }
 .pcv-editor-save-state { align-self:center; font-size:12px; color:#536176; padding:6px; }
 .pcv-editor [hidden] { display:none!important; }
 .pcv-actions svg { display:inline; vertical-align:middle; }
+
+@media(max-width:640px){.pcv-hero-art{transform:scale(.75);transform-origin:center center;} .pcv-auth-login,.pcv-auth-signup{padding:12px 0!important;} .pcv-auth-card{padding:18px;} .pcv-auth-card h1{font-size:27px;}}

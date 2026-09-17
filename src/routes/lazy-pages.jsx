@@ -1,6 +1,6 @@
 import { lazy } from "react";
 export const Features = lazy(() => import("../pages/Features"));
-export const Pricing = lazy(() => import("../pages/Pricing"));
+export { default as Pricing } from "../pages/Pricing";
 export const GetStarted = lazy(() => import("../pages/GetStarted"));
 export const Login = lazy(() => import("../pages/Login"));
 export const Register = lazy(() => import("../pages/Register"));

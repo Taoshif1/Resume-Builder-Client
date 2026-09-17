@@ -28,15 +28,15 @@ const HeroSection = () => {
               <HiOutlineUserAdd className="text-2xl" />
               Get Started for Free
             </Link>
-            <Link to="/resume/new" className="btn  lg:btn-md border-[#4A70A9] bg-[#4A70A9] text-[#EFECE3] rounded-xl px-8 shadow-md hover:scale-105 transition-all ">
+            <Link to="/features" className="btn  lg:btn-md border-[#4A70A9] bg-[#4A70A9] text-[#EFECE3] rounded-xl px-8 shadow-md hover:scale-105 transition-all ">
               <VscFileSymlinkFile className="text-2xl opacity-60" />
-              View Templates
+              Explore features
             </Link>
           </div>
         </div>
 
     {/* right side */}
-        <div className="relative w-full h-[400px] lg:h-[500px] flex items-center justify-center">
+        <div className="pcv-hero-art relative w-full h-[400px] lg:h-[500px] flex items-center justify-center">
           {/* main card */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[450px] lg:w-[420px] lg:h-[520px] bg-black/80 rounded-[40px] shadow-2xl overflow-hidden border border-white/10 [transform:rotateX(15deg)_rotateY(-15deg)] transition-transform duration-500 hover:rotate-0">
 <div className="absolute inset-0 bg-black/80 rounded-[40px] shadow-2xl overflow-hidden border border-white/10 [transform:rotateX(5deg)] transition-transform duration-500 hover:rotate-0">
@@ -60,7 +60,7 @@ const HeroSection = () => {
           </div>
           <div className="absolute -top-10 lg:-top-20 -left-10 w-[180px] h-[220px] bg-white rounded-3xl p-6 shadow-2xl border border-black/5 [transform:translateZ(50px)_rotate(10deg)]">
             <div className="w-10 h-10 bg-[#7E57C2] rounded-xl flex items-center justify-center shadow-lg">
-                <span className="text-white text-xl font-black">AI</span>
+                <span className="text-white text-xl font-black">CV</span>
             </div>
             <div className="mt-8 space-y-2">
                 <div className="w-full h-3 bg-gray-200 rounded-full" />

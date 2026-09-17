@@ -7,8 +7,7 @@ const HeroFeatures = () => {
       </h1>
 
       <p className="mt-6 text-gray-600 max-w-2xl mx-auto text-lg">
-        PersonaCV AI transforms how you build resumes — from static documents to
-        dynamic, AI-powered career identities.
+        Keep one reusable developer profile, then select, tailor and export a focused resume for each role.
       </p>
     </section>
   );
