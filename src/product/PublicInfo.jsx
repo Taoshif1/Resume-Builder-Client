@@ -62,13 +62,34 @@ export default function PublicInfo({ type }) {
           </>
         ) : (
           <>
-            <p>Need help with your profile, a resume, or access to Pro? Feedback & support in Settings sends your message directly to the product owner.</p>
-            {!user && <p>Sign in to send a request linked to your account. If you cannot sign in, use Forgot password on the sign-in page. Google accounts can use Continue with Google. Public guides and pricing are available without an account.</p>}
-            <p>For a save or export issue, include what you were doing and the error message. Never include passwords, tokens or private credentials.</p>
-            <Link to="/features">Explore features</Link> · <Link to="/pricing">Free & Pro plans</Link>
+            <p>
+              Need help with your profile, a resume, or access to Pro? Feedback
+              & support in Settings sends your message directly to the product
+              owner.
+            </p>
+            {!user && (
+              <p>
+                Sign in to send a request linked to your account. If you cannot
+                sign in, use Forgot password on the sign-in page. Google
+                accounts can use Continue with Google. Public guides and pricing
+                are available without an account.
+              </p>
+            )}
+            <p>
+              For a save or export issue, include what you were doing and the
+              error message. Never include passwords, tokens or private
+              credentials.
+            </p>
+            <Link to="/features">Explore features</Link> ·{" "}
+            <Link to="/pricing">Free & Pro plans</Link>
           </>
         )}
-        <Link className="pcv-button" to={user ? "/dashboard/settings#support" : "/get-started"}>{user ? "Account settings & support" : "Sign in for account support"}</Link>
+        <Link
+          className="pcv-button"
+          to={user ? "/dashboard/settings#support" : "/get-started"}
+        >
+          {user ? "Account settings & support" : "Sign in for account support"}
+        </Link>
       </section>
     </article>
   );

@@ -68,8 +68,16 @@ function SectionOrder({ id, children }) {
 
 export default function EditorPage() {
   const { id } = useParams();
-  const { workspace, update, entitlements, features, save, saving, dirty, error } =
-    useWorkspace();
+  const {
+    workspace,
+    update,
+    entitlements,
+    features,
+    save,
+    saving,
+    dirty,
+    error,
+  } = useWorkspace();
   const variant = workspace.resumeVariants.find((v) => v.id === id);
   const [tab, setTab] = useState("Basics");
   const [view, setView] = useState("edit");
@@ -154,15 +162,46 @@ export default function EditorPage() {
           <p>Edits here apply only to this resume.</p>
         </div>
         <div className="pcv-actions">
-        <span className="pcv-editor-save-state" role="status">{saving ? "Saving…" : error ? "Save needs attention" : dirty ? "Unsaved changes" : "Saved"}</span>
-        <button disabled={saving || !dirty} onClick={() => action(() => save())}>Save</button>
-        <button className="pcv-primary" disabled={busy || saving} onClick={exportPdf}>
-          {busy ? "Working…" : "Download PDF"}
-        </button>
+          <span className="pcv-editor-save-state" role="status">
+            {saving
+              ? "Saving…"
+              : error
+                ? "Save needs attention"
+                : dirty
+                  ? "Unsaved changes"
+                  : "Saved"}
+          </span>
+          <button
+            disabled={saving || !dirty}
+            onClick={() => action(() => save())}
+          >
+            Save
+          </button>
+          <button
+            className="pcv-primary"
+            disabled={busy || saving}
+            onClick={exportPdf}
+          >
+            {busy ? "Working…" : "Download PDF"}
+          </button>
         </div>
       </header>
-      {error && <p className="pcv-notice" role="alert">{error}</p>}
-      <div className="pcv-mobile-view" aria-label="Editor view"><button aria-pressed={view === "edit"} onClick={() => setView("edit")}>Edit</button><button aria-pressed={view === "preview"} onClick={() => setView("preview")}>Preview</button></div>
+      {error && (
+        <p className="pcv-notice" role="alert">
+          {error}
+        </p>
+      )}
+      <div className="pcv-mobile-view" aria-label="Editor view">
+        <button aria-pressed={view === "edit"} onClick={() => setView("edit")}>
+          Edit
+        </button>
+        <button
+          aria-pressed={view === "preview"}
+          onClick={() => setView("preview")}
+        >
+          Preview
+        </button>
+      </div>
       {message && (
         <p className="pcv-notice" role="status">
           {message}
@@ -170,7 +209,19 @@ export default function EditorPage() {
       )}
       <div className="pcv-editor-columns">
         <div className="pcv-editor-controls">
-          <nav className="pcv-editor-tabs" aria-label="Editor sections">{["Basics", "Content", "Order", "Targeting", "Review"].map(label => <button key={label} aria-pressed={tab === label} onClick={() => setTab(label)}>{label}</button>)}</nav>
+          <nav className="pcv-editor-tabs" aria-label="Editor sections">
+            {["Basics", "Content", "Order", "Targeting", "Review"].map(
+              (label) => (
+                <button
+                  key={label}
+                  aria-pressed={tab === label}
+                  onClick={() => setTab(label)}
+                >
+                  {label}
+                </button>
+              ),
+            )}
+          </nav>
           <section className="pcv-card" hidden={tab !== "Basics"}>
             <h2>Resume details</h2>
             <Field
@@ -265,7 +316,11 @@ export default function EditorPage() {
           </section>
           <section className="pcv-card" hidden={tab !== "Content"}>
             <h2>Summary for this resume</h2>
-            <p className="pcv-badge">{variant.overrides.personalInfo.summary !== undefined ? "Customized for this resume" : "Using master summary"}</p>
+            <p className="pcv-badge">
+              {variant.overrides.personalInfo.summary !== undefined
+                ? "Customized for this resume"
+                : "Using master summary"}
+            </p>
             <Field
               label="Summary"
               multiline
@@ -478,8 +533,18 @@ export default function EditorPage() {
                       </div>
                       {selected && (
                         <details>
-                          <summary>{Object.keys(variant.overrides[collection][record.id] || {}).length ? "Customized for this resume" : "Using master content"} · Edit</summary>
-                          <p className="pcv-muted">Changes here affect this resume only. Deselecting a project keeps it in your Project Library.</p>
+                          <summary>
+                            {Object.keys(
+                              variant.overrides[collection][record.id] || {},
+                            ).length
+                              ? "Customized for this resume"
+                              : "Using master content"}{" "}
+                            · Edit
+                          </summary>
+                          <p className="pcv-muted">
+                            Changes here affect this resume only. Deselecting a
+                            project keeps it in your Project Library.
+                          </p>
                           {fields.map((field) => (
                             <Field
                               key={field}

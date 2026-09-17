@@ -21,9 +21,9 @@ export default function Pricing() {
   const navigate = useNavigate();
 
   return (
-    <main className="py-20 px-6 bg-[#EFECE3]/30">
+    <section className="py-16 px-4 sm:px-6 bg-[#EFECE3]/30" aria-label="Pricing">
       <header className="text-center max-w-2xl mx-auto mb-10 text-black">
-        <h1 className="text-5xl font-black tracking-tighter">
+        <h1 className="text-3xl sm:text-5xl font-black tracking-tighter">
           Simple, transparent <span className="glow">pricing</span>
         </h1>
         <p className="mt-5 text-gray-600">
@@ -31,7 +31,7 @@ export default function Pricing() {
           templates, history, job targeting and optional configured writing
           assistance.
         </p>
-        <label className="inline-flex items-center gap-3 mt-6 font-bold">
+        <label className="inline-flex flex-wrap justify-center items-center gap-3 mt-6 font-bold">
           Monthly
           <input
             type="checkbox"
@@ -49,7 +49,7 @@ export default function Pricing() {
       </header>
 
       <section
-        className="grid max-w-4xl mx-auto gap-6 md:grid-cols-2"
+        className="grid grid-cols-1 min-w-0 max-w-4xl mx-auto gap-6 md:grid-cols-2"
         aria-label="PersonaCV plans"
       >
         {cards.map((card) => {
@@ -59,7 +59,7 @@ export default function Pricing() {
             <article
               key={card.id}
               className={
-                "relative rounded-[2rem] p-8 shadow-xl flex flex-col " +
+                "relative min-w-0 rounded-[2rem] p-5 sm:p-8 shadow-xl flex flex-col " +
                 card.className
               }
             >
@@ -104,6 +104,6 @@ export default function Pricing() {
           );
         })}
       </section>
-    </main>
+    </section>
   );
 }

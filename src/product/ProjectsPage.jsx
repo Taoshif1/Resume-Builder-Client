@@ -1,7 +1,7 @@
 import { Link } from "react-router";
 import { useState } from "react";
 import { useWorkspace } from "./workspaceContext";
-import { Field, OrderButtons } from "./Fields";
+import { Field, OrderButtons, EntryEditor } from "./Fields";
 import {
   importRepositories,
   mutateWorkspace,
@@ -71,7 +71,8 @@ export default function ProjectsPage() {
       <section className="pcv-card">
         <div className="pcv-row">
           <h2>{workspace.projects.length} projects</h2>
-          <button className="pcv-primary"
+          <button
+            className="pcv-primary"
             disabled={workspace.projects.length >= entitlements.maxProjects}
             onClick={() =>
               edit((w) => {
@@ -92,7 +93,14 @@ export default function ProjectsPage() {
             Add project
           </button>
         </div>
-        {workspace.projects.length >= entitlements.maxProjects && <p className="pcv-notice">Project limit reached. Refresh existing imports, remove an unused project, or <Link to="/dashboard/settings#plan">request Pro access</Link>. Archived projects count toward your limit.</p>}
+        {workspace.projects.length >= entitlements.maxProjects && (
+          <p className="pcv-notice">
+            Project limit reached. Refresh existing imports, remove an unused
+            project, or{" "}
+            <Link to="/dashboard/settings#plan">request Pro access</Link>.
+            Archived projects count toward your limit.
+          </p>
+        )}
         <div className="pcv-fields">
           <Field
             label="Search names, technologies or tags"
@@ -134,8 +142,18 @@ export default function ProjectsPage() {
           {busy ? "Fetching…" : "Find public repositories"}
         </button>
         {message && <p role="status">{message}</p>}
-        {!features.publicGithub && <p className="pcv-muted">Public GitHub import is currently disabled by the owner. You can still add projects manually.</p>}
-        {repos.length > 0 && <p className="pcv-muted">{selected.length} selected · Existing imports will refresh source facts only.</p>}
+        {!features.publicGithub && (
+          <p className="pcv-muted">
+            Public GitHub import is currently disabled by the owner. You can
+            still add projects manually.
+          </p>
+        )}
+        {repos.length > 0 && (
+          <p className="pcv-muted">
+            {selected.length} selected · Existing imports will refresh source
+            facts only.
+          </p>
+        )}
         <div className="pcv-repos">
           {repos.map((repo) => (
             <label key={repo.id}>
@@ -151,7 +169,14 @@ export default function ProjectsPage() {
                 }
               />
               {repo.name}
-              <span className="pcv-muted"> {repo.language}</span><span className="pcv-badge">{workspace.projects.some(p => p.sourceData.githubRepoId === repo.id) ? "Refresh" : "New import"}</span>
+              <span className="pcv-muted"> {repo.language}</span>
+              <span className="pcv-badge">
+                {workspace.projects.some(
+                  (p) => p.sourceData.githubRepoId === repo.id,
+                )
+                  ? "Refresh"
+                  : "New import"}
+              </span>
             </label>
           ))}
         </div>
@@ -192,8 +217,16 @@ export default function ProjectsPage() {
       </details>
       {!visible.length && (
         <section className="pcv-card">
-          <h2>{search || filter !== "active" ? "No matching projects" : "Show what you have built"}</h2>
-          <p>{search || filter !== "active" ? "Try another search or visibility filter." : "Add a project manually or choose public repositories above, then write your contribution."}</p>
+          <h2>
+            {search || filter !== "active"
+              ? "No matching projects"
+              : "Show what you have built"}
+          </h2>
+          <p>
+            {search || filter !== "active"
+              ? "Try another search or visibility filter."
+              : "Add a project manually or choose public repositories above, then write your contribution."}
+          </p>
         </section>
       )}
       {visible.map((project) => {
@@ -264,56 +297,77 @@ export default function ProjectsPage() {
                 </button>
               </div>
             </div>
-            <p><span className="pcv-badge">{project.source === "github" ? "GitHub import" : "Manual project"}</span>{project.metadata?.visibility === "archived" && <span className="pcv-badge">Archived</span>}</p>
-            <details open={!project.resumeData.description || undefined}><summary>Edit resume content & project details</summary>
-            <p className="pcv-muted">Your authored content. GitHub refresh never replaces these descriptions or achievement bullets.</p>
-            <div className="pcv-fields">
-              {PROJECT_FIELDS.map((field) => (
-                <Field
-                  key={field}
-                  label={
-                    {
-                      title: "Project name",
-                      techStack: "Technologies",
-                      liveLink: "Live URL",
-                      description:
-                        "Your description / achievement bullets (one per line)",
-                    }[field]
-                  }
-                  value={project.resumeData[field]}
-                  multiline={field === "description"}
-                  onChange={(value) =>
-                    edit((w) => {
-                      w.projects.find((p) => p.id === project.id).resumeData[
-                        field
-                      ] = value;
-                    })
-                  }
-                />
-              ))}
-              {[
-                "shortName",
-                "role",
-                "tags",
-                "githubUrl",
-                "startDate",
-                "endDate",
-              ].map((field) => (
-                <Field
-                  key={field}
-                  label={field.replace(/([A-Z])/g, " $1")}
-                  value={project.metadata?.[field]}
-                  onChange={(value) =>
-                    edit((w) => {
-                      const p = w.projects.find((p) => p.id === project.id);
-                      p.metadata = { ...p.metadata, [field]: value };
-                    })
-                  }
-                />
-              ))}
-            </div>
-            </details>
-            {project.metadata?.githubUrl && !safeUrl(project.metadata.githubUrl) && <p role="alert">GitHub URL must start with http:// or https://. Invalid URLs are omitted from exports.</p>}
+            <p>
+              <span className="pcv-badge">
+                {project.source === "github"
+                  ? "GitHub import"
+                  : "Manual project"}
+              </span>
+              {project.metadata?.visibility === "archived" && (
+                <span className="pcv-badge">Archived</span>
+              )}
+            </p>
+            <EntryEditor
+              initiallyOpen={!project.resumeData.description}
+              label="Edit resume content & project details"
+            >
+              <p className="pcv-muted">
+                Your authored content. GitHub refresh never replaces these
+                descriptions or achievement bullets.
+              </p>
+              <div className="pcv-fields">
+                {PROJECT_FIELDS.map((field) => (
+                  <Field
+                    key={field}
+                    label={
+                      {
+                        title: "Project name",
+                        techStack: "Technologies",
+                        liveLink: "Live URL",
+                        description:
+                          "Your description / achievement bullets (one per line)",
+                      }[field]
+                    }
+                    value={project.resumeData[field]}
+                    multiline={field === "description"}
+                    onChange={(value) =>
+                      edit((w) => {
+                        w.projects.find((p) => p.id === project.id).resumeData[
+                          field
+                        ] = value;
+                      })
+                    }
+                  />
+                ))}
+                {[
+                  "shortName",
+                  "role",
+                  "tags",
+                  "githubUrl",
+                  "startDate",
+                  "endDate",
+                ].map((field) => (
+                  <Field
+                    key={field}
+                    label={field.replace(/([A-Z])/g, " $1")}
+                    value={project.metadata?.[field]}
+                    onChange={(value) =>
+                      edit((w) => {
+                        const p = w.projects.find((p) => p.id === project.id);
+                        p.metadata = { ...p.metadata, [field]: value };
+                      })
+                    }
+                  />
+                ))}
+              </div>
+            </EntryEditor>
+            {project.metadata?.githubUrl &&
+              !safeUrl(project.metadata.githubUrl) && (
+                <p role="alert">
+                  GitHub URL must start with http:// or https://. Invalid URLs
+                  are omitted from exports.
+                </p>
+              )}
             {project.resumeData.liveLink &&
               !safeUrl(project.resumeData.liveLink) && (
                 <p role="alert">
@@ -335,7 +389,12 @@ export default function ProjectsPage() {
                 >
                   {project.sourceData.repoUrl}
                 </a>
-                <p>Last synced: {project.sourceData.lastSyncedAt ? new Date(project.sourceData.lastSyncedAt).toLocaleString() : "Not synced"}</p>
+                <p>
+                  Last synced:{" "}
+                  {project.sourceData.lastSyncedAt
+                    ? new Date(project.sourceData.lastSyncedAt).toLocaleString()
+                    : "Not synced"}
+                </p>
               </aside>
             )}
           </section>

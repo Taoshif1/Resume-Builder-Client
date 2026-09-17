@@ -1,5 +1,5 @@
 import { useWorkspace } from "./workspaceContext";
-import { Field, OrderButtons } from "./Fields";
+import { Field, OrderButtons, EntryEditor } from "./Fields";
 import { mutateWorkspace, move, removeRecord } from "./operations";
 import {
   newId,
@@ -34,7 +34,13 @@ export default function ProfilePage() {
           variant editor.
         </p>
       </header>
-      <nav className="pcv-section-links" aria-label="Profile sections">{["personal", ...Object.keys(collections)].map(key => <a key={key} href={`#${key}`}>{key === "personal" ? "Personal information" : title(key)}</a>)}</nav>
+      <nav className="pcv-section-links" aria-label="Profile sections">
+        {["personal", ...Object.keys(collections)].map((key) => (
+          <a key={key} href={`#${key}`}>
+            {key === "personal" ? "Personal information" : title(key)}
+          </a>
+        ))}
+      </nav>
       <section className="pcv-card pcv-profile-section" id="personal">
         <h2>Personal information</h2>
         <div className="pcv-fields">
@@ -55,10 +61,23 @@ export default function ProfilePage() {
         </div>
       </section>
       {Object.entries(collections).map(([collection, fields]) => (
-        <details className="pcv-card pcv-profile-section" key={collection} id={collection} open={collection === "skills" || undefined}>
-          <summary>{title(collection)} <span className="pcv-badge">{(workspace.profile[collection] || []).length} entries</span></summary>
+        <details
+          className="pcv-card pcv-profile-section"
+          key={collection}
+          id={collection}
+          open={collection === "skills" || undefined}
+        >
+          <summary>
+            {title(collection)}{" "}
+            <span className="pcv-badge">
+              {(workspace.profile[collection] || []).length} entries
+            </span>
+          </summary>
           <div className="pcv-row">
-            <p className="pcv-muted">Reusable across your resumes. Customize individual entries in the resume editor.</p>
+            <p className="pcv-muted">
+              Reusable across your resumes. Customize individual entries in the
+              resume editor.
+            </p>
             <button
               onClick={() =>
                 edit((w) => {
@@ -123,25 +142,28 @@ export default function ProfilePage() {
                   </button>
                 </div>
               </div>
-              <details open={!fields.some(field => record[field]) || undefined}><summary>Edit entry</summary>
-              <div className="pcv-fields">
-                {fields.map((field) => (
-                  <Field
-                    key={field}
-                    label={title(field)}
-                    value={record[field]}
-                    multiline={field === "description"}
-                    onChange={(value) =>
-                      edit((w) => {
-                        w.profile[collection].find((r) => r.id === record.id)[
-                          field
-                        ] = value;
-                      })
-                    }
-                  />
-                ))}
-              </div>
-              </details>
+              <EntryEditor
+                initiallyOpen={!fields.some((field) => record[field])}
+                label="Edit entry"
+              >
+                <div className="pcv-fields">
+                  {fields.map((field) => (
+                    <Field
+                      key={field}
+                      label={title(field)}
+                      value={record[field]}
+                      multiline={field === "description"}
+                      onChange={(value) =>
+                        edit((w) => {
+                          w.profile[collection].find((r) => r.id === record.id)[
+                            field
+                          ] = value;
+                        })
+                      }
+                    />
+                  ))}
+                </div>
+              </EntryEditor>
             </article>
           ))}
         </details>

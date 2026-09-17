@@ -76,12 +76,26 @@ export default function SettingsPage() {
           Projects: {workspace.projects.length} /{" "}
           {account.role === "owner" ? "Unlimited" : entitlements.maxProjects}
         </p>
-        {account.role !== "owner" && <progress className="pcv-usage" aria-label="Project usage" value={workspace.projects.length} max={entitlements.maxProjects} />}
+        {account.role !== "owner" && (
+          <progress
+            className="pcv-usage"
+            aria-label="Project usage"
+            value={workspace.projects.length}
+            max={entitlements.maxProjects}
+          />
+        )}
         <p>
           Resumes: {workspace.resumeVariants.length} /{" "}
           {account.role === "owner" ? "Unlimited" : entitlements.maxVariants}
         </p>
-        {account.role !== "owner" && <progress className="pcv-usage" aria-label="Resume usage" value={workspace.resumeVariants.length} max={entitlements.maxVariants} />}
+        {account.role !== "owner" && (
+          <progress
+            className="pcv-usage"
+            aria-label="Resume usage"
+            value={workspace.resumeVariants.length}
+            max={entitlements.maxVariants}
+          />
+        )}
         <p>
           Free includes master profile, 10 projects, 3 resumes, public GitHub
           import and PDF export. Pro adds more capacity, templates, history and
@@ -92,7 +106,11 @@ export default function SettingsPage() {
           owner can assign your plan.
         </p>
         <button
-          onClick={() => { setFeedback("I would like to request Pro access for my account."); supportRef.current?.scrollIntoView(); supportRef.current?.querySelector("textarea")?.focus(); }}
+          onClick={() => {
+            setFeedback("I would like to request Pro access for my account.");
+            supportRef.current?.scrollIntoView();
+            supportRef.current?.querySelector("textarea")?.focus();
+          }}
         >
           Request Pro access
         </button>
