@@ -84,3 +84,5 @@ Route-level splitting keeps editor/DnD and other heavy product pages separate. T
 - Stable production was not redeployed for this work. Prior production Firebase smoke verification is retained as historical evidence; this branch's new UI was verified locally.
 - Preview Firebase secrets were not inspected or copied, so authenticated Preview readiness is not claimed. Review the PR and verify production separately after merge.
 - Browser harnesses, account backups and screenshots remain ignored under `.artifacts/`; no credentials or test-account data are included in the PR.
+
+Latest main documentation update `89a351a44b72a5f37ac1a6fd0f7cf53811615c03` (README portfolio polish) was inspected and merged during delivery. Its author/studio content is preserved; application code is unchanged by that merge.

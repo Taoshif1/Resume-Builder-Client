@@ -68,3 +68,5 @@ The old defaultResume.js was also unreferenced; current defaults come from works
 Home nested 40px horizontal padding inside the public layout, then embedded pricing with further padding, non-wrapping cycle controls and intrinsic grid widths. At 360px this overflowed the main content. Home now uses responsive gutters; Pricing uses a semantic section, wrapping cycle controls, a shrinkable single-column grid, smaller mobile card padding and responsive headings. No global overflow-hiding rule was added.
 
 Profile and project EntryEditor disclosure state is independent of edited field values, preventing an editor from closing while a user types. The data schema is unchanged. Final validation is recorded in [PRODUCT-POLISH-VERIFICATION.md](PRODUCT-POLISH-VERIFICATION.md).
+
+Latest main documentation update `89a351a44b72a5f37ac1a6fd0f7cf53811615c03` (README portfolio polish) was inspected and merged during delivery. Its author/studio content is preserved; application code is unchanged by that merge.
