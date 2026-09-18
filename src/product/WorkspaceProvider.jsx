@@ -129,6 +129,11 @@ function AccountWorkspace({ uid, children }) {
       setError(e.message);
     }
   }
+  async function refreshAccount() {
+    const accountData = await api("/account");
+    setAccount(accountData);
+    return accountData;
+  }
   async function save() {
     if (saving) throw new Error("A save is already in progress.");
     setSaving(true);
@@ -266,6 +271,7 @@ function AccountWorkspace({ uid, children }) {
         features: account.features,
         billing: account.billing,
         settings: account.settings,
+        refreshAccount,
         save,
         saving,
         dirty,
