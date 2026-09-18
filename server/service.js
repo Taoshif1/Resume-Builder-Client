@@ -283,6 +283,7 @@ export function createService(db, auth) {
       documentSlots,
       amountBdt,
       method: method.id,
+      receiverNumber: method.number,
       transactionId,
       status: "pending",
       createdAt: new Date().toISOString(),
