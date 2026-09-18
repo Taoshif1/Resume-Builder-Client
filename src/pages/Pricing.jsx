@@ -78,8 +78,8 @@ export default function Pricing({ headingLevel = 1 }) {
                 {id === "free"
                   ? "Core tools, no payment required"
                   : yearly
-                    ? "Planned annual price · 2 months included"
-                    : "Planned monthly price · USD and BDT shown"}
+                    ? "Bangladesh regional yearly price · 2 months included"
+                    : "Bangladesh regional price shown in BDT"}
               </p>
               <ul>
                 {PUBLIC_PLAN_FEATURES[id].map((feature) => (
