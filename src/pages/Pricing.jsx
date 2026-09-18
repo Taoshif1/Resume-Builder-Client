@@ -51,14 +51,17 @@ export default function Pricing({ headingLevel = 1 }) {
               </div>
               <p className="pcv-plan-price" aria-live="polite">
                 <strong>${plan.price[yearly ? "yearly" : "monthly"]}</strong>
+                <span className="pcv-plan-local-price">
+                  · ৳{plan.priceBdt[yearly ? "yearly" : "monthly"].toLocaleString("en-BD")}
+                </span>
                 <span>/{yearly ? "year" : "month"}</span>
               </p>
               <p className="pcv-plan-price-note">
                 {id === "free"
                   ? "Core tools, no payment required"
                   : yearly
-                    ? "Planned annual price · $5/month equivalent"
-                    : "Planned monthly price"}
+                    ? "Planned annual price · 2 months included"
+                    : "Planned monthly price · USD and BDT shown"}
               </p>
               <ul>
                 {PUBLIC_PLAN_FEATURES[id].map((feature) => (

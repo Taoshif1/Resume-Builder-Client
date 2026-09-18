@@ -9,13 +9,29 @@ import {
 } from "../resume/storage/workspaceStorage";
 import { createLegacyMigrationCandidate } from "../resume/data/legacyMigration";
 
+function WorkspaceLoading({ message, detail }) {
+  return (
+    <main
+      className="pcv-state pcv-loading-state"
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
+    >
+      <div className="pcv-loader" aria-hidden="true" />
+      <h1>{message}</h1>
+      <p>{detail}</p>
+    </main>
+  );
+}
+
 export default function WorkspaceProvider({ children }) {
   const { user, loading } = useContext(AuthContext);
   if (loading)
     return (
-      <main className="pcv-state" role="status">
-        Checking your session…
-      </main>
+      <WorkspaceLoading
+        message="Checking your session…"
+        detail="Confirming your secure PersonaCV sign-in."
+      />
     );
   if (!user) return children;
   return (
@@ -42,10 +58,10 @@ function AccountWorkspace({ uid, children }) {
     const controller = new AbortController();
     async function initialize() {
       try {
-        const accountData = await api("/account", {
-          signal: controller.signal,
-        });
-        const cloud = await api("/workspace", { signal: controller.signal });
+        const [accountData, cloud] = await Promise.all([
+          api("/account", { signal: controller.signal }),
+          api("/workspace", { signal: controller.signal }),
+        ]);
         if (controller.signal.aborted) return;
         assertWorkspace(cloud.workspace, uid);
         let local = null;
@@ -140,6 +156,13 @@ function AccountWorkspace({ uid, children }) {
       "personacv-workspace.json",
     );
   }
+  if (!workspace && !error)
+    return (
+      <WorkspaceLoading
+        message={status}
+        detail="Loading your profile, projects, resumes and CVs from the cloud."
+      />
+    );
   if (!workspace)
     return (
       <main className="pcv-state">

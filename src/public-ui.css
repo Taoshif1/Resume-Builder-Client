@@ -331,6 +331,11 @@
 .pcv-plan-price span {
   font-size: 14px;
 }
+.pcv-plan-price .pcv-plan-local-price {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
 .pcv-plan-price-note {
   font-size: 12px;
   min-height: 36px;
