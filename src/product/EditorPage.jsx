@@ -136,7 +136,10 @@ export default function EditorPage() {
         (await blob.slice(0, 5).text()) !== "%PDF-"
       )
         throw new Error("The PDF response is invalid. Please try again.");
-      downloadBlob(blob, pdfFilename(model.name, variant.name));
+      downloadBlob(
+        blob,
+        pdfFilename(model.name, variant.name, model.documentType),
+      );
       setMessage("PDF downloaded.");
     });
   }
@@ -162,7 +165,7 @@ export default function EditorPage() {
     <main className="pcv-editor" data-view={view}>
       <header className="pcv-editor-header">
         <div>
-          <Link to="/dashboard/resumes">← Back to Resumes</Link>
+          <Link to="/dashboard/resumes">← Back to Resumes &amp; CVs</Link>
           <h1>{variant.name}</h1>
           <p>Edits here apply only to this resume.</p>
         </div>
@@ -265,6 +268,25 @@ export default function EditorPage() {
                 })
               }
             />
+            <label className="pcv-field">
+              Document type
+              <select
+                value={variant.documentType || "resume"}
+                onChange={(e) =>
+                  edit((v) => {
+                    v.documentType = e.target.value;
+                  })
+                }
+              >
+                <option value="resume">Resume</option>
+                <option value="cv">CV</option>
+              </select>
+            </label>
+            <p className="pcv-muted">
+              {model.documentType === "cv"
+                ? "A broader career record. Include education, certifications and custom sections; multiple pages are welcome."
+                : "A focused application. Choose relevant evidence and aim for a concise one or two pages."}
+            </p>
             <label className="pcv-field">
               Template
               <select
@@ -587,7 +609,7 @@ export default function EditorPage() {
             </section>
           ))}
           <section className="pcv-card" hidden={tab !== "Review"}>
-            <h2>Resume checks</h2>
+            <h2>{model.documentType === "cv" ? "CV" : "Resume"} checks</h2>
             <p>
               Editorial checks, not an authoritative ATS score or hiring
               prediction.

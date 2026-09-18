@@ -1,4 +1,5 @@
 export const SCHEMA_VERSION = 1;
+export const DOCUMENT_TYPES = ["resume", "cv"];
 export const TEMPLATES = ["modern", "minimal", "corporate"];
 export const SECTIONS = [
   "summary",
@@ -56,11 +57,16 @@ export function assertFields(value, fields, partial = false) {
   );
 }
 
-export function createVariant(id = newId(), name = "My Resume") {
+export function createVariant(
+  id = newId(),
+  name = "My Resume",
+  documentType = "resume",
+) {
   return {
     id,
     name,
     template: "modern",
+    documentType,
     projectIds: [],
     experienceIds: [],
     educationIds: [],
@@ -260,6 +266,7 @@ export function assertWorkspace(workspace, ownerUid) {
           "id",
           "name",
           "template",
+          "documentType",
           "projectIds",
           "experienceIds",
           "educationIds",
@@ -289,6 +296,8 @@ export function assertWorkspace(workspace, ownerUid) {
     ])
       if (variant[key] !== undefined)
         requireValid(typeof variant[key] === "string");
+    if (variant.documentType !== undefined)
+      requireValid(DOCUMENT_TYPES.includes(variant.documentType));
     if (variant.archived !== undefined)
       requireValid(typeof variant.archived === "boolean");
     if (variant.paperSize !== undefined)

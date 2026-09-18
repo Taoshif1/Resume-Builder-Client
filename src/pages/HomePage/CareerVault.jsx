@@ -1,63 +1,43 @@
-import React from 'react';
-import { VscShield, VscServerProcess, VscCloudDownload } from "react-icons/vsc";
-
-const CareerVault = () => {
-  const vaultFeatures = [
-    {
-      icon: <VscShield className="text-3xl text-[#4A70A9]" />, // মেইন কালার আইকন
-      title: "Reusable profile",
-      description: "Save your career history to your account and keep independent JSON backups."
-    },
-    {
-      icon: <VscServerProcess className="text-3xl text-[#4A70A9]" />,
-      title: "Independent resumes",
-      description: "Select relevant experience and projects for each role. Resume overrides leave your master profile intact."
-    },
-    {
-      icon: <VscCloudDownload className="text-3xl text-[#4A70A9]" />,
-      title: "Public GitHub import",
-      description: "Import public repository facts on demand. Refresh them without replacing your authored achievements."
-    }
-  ];
-
+﻿const features = [
+  [
+    "01",
+    "Keep your career in one place",
+    "Save your profile, education and career history to your account. Keep an independent JSON backup whenever you need one.",
+  ],
+  [
+    "02",
+    "Tailor without starting over",
+    "Select relevant experience and projects for each Resume or CV. Document-specific edits leave your master content intact.",
+  ],
+  [
+    "03",
+    "Bring your projects with you",
+    "Import public GitHub repository facts. Refresh source data without replacing your authored achievements.",
+  ],
+];
+export default function CareerVault() {
   return (
-    <section className="bg-[#EFECE3]/20 py-24 px-6 md:px-12 flex flex-col items-center">
-      <div className="text-center mb-16 max-w-2xl">
-        <h2 className="text-4xl lg:text-5xl font-extrabold text-black tracking-tighter leading-tight">
-          The Career Vault: <span className="text-[#4A70A9]">Your Single Source of Truth</span>
+    <section className="pcv-home-section pcv-vault">
+      <header>
+        <p className="pcv-public-eyebrow">THE CAREER VAULT</p>
+        <h2>
+          Less retyping.
+          <br />
+          More of your best work.
         </h2>
-        <p className="text-gray-600 mt-6 text-lg leading-relaxed font-medium">
-          A repository that grows with your career. Store project details, obscure skills, and key results once. Never hunt for bullet points again.
+        <p>
+          Your experience grows over time. Your documents should grow with it.
         </p>
-      </div>
-
-      {/* (Cards Grid) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 w-full max-w-7xl">
-        {vaultFeatures.map((feature, index) => (
-          <div 
-            key={index}
-            className="bg-[#DCE2F7] rounded-3xl p-10 shadow-lg border border-white/40 flex flex-col gap-6 transform transition-all duration-300 hover:scale-105 hover:shadow-2xl cursor-pointer"
-          >
-            {/*icon*/}
-            <div className="w-16 h-16 rounded-2xl bg-white/60 flex items-center justify-center shadow-inner border border-white/20">
-              {feature.icon}
-            </div>
-
-            {/*content */}
-            <div className="space-y-3 text-left">
-              <h4 className="text-2xl font-bold text-black tracking-tight leading-snug">
-                {feature.title}
-              </h4>
-              <p className="text-gray-700 text-base leading-relaxed font-medium opacity-90">
-                {feature.description}
-              </p>
-            </div>
-          </div>
+      </header>
+      <div className="pcv-public-card-grid">
+        {features.map(([number, title, description]) => (
+          <article className="pcv-feature-card" key={number}>
+            <span className="pcv-feature-number">{number}</span>
+            <h3>{title}</h3>
+            <p>{description}</p>
+          </article>
         ))}
       </div>
-
     </section>
   );
-};
-
-export default CareerVault;
+}

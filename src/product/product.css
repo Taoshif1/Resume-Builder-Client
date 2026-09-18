@@ -511,3 +511,40 @@ body:has(.pcv-editor) .pcv-savebar { display:none; }
 .pcv-actions svg { display:inline; vertical-align:middle; }
 
 @media(max-width:640px){.pcv-hero-art{transform:scale(.75);transform-origin:center center;} .pcv-auth-login,.pcv-auth-signup{padding:12px 0!important;} .pcv-auth-card{padding:18px;} .pcv-auth-card h1{font-size:27px;}}
+/* V1.1 document system: shared point-based tokens come from document-styles.js. */
+.pcv-paper { padding:44pt; min-height:1050px; line-height:calc(1.35em + var(--document-line-gap)); }
+.pcv-paper .pcv-document-header { margin:0; text-align:center; }
+.pcv-paper .pcv-document-header h1 { font-size:var(--document-name-size); color:var(--document-accent); line-height:1.25; margin:0 0 3pt; }
+.pcv-paper .pcv-paper-title { font-size:12pt; margin:0 0 3pt; }
+.pcv-paper p { margin:0; line-height:inherit; }
+.pcv-paper .pcv-document-contact { font-size:9pt; margin:0 0 2pt; }
+.pcv-document-links { display:inline-flex; flex-wrap:wrap; gap:2pt 9pt; justify-content:inherit; font-size:9pt; }
+.pcv-paper .pcv-document-links a { font-size:9pt; color:var(--document-accent); text-decoration:underline; text-underline-offset:2pt; }
+.pcv-paper h2 { font-size:10pt; line-height:1.4; color:var(--document-accent); border-bottom:var(--document-rule) solid var(--document-accent); padding:0 0 2pt; margin:var(--document-section-gap) 0 4pt; letter-spacing:.5pt; }
+.pcv-paper h3 { font-size:inherit; margin:0; line-height:inherit; min-width:0; }
+.pcv-paper-entry { margin:0 0 var(--document-entry-gap); }
+.pcv-document-row { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,max-content); gap:10pt; align-items:start; }
+.pcv-document-aside { display:flex; flex-direction:column; text-align:right; align-items:flex-end; max-width:230px; }
+.pcv-paper .pcv-paper-dates { font-size:9pt; line-height:1.5; }
+.pcv-paper ul { list-style:disc; padding-left:12pt; margin:0; }
+.pcv-paper li { margin:0; padding:0; line-height:inherit; }
+.pcv-paper .pcv-document-label,.pcv-paper .pcv-document-tech { font-size:.91em; }
+.pcv-paper .pcv-document-label { font-weight:700; }
+.pcv-template-minimal .pcv-document-header { text-align:left; }
+.pcv-template-minimal .pcv-document-header h1 { font-weight:400; }
+.pcv-template-minimal h2 { text-transform:none; font-weight:400; letter-spacing:0; }
+.pcv-template-corporate .pcv-document-header { text-align:left; border-bottom:2pt solid #172033; padding-bottom:6pt; }
+.pcv-template-corporate .pcv-document-header h1 { letter-spacing:1pt; }
+.pcv-template-corporate .pcv-document-subheading { font-weight:700; }
+@media(min-width:901px) {
+  /* A fixed viewport shell gives sidebar and document independent scroll owners. */
+  .pcv-shell { height:100vh; height:100dvh; min-height:0; overflow:hidden; align-items:stretch; }
+  .pcv-sidebar { position:static; align-self:stretch; height:100%; min-height:0; overscroll-behavior:contain; }
+  .pcv-workspace-content { min-height:0; overflow-y:auto; overscroll-behavior:contain; }
+  .pcv-editor-columns { grid-template-columns:minmax(260px, .72fr) minmax(0,1.65fr); }
+  .pcv-preview-wrap { top:16px; max-height:calc(100dvh - 32px); padding:0 8px 20px; }
+}
+@media(max-width:1100px) and (min-width:901px) { .pcv-editor-columns { grid-template-columns:260px minmax(0,1fr); gap:12px; } .pcv-paper { padding:24px; } }
+@media(max-width:900px) { .pcv-paper { padding:22px; min-height:700px; } }
+@media(max-width:540px) { .pcv-document-row { grid-template-columns:minmax(0,1fr); gap:1pt; } .pcv-document-aside { max-width:none; align-items:flex-start; text-align:left; } }
+.pcv-document-links a + a::before { content:"|"; display:inline-block; margin-right:9pt; text-decoration:none; color:#66758a; }

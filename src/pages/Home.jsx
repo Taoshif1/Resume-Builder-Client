@@ -8,7 +8,7 @@ import HeroSection from "./HomePage/HeroSection";
 
 const Home = () => {
   return (
-    <div className="px-0 py-6 sm:p-6 lg:p-10 text-center">
+    <div className="pcv-home">
       <HeroSection></HeroSection>
       <Sponsors></Sponsors>
       <CareerVault></CareerVault>

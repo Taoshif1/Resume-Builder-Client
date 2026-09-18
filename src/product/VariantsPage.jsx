@@ -7,6 +7,7 @@ import { Field } from "./Fields";
 export default function VariantsPage() {
   const { workspace, update, entitlements } = useWorkspace();
   const navigate = useNavigate();
+  const [documentType, setDocumentType] = useState("resume");
   const [search, setSearch] = useState("");
   const [archived, setArchived] = useState(false);
   const limitReached =
@@ -19,7 +20,7 @@ export default function VariantsPage() {
         .includes(search.toLowerCase()),
   );
   function create(original) {
-    const next = addVariant(workspace, original);
+    const next = addVariant(workspace, original, documentType);
     update(next);
     navigate(`/resume/${next.resumeVariants.at(-1).id}`);
   }
@@ -27,14 +28,24 @@ export default function VariantsPage() {
     <main className="pcv-page">
       <header>
         <p className="pcv-eyebrow">ONE PROFILE, MANY OPPORTUNITIES</p>
-        <h1>Resume variants</h1>
+        <h1>Resumes &amp; CVs</h1>
         <p>
           Choose content for each role without changing your master profile.
         </p>
       </header>
       <section className="pcv-card">
         <div className="pcv-row">
-          <h2>{workspace.resumeVariants.length} resumes</h2>
+          <h2>{workspace.resumeVariants.length} documents</h2>
+          <label className="pcv-field">
+            Document type
+            <select
+              value={documentType}
+              onChange={(e) => setDocumentType(e.target.value)}
+            >
+              <option value="resume">Resume</option>
+              <option value="cv">CV</option>
+            </select>
+          </label>
           <button
             className="pcv-primary"
             disabled={
@@ -42,17 +53,17 @@ export default function VariantsPage() {
             }
             onClick={() => create()}
           >
-            Create resume
+            Create {documentType === "cv" ? "CV" : "resume"}
           </button>
         </div>
         {limitReached && (
           <p className="pcv-notice" role="status">
-            You have reached your resume limit ({entitlements.maxVariants}).
+            You have reached your document limit ({entitlements.maxVariants}).
             Delete an unused variant to free space, or{" "}
             <Link to="/dashboard/settings#plan">
               request Pro access in Settings
             </Link>
-            . Archived resumes count toward this limit.
+            . Archived documents count toward this limit.
           </p>
         )}
         <Field
@@ -105,6 +116,9 @@ export default function VariantsPage() {
               experience entries
             </p>
             <p>
+              <span className="pcv-badge">
+                {v.documentType === "cv" ? "CV" : "Resume"}
+              </span>
               <span className="pcv-badge">{v.template} template</span>
               {v.archived && <span className="pcv-badge">Archived</span>}
               {v.labels && <span className="pcv-badge">{v.labels}</span>}
@@ -117,7 +131,7 @@ export default function VariantsPage() {
             </p>
             <div className="pcv-actions">
               <Link className="pcv-button" to={`/resume/${v.id}`}>
-                Edit resume
+                Edit document
               </Link>
               <button
                 disabled={

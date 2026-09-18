@@ -1,62 +1,22 @@
-import React, { useRef } from 'react';
-import { useGSAP } from "@gsap/react";
-import gsap from "gsap";
-
-const Sponsors = () => {
-  const containerRef = useRef();
-  const sliderRef = useRef();
-  const sponsors = [
-    { name: "JAVASCRIPT" },
-    { name: "PYTHON" },
-    { name: "TYPESCRIPT" },
-    { name: "REACT" },
-    { name: "NODE.JS" },
-    { name: "POSTGRES" },
-    { name: "DOCKER" },
-    { name: "GIT" },
-    { name: "ACCESSIBILITY" },
-  ];
-
-  useGSAP(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const slider = sliderRef.current;
-    const totalWidth = slider.scrollWidth;
-    gsap.to(slider, {
-      x: `-${totalWidth / 2}`, 
-      duration: 20,
-      ease: "none",
-      repeat: -1,
-      onReverseComplete: () => {
-        gsap.set(slider, { x: 0 });
-      }
-    });
-  }, { scope: containerRef });
-
+﻿export default function Sponsors() {
   return (
-    <section className="bg-[#EFECE3]/20 py-24 overflow-hidden border-y border-black/5" ref={containerRef}>
-      <div className="flex flex-col items-center gap-14">
-        <p className="text-[#4A70A9]/60 text-xs font-black tracking-[0.4em] uppercase">
-          Built for your developer toolkit
-        </p>
-        
-        <div className="relative w-full overflow-hidden flex">
-          <div 
-            ref={sliderRef}
-            className="flex items-center gap-20 whitespace-nowrap"
-          >
-            {sponsors.map((sponsor, index) => (
-              <span 
-                key={index} 
-                className="text-3xl md:text-4xl font-black text-black hover:text-[#4A70A9] transition-colors cursor-default tracking-tighter"
-              >
-                {sponsor.name}
-              </span>
-            ))}
-          </div>
-        </div>
-      </div>
+    <section className="pcv-toolkit" aria-label="Developer toolkit">
+      <p className="pcv-public-eyebrow">BUILT AROUND THE WORK YOU DO</p>
+      <ul>
+        {[
+          "React",
+          "JavaScript",
+          "Python",
+          "Node.js",
+          "Databases",
+          "Accessibility",
+        ].map((name) => (
+          <li key={name}>{name}</li>
+        ))}
+      </ul>
+      <p>
+        Organize your skills, projects and experience. No endorsements implied.
+      </p>
     </section>
   );
-};
-
-export default Sponsors;
+}

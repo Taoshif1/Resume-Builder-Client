@@ -4,9 +4,9 @@ import Footer from "../components/shared/Footer";
 
 export const MainLayout = () => {
   return (
-    <div className="min-h-screen bg-[#EFECE3] text-white">
+    <div className="pcv-public-site">
       <Navbar />
-      <main className="min-h-screen pt-15 container mx-auto px-4">
+      <main className="pcv-public-main">
         <Outlet />
       </main>
       <Footer></Footer>
