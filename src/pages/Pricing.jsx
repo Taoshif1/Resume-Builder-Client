@@ -1,10 +1,12 @@
-﻿import { useEffect, useState } from "react";
+﻿import { useContext, useEffect, useState } from "react";
 import { Link } from "react-router";
 import { PLANS, PUBLIC_PLAN_FEATURES } from "../product/plans";
 import { DEFAULT_COMMERCE } from "../product/commerce";
+import { AuthContext } from "../context/AuthContext";
 export default function Pricing({ headingLevel = 1 }) {
   const [yearly, setYearly] = useState(false);
   const [commerce, setCommerce] = useState(DEFAULT_COMMERCE);
+  const { user } = useContext(AuthContext);
   const Heading = headingLevel === 1 ? "h1" : "h2";
   useEffect(() => {
     const controller = new AbortController();
@@ -16,6 +18,16 @@ export default function Pricing({ headingLevel = 1 }) {
       .catch(() => {});
     return () => controller.abort();
   }, []);
+  const proDestination = `/dashboard/settings?purchase=pro&period=${yearly ? "yearly" : "monthly"}#payments`;
+  const slotDestination = "/dashboard/settings?purchase=slots#payments";
+  const authAwareLink = (destination) =>
+    user
+      ? { to: destination }
+      : {
+          to: "/get-started/register",
+          state: { from: destination },
+        };
+
   return (
     <section
       className="pcv-pricing pcv-home-section"
@@ -47,8 +59,8 @@ export default function Pricing({ headingLevel = 1 }) {
         </button>
       </div>
       <p className="pcv-checkout-note">
-        Online checkout is not enabled yet. Pro access is assigned by the Owner
-        after a request.
+        Bangladesh payments are handled manually through enabled bKash, Nagad or
+        Rocket accounts. Access activates after the Owner verifies the transaction.
       </p>
       <div className="pcv-pricing-grid pcv-pricing-grid-three">
         {["free", "pro"].map((id) => {
@@ -99,13 +111,17 @@ export default function Pricing({ headingLevel = 1 }) {
 
               <Link
                 className="pcv-plan-action"
-                to={
-                  id === "free"
-                    ? "/get-started/register"
-                    : "/dashboard/settings#payments"
-                }
+                {...(id === "free"
+                  ? authAwareLink("/dashboard")
+                  : authAwareLink(proDestination))}
               >
-                {id === "free" ? "Start Free" : "Request Pro access"}
+                {id === "free"
+                  ? user
+                    ? "Open dashboard"
+                    : "Start Free"
+                  : user
+                    ? "Choose Pro"
+                    : "Sign up for Pro"}
                 <span aria-hidden="true">↗</span>
               </Link>
             </article>
@@ -158,9 +174,9 @@ export default function Pricing({ headingLevel = 1 }) {
 
           <Link
             className="pcv-plan-action"
-            to="/dashboard/settings#payments"
+            {...authAwareLink(slotDestination)}
           >
-            Buy extra slots
+            {user ? "Buy extra slots" : "Sign up to buy slots"}
             <span aria-hidden="true">↗</span>
           </Link>
         </article>
