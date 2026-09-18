@@ -28,6 +28,7 @@ test("legacy commerce settings migrate the old five-slot default to one slot", (
 
 test("commerce defaults are bounded and payment methods expose only enabled numbers", () => {
   const normalized = normalizeCommerce({
+    version: DEFAULT_COMMERCE.version,
     proMonthlyBdt: -1,
     proYearlyBdt: "not-a-number",
     documentPackSize: 5,
