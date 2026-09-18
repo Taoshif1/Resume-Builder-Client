@@ -200,6 +200,34 @@
   padding: 80px 24px;
   text-align: center;
 }
+.pcv-loading-state {
+  min-height: 70vh;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 14px;
+}
+.pcv-loading-state h1 {
+  margin: 0;
+}
+.pcv-loading-state p {
+  margin: 0;
+  color: #596779;
+}
+.pcv-loader {
+  width: 46px;
+  height: 46px;
+  border: 4px solid #dbe4f1;
+  border-top-color: #4a70a9;
+  border-radius: 50%;
+  animation: pcv-spin 800ms linear infinite;
+  box-shadow: 0 6px 18px #17203312;
+}
+@keyframes pcv-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 .pcv-repos {
   display: grid;
   gap: 10px;
@@ -502,6 +530,7 @@
 }
 @media (prefers-reduced-motion:reduce) {
   *,*::before,*::after { scroll-behavior:auto!important; animation-duration:.01ms!important; animation-iteration-count:1!important; transition-duration:.01ms!important; }
+  .pcv-loader { animation:none; border-top-color:#4a70a9; }
 }
 
 /* The editor owns the same provider save action; show only one save control. */
