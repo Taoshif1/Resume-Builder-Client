@@ -5,6 +5,7 @@ export const PAYMENT_METHODS = [
 ];
 
 export const DEFAULT_COMMERCE = {
+  version: 2,
   proMonthlyBdt: 499,
   proYearlyBdt: 4990,
   documentPackSize: 1,
@@ -29,7 +30,9 @@ export function normalizeCommerce(value = {}) {
     source.paymentMethods && typeof source.paymentMethods === "object"
       ? source.paymentMethods
       : {};
+  const version = Number(source.version) || 1;
   return {
+    version: DEFAULT_COMMERCE.version,
     proMonthlyBdt: boundedInt(
       source.proMonthlyBdt,
       DEFAULT_COMMERCE.proMonthlyBdt,
@@ -43,7 +46,9 @@ export function normalizeCommerce(value = {}) {
       1000000,
     ),
     documentPackSize: boundedInt(
-      source.documentPackSize,
+      version >= DEFAULT_COMMERCE.version
+        ? source.documentPackSize
+        : DEFAULT_COMMERCE.documentPackSize,
       DEFAULT_COMMERCE.documentPackSize,
       1,
       100,
