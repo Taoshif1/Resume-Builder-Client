@@ -25,21 +25,21 @@ export const PLANS = {
 
 export const PUBLIC_PLAN_FEATURES = {
   free: [
-    "3 resume variants",
+    "3 resume or CV documents",
     "10 reusable projects",
     "Public GitHub import",
     "Master Profile",
     "One ATS-friendly template",
     "PDF export",
-    "Basic resume checks",
+    "Basic document checks",
   ],
   pro: [
-    "50 resume variants",
+    "50 resume or CV documents",
     "100 reusable projects",
-    "All resume templates",
-    "Resume checks & keyword comparison",
-    "Job-targeted variants",
-    "Resume history",
+    "All document templates",
+    "Document checks & keyword comparison",
+    "Job-targeted resume variants",
+    "Document history",
     "Optional configured AI writing assistance",
   ],
 };
