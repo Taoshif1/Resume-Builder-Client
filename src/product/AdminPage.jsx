@@ -340,7 +340,7 @@ export default function AdminPage() {
                 min="1"
                 max="100"
                 required
-                defaultValue={data.settings.commerce?.documentPackSize || 5}
+                defaultValue={data.settings.commerce?.documentPackSize || 1}
               />
             </label>
             <label className="pcv-field">
