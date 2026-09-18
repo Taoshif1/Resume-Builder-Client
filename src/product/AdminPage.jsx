@@ -403,6 +403,31 @@ export default function AdminPage() {
           <button type="submit" disabled={busy}>
             {busy ? "Saving…" : "Save payment settings"}
           </button>
+          <div className="pcv-payment-admin-preview" aria-live="polite">
+            <strong>Currently enabled for users:</strong>
+            {PAYMENT_METHODS.filter(
+              ({ id }) =>
+                data.settings.commerce?.paymentMethods?.[id]?.enabled &&
+                data.settings.commerce?.paymentMethods?.[id]?.number,
+            ).length ? (
+              <ul>
+                {PAYMENT_METHODS.filter(
+                  ({ id }) =>
+                    data.settings.commerce?.paymentMethods?.[id]?.enabled &&
+                    data.settings.commerce?.paymentMethods?.[id]?.number,
+                ).map(({ id, label }) => (
+                  <li key={id}>
+                    {label}:{" "}
+                    <strong>
+                      {data.settings.commerce.paymentMethods[id].number}
+                    </strong>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>No payment method is currently enabled.</p>
+            )}
+          </div>
         </form>
         <h3>Template catalog</h3>
         {["minimal", "corporate"].map((template) => (
