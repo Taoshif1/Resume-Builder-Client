@@ -313,8 +313,8 @@ export default function SettingsPage() {
                         body: {
                           product: "pro",
                           period: proPeriod,
-                          method: packPaymentMethod,
-                          transactionId: packTransactionId,
+                          method: proPaymentMethod,
+                          transactionId: proTransactionId,
                         },
                       });
                       setPaymentData(await api("/payments"));
