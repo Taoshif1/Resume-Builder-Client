@@ -1,6 +1,7 @@
 import {
   assertWorkspace,
   createWorkspace,
+  TEMPLATES,
 } from "../src/resume/data/workspace.js";
 import {
   assertActive,
@@ -458,7 +459,7 @@ export function createService(db, auth) {
         !Array.isArray(body.enabledTemplates) ||
         !body.enabledTemplates.includes("modern") ||
         !body.enabledTemplates.every((template) =>
-          ["modern", "minimal", "corporate"].includes(template),
+          TEMPLATES.includes(template),
         )
       )
         fail("Keep the Free template enabled and choose valid templates.");
