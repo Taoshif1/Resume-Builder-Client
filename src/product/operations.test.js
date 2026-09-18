@@ -99,6 +99,26 @@ test("entitlements enforce limits, deny suspended/Pro admin and allow owner bypa
     15,
   );
 });
+test("Free users get two documents and purchased slots extend only the document limit", () => {
+  const freeAccount = {
+    role: "user",
+    plan: "free",
+    status: "active",
+    purchasedDocumentSlots: 0,
+  };
+  assert.equal(entitlements(freeAccount).maxVariants, 2);
+  assert.equal(
+    entitlements({ ...freeAccount, purchasedDocumentSlots: 5 }).maxVariants,
+    7,
+  );
+  assert.equal(
+    entitlements({ ...freeAccount, purchasedDocumentSlots: "invalid" })
+      .maxVariants,
+    2,
+  );
+  assert.equal(entitlements(freeAccount).maxProjects, 10);
+});
+
 test("grandfathered data is preserved on downgrade but cannot grow beyond limits", () => {
   let w = createWorkspace("alice");
   for (let i = 0; i < 4; i++) w = addVariant(w);
