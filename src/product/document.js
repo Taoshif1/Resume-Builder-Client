@@ -5,16 +5,15 @@ function readableLink(label, value) {
   const url = safeUrl(value);
   if (!url) return null;
   const host = new URL(url).hostname.replace(/^www\./, "");
-  return {
-    label:
-      label?.trim() ||
-      (host === "github.com"
-        ? "GitHub"
-        : host.endsWith("linkedin.com")
-          ? "LinkedIn"
-          : host),
-    url,
-  };
+  const requestedLabel = label?.trim() || "";
+  const normalizedLabel = requestedLabel.toLowerCase();
+  const displayLabel =
+    host === "github.com" || normalizedLabel.includes("github")
+      ? "GitHub"
+      : host.endsWith("linkedin.com") || normalizedLabel.includes("linkedin")
+        ? "LinkedIn"
+        : requestedLabel || host;
+  return { label: displayLabel, url };
 }
 function uniqueLinks(links) {
   const seen = new Set();
