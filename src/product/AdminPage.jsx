@@ -453,12 +453,12 @@ export default function AdminPage() {
                 })
               }
             />
-            {template} available for new selections
+            {DOCUMENT_STYLES[template]?.label || template} available for new selections
           </label>
         ))}
         <p>
-          Modern: Free · Minimal and Corporate: Pro. All use semantic,
-          single-column export content.
+          Modern: Free · all other templates: Pro. Every format keeps semantic,
+          single-column export content and server-rendered selectable PDFs.
         </p>
         <p>
           Template implementations are versioned with the application; deploy
