@@ -55,6 +55,31 @@ test("safe labelled project links deduplicate URLs and preserve authored feature
     .items[0];
   assert.deepEqual(item.links, []);
 });
+test("common profile links render with compact platform labels", () => {
+  const w = documentFixture();
+  w.profile.links = [
+    {
+      id: "github",
+      label: "Taoshif's Github",
+      url: "https://github.com/example",
+    },
+    {
+      id: "linkedin",
+      label: "My LinkedIn profile",
+      url: "https://www.linkedin.com/in/example",
+    },
+    {
+      id: "portfolio",
+      label: "Portfolio",
+      url: "https://example.test",
+    },
+  ];
+  assert.deepEqual(
+    resumeDocument(w, w.resumeVariants[0].id).links.map((link) => link.label),
+    ["GitHub", "LinkedIn", "Portfolio"],
+  );
+});
+
 test("CV length is unrestricted while Resume encourages brevity and both retain basic checks", () => {
   const w = documentFixture();
   w.profile.personalInfo.summary = "Evidence ".repeat(1100);
