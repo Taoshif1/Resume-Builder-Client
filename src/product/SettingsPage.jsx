@@ -1,4 +1,5 @@
 import { useContext, useEffect, useRef, useState } from "react";
+import { Link, useLocation } from "react-router";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { AuthContext } from "../context/AuthContext";
 import { auth } from "../services/firebase";
@@ -16,29 +17,63 @@ export default function SettingsPage() {
     entitlements,
     settings,
     backup,
+    refreshAccount,
     save,
     dirty,
   } = useWorkspace();
   const supportRef = useRef(null);
+  const location = useLocation();
+  const purchaseIntent = new URLSearchParams(location.search).get("purchase");
+  const requestedPeriod = new URLSearchParams(location.search).get("period");
   const [message, setMessage] = useState("");
   const [feedback, setFeedback] = useState("");
   const [history, setHistory] = useState([]);
   const [paymentData, setPaymentData] = useState(null);
-  const [paymentMethod, setPaymentMethod] = useState("");
-  const [transactionId, setTransactionId] = useState("");
+  const [paymentLoading, setPaymentLoading] = useState(false);
+  const [packPaymentMethod, setPackPaymentMethod] = useState("");
+  const [packTransactionId, setPackTransactionId] = useState("");
+  const [proPaymentMethod, setProPaymentMethod] = useState("");
+  const [proTransactionId, setProTransactionId] = useState("");
   const [packQuantity, setPackQuantity] = useState(1);
-  const [proPeriod, setProPeriod] = useState("monthly");
+  const [proPeriod, setProPeriod] = useState(
+    requestedPeriod === "yearly" ? "yearly" : "monthly",
+  );
   const [busy, setBusy] = useState(false);
   useEffect(() => {
     if (account.role === "owner") return;
     const controller = new AbortController();
+    setPaymentLoading(true);
     api("/payments", { signal: controller.signal })
-      .then(setPaymentData)
+      .then((result) => {
+        setPaymentData(result);
+        const firstMethod = result.commerce?.paymentMethods?.[0]?.id || "";
+        setPackPaymentMethod((current) => current || firstMethod);
+        setProPaymentMethod((current) => current || firstMethod);
+      })
       .catch((e) => {
         if (!controller.signal.aborted) setMessage(e.message);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setPaymentLoading(false);
       });
     return () => controller.abort();
   }, [account.role]);
+
+  useEffect(() => {
+    if (requestedPeriod === "monthly" || requestedPeriod === "yearly")
+      setProPeriod(requestedPeriod);
+  }, [requestedPeriod]);
+
+  useEffect(() => {
+    if (location.hash !== "#payments") return;
+    const timer = window.setTimeout(() => {
+      document.getElementById("payments")?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 80);
+    return () => window.clearTimeout(timer);
+  }, [location.hash, purchaseIntent, paymentData]);
   async function action(fn) {
     setBusy(true);
     setMessage("");
@@ -58,9 +93,25 @@ export default function SettingsPage() {
     paymentMethods: [],
   };
   const paymentMethods = commerce.paymentMethods || [];
-  const selectedMethod = paymentMethods.find(
-    (method) => method.id === paymentMethod,
+  const selectedPackMethod = paymentMethods.find(
+    (method) => method.id === packPaymentMethod,
   );
+  const selectedProMethod = paymentMethods.find(
+    (method) => method.id === proPaymentMethod,
+  );
+  async function refreshPayments() {
+    setPaymentLoading(true);
+    try {
+      const [payments] = await Promise.all([
+        api("/payments"),
+        refreshAccount(),
+      ]);
+      setPaymentData(payments);
+      setMessage("Payment and account status refreshed.");
+    } finally {
+      setPaymentLoading(false);
+    }
+  }
   return (
     <main className="pcv-page">
       <header>
@@ -142,18 +193,48 @@ export default function SettingsPage() {
           </p>
         )}
       </section>
+      {account.role === "owner" && purchaseIntent && (
+        <section className="pcv-card pcv-payment-section is-selected" id="payments">
+          <h2>Owner payment controls</h2>
+          <p>
+            Your Owner account already has Pro-level access and does not need to
+            purchase a plan or document slots. Configure the payment numbers,
+            pricing, and incoming payment approvals from the Owner dashboard.
+          </p>
+          <Link className="pcv-button pcv-primary" to="/admin">
+            Open Admin payment settings
+          </Link>
+        </section>
+      )}
       {account.role !== "owner" && (
-        <section className="pcv-card" id="payments">
+        <section
+          className={`pcv-card pcv-payment-section ${purchaseIntent ? "is-selected" : ""}`}
+          id="payments"
+        >
           <h2>Manual payments</h2>
           <p>
             Send the exact amount to an enabled account, then submit the transaction
             ID. Nothing is activated until the Owner verifies and approves it.
           </p>
-          {!paymentMethods.length ? (
-            <p className="pcv-notice">
-              Manual payment numbers are not enabled right now. Use Feedback & support
-              below if you need access.
-            </p>
+          {paymentLoading && !paymentData ? (
+            <div className="pcv-payment-loading" role="status">
+              <span className="pcv-loader pcv-loader-small" aria-hidden="true" />
+              Loading available payment methods…
+            </div>
+          ) : !paymentMethods.length ? (
+            <div className="pcv-notice">
+              <p>
+                Manual payment numbers are not enabled right now. The Owner must enable
+                at least one payment method before a payment can be submitted.
+              </p>
+              <button
+                type="button"
+                disabled={busy || paymentLoading}
+                onClick={() => action(refreshPayments)}
+              >
+                {paymentLoading ? "Checking…" : "Refresh payment methods"}
+              </button>
+            </div>
           ) : (
             <>
               <div className="pcv-payment-options">
@@ -167,13 +248,13 @@ export default function SettingsPage() {
                         body: {
                           product: "document_pack",
                           quantity: Number(packQuantity),
-                          method: paymentMethod,
-                          transactionId,
+                          method: packPaymentMethod,
+                          transactionId: packTransactionId,
                         },
                       });
                       setPaymentData(await api("/payments"));
-                      setTransactionId("");
-                      setMessage("Document-pack payment submitted for Owner review.");
+                      setPackTransactionId("");
+                      setMessage("Payment submitted. It is pending Owner verification.");
                     });
                   }}
                 >
@@ -210,8 +291,8 @@ export default function SettingsPage() {
                     Payment method
                     <select
                       required
-                      value={paymentMethod}
-                      onChange={(e) => setPaymentMethod(e.target.value)}
+                      value={packPaymentMethod}
+                      onChange={(e) => setPackPaymentMethod(e.target.value)}
                     >
                       <option value="">Choose method</option>
                       {paymentMethods.map((method) => (
@@ -221,23 +302,30 @@ export default function SettingsPage() {
                       ))}
                     </select>
                   </label>
-                  {selectedMethod && (
+                  {selectedPackMethod && (
                     <p className="pcv-payment-number">
-                      Send to {selectedMethod.label}:{" "}
-                      <strong>{selectedMethod.number}</strong>
+                      Send to {selectedPackMethod.label}:{" "}
+                      <strong>{selectedPackMethod.number}</strong>
                     </p>
                   )}
                   <label className="pcv-field">
                     Transaction ID
                     <input
                       required
-                      value={transactionId}
-                      onChange={(e) => setTransactionId(e.target.value)}
+                      value={packTransactionId}
+                      onChange={(e) => setPackTransactionId(e.target.value)}
                       maxLength="80"
                       autoComplete="off"
                     />
                   </label>
-                  <button disabled={busy || !paymentMethod || !transactionId.trim()}>
+                  <button
+                    disabled={
+                      busy ||
+                      !packPaymentMethod ||
+                      !packTransactionId.trim() ||
+                      Number(packQuantity) < 1
+                    }
+                  >
                     Submit pack payment
                   </button>
                 </form>
@@ -252,13 +340,13 @@ export default function SettingsPage() {
                         body: {
                           product: "pro",
                           period: proPeriod,
-                          method: paymentMethod,
-                          transactionId,
+                          method: proPaymentMethod,
+                          transactionId: proTransactionId,
                         },
                       });
                       setPaymentData(await api("/payments"));
-                      setTransactionId("");
-                      setMessage("Pro payment submitted for Owner review.");
+                      setProTransactionId("");
+                      setMessage("Pro payment submitted. It is pending Owner verification.");
                     });
                   }}
                 >
@@ -285,8 +373,8 @@ export default function SettingsPage() {
                     Payment method
                     <select
                       required
-                      value={paymentMethod}
-                      onChange={(e) => setPaymentMethod(e.target.value)}
+                      value={proPaymentMethod}
+                      onChange={(e) => setProPaymentMethod(e.target.value)}
                     >
                       <option value="">Choose method</option>
                       {paymentMethods.map((method) => (
@@ -296,28 +384,41 @@ export default function SettingsPage() {
                       ))}
                     </select>
                   </label>
-                  {selectedMethod && (
+                  {selectedProMethod && (
                     <p className="pcv-payment-number">
-                      Send to {selectedMethod.label}:{" "}
-                      <strong>{selectedMethod.number}</strong>
+                      Send to {selectedProMethod.label}:{" "}
+                      <strong>{selectedProMethod.number}</strong>
                     </p>
                   )}
                   <label className="pcv-field">
                     Transaction ID
                     <input
                       required
-                      value={transactionId}
-                      onChange={(e) => setTransactionId(e.target.value)}
+                      value={proTransactionId}
+                      onChange={(e) => setProTransactionId(e.target.value)}
                       maxLength="80"
                       autoComplete="off"
                     />
                   </label>
-                  <button disabled={busy || !paymentMethod || !transactionId.trim()}>
+                  <button
+                    disabled={
+                      busy || !proPaymentMethod || !proTransactionId.trim()
+                    }
+                  >
                     Submit Pro payment
                   </button>
                 </form>
               </div>
-              <h3>Your recent payment requests</h3>
+              <div className="pcv-row pcv-payment-history-heading">
+                <h3>Your recent payment requests</h3>
+                <button
+                  type="button"
+                  disabled={busy || paymentLoading}
+                  onClick={() => action(refreshPayments)}
+                >
+                  {paymentLoading ? "Refreshing…" : "Refresh status"}
+                </button>
+              </div>
               {!paymentData?.requests?.length && <p>No requests submitted yet.</p>}
               {paymentData?.requests?.map((request) => (
                 <div className="pcv-record" key={request.id}>

@@ -1,9 +1,23 @@
-import React from "react";
-import { NavLink, Outlet, Link } from "react-router";
+import React, { useContext } from "react";
+import { NavLink, Outlet, Link, Navigate, useLocation } from "react-router";
 import bgStarted from "../assets/bg-started.png";
+import { AuthContext } from "../context/AuthContext";
 
 
 const GetStarted = () => {
+  const location = useLocation();
+  const { user, loading } = useContext(AuthContext);
+  const requestedDestination = location.state?.from;
+  const destination =
+    typeof requestedDestination === "string" &&
+    requestedDestination.startsWith("/") &&
+    !requestedDestination.startsWith("//") &&
+    !requestedDestination.includes("\\")
+      ? requestedDestination
+      : "/dashboard";
+
+  if (!loading && user) return <Navigate to={destination} replace />;
+
   return (
     // মেইন কন্টেইনার
     <div className="min-h-screen flex flex-col items-center justify-center bg-[#d5d8db] py-8 px-4">
@@ -75,6 +89,7 @@ const GetStarted = () => {
             <ul className="flex w-full bg-[#F2F4F6] items-center rounded-full justify-between p-1">
               <NavLink
                 to="/get-started"
+                state={location.state}
                 end
                 className={({ isActive }) =>
                   `w-1/2 text-center py-2.5 rounded-full text-sm font-bold transition-all ${
@@ -88,6 +103,7 @@ const GetStarted = () => {
               </NavLink>
               <NavLink
                 to="/get-started/register"
+                state={location.state}
                 className={({ isActive }) =>
                   `w-1/2 text-center py-2.5 rounded-full text-sm font-bold transition-all ${
                     isActive

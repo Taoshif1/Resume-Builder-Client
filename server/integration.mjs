@@ -83,9 +83,25 @@ try {
     ).status,
     200,
   );
+  const ownerAfterPaymentSettings = await request(owner, "/api/admin");
+  assert.equal(ownerAfterPaymentSettings.status, 200);
+  assert.equal(
+    ownerAfterPaymentSettings.data.settings.commerce.paymentMethods.bkash.enabled,
+    true,
+  );
+  assert.equal(
+    ownerAfterPaymentSettings.data.settings.commerce.paymentMethods.bkash.number,
+    "01700000000",
+    "Owner payment number persists in Firestore-backed settings",
+  );
   const paymentOptions = await request(payer, "/api/payments");
   assert.equal(paymentOptions.status, 200);
   assert.equal(paymentOptions.data.commerce.paymentMethods[0].id, "bkash");
+  assert.equal(
+    paymentOptions.data.commerce.paymentMethods[0].number,
+    "01700000000",
+    "enabled receiving number is exposed only to authenticated users",
+  );
   assert.equal(paymentOptions.data.commerce.documentPackSize, 5);
   assert.equal(
     (await request(payer, "/api/account")).data.entitlements.maxVariants,
