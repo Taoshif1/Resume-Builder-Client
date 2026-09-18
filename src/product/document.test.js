@@ -20,6 +20,12 @@ test("V1 workspaces keep IDs, overrides and content with an implicit Resume defa
     model.sections.find((s) => s.key === "projects").items[0].text,
     "Authored variant achievement",
   );
+  const duplicatedLegacy = addVariant(w, w.resumeVariants[0]);
+  assert.equal(
+    duplicatedLegacy.resumeVariants.at(-1).documentType,
+    "resume",
+    "new duplicates normalize the implicit legacy default",
+  );
   const cv = addVariant(w, undefined, "cv");
   assertWorkspace(cv, w.ownerUid);
   assert.deepEqual(cv.resumeVariants[0], original.resumeVariants[0]);
