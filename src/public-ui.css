@@ -277,6 +277,33 @@
   max-width: 900px;
   margin: auto;
 }
+.pcv-pricing-grid-three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  max-width: 1180px;
+}
+.pcv-pricing-grid-three .pcv-plan-card {
+  min-width: 0;
+}
+.pcv-plan-pack {
+  background: #f8fbff;
+  border-color: #9fb9df;
+}
+.pcv-plan-pack .pcv-plan-price strong {
+  color: #244c85;
+}
+.pcv-plan-pack .pcv-plan-action {
+  background: #244c85;
+  color: white;
+}
+@media (hover: hover) {
+  .pcv-plan-pack:hover,
+  .pcv-plan-pack:focus-within {
+    background: #eef5ff;
+    border-color: #6f91c2;
+    transform: translateY(-3px);
+    box-shadow: 0 12px 24px #263e6118;
+  }
+}
 .pcv-plan-card {
   border: 1px solid #d8dedf;
   border-radius: 18px;
@@ -414,6 +441,10 @@
   background: #345478;
 }
 @media (max-width: 900px) {
+  .pcv-pricing-grid-three {
+    grid-template-columns: 1fr;
+    max-width: 620px;
+  }
   .pcv-home-hero {
     gap: 36px;
     padding: 48px 24px;
