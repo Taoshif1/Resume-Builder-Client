@@ -222,10 +222,19 @@ export default function SettingsPage() {
               Loading available payment methods…
             </div>
           ) : !paymentMethods.length ? (
-            <p className="pcv-notice">
-              Manual payment numbers are not enabled right now. The Owner must enable
-              at least one payment method before a payment can be submitted.
-            </p>
+            <div className="pcv-notice">
+              <p>
+                Manual payment numbers are not enabled right now. The Owner must enable
+                at least one payment method before a payment can be submitted.
+              </p>
+              <button
+                type="button"
+                disabled={busy || paymentLoading}
+                onClick={() => action(refreshPayments)}
+              >
+                {paymentLoading ? "Checking…" : "Refresh payment methods"}
+              </button>
+            </div>
           ) : (
             <>
               <div className="pcv-payment-options">
