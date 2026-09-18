@@ -35,6 +35,7 @@ export function addVariant(workspace, original, documentType = "resume") {
     const variant = original
       ? structuredClone(original)
       : createVariant(undefined, undefined, documentType);
+    variant.documentType = variant.documentType || documentType;
     variant.id = newId();
     variant.name = original
       ? `${original.name} copy`
