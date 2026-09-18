@@ -60,8 +60,8 @@ export default function VariantsPage() {
           <p className="pcv-notice" role="status">
             You have reached your document limit ({entitlements.maxVariants}).
             Delete an unused variant to free space, or{" "}
-            <Link to="/dashboard/settings#plan">
-              request Pro access in Settings
+            <Link to="/dashboard/settings?purchase=slots#payments">
+              buy extra slots or choose Pro in Settings
             </Link>
             . Archived documents count toward this limit.
           </p>
