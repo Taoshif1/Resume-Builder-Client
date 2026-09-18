@@ -1,6 +1,6 @@
 export const SCHEMA_VERSION = 1;
 export const DOCUMENT_TYPES = ["resume", "cv"];
-export const TEMPLATES = ["modern", "minimal", "corporate"];
+export const TEMPLATES = ["modern", "minimal", "corporate", "compact", "classic", "academic"];
 export const SECTIONS = [
   "summary",
   "skills",
@@ -283,6 +283,14 @@ export function assertWorkspace(workspace, ownerUid) {
           "archived",
           "paperSize",
           "fontSize",
+          "fontFamily",
+          "lineSpacing",
+          "sectionGap",
+          "entryGap",
+          "pageMargin",
+          "accentColor",
+          "headerAlign",
+          "sectionStyle",
         ].includes(key),
       ),
     );
@@ -301,9 +309,50 @@ export function assertWorkspace(workspace, ownerUid) {
     if (variant.archived !== undefined)
       requireValid(typeof variant.archived === "boolean");
     if (variant.paperSize !== undefined)
-      requireValid(["A4", "LETTER"].includes(variant.paperSize));
+      requireValid(["A4", "LETTER", "LEGAL"].includes(variant.paperSize));
     if (variant.fontSize !== undefined)
-      requireValid([10, 11, 12].includes(variant.fontSize));
+      requireValid(
+        typeof variant.fontSize === "number" &&
+          Number.isFinite(variant.fontSize) &&
+          variant.fontSize >= 8 &&
+          variant.fontSize <= 18,
+      );
+    if (variant.fontFamily !== undefined)
+      requireValid(["sans", "serif", "mono"].includes(variant.fontFamily));
+    if (variant.lineSpacing !== undefined)
+      requireValid(
+        typeof variant.lineSpacing === "number" &&
+          Number.isFinite(variant.lineSpacing) &&
+          variant.lineSpacing >= 0.9 &&
+          variant.lineSpacing <= 2,
+      );
+    if (variant.sectionGap !== undefined)
+      requireValid(
+        typeof variant.sectionGap === "number" &&
+          Number.isFinite(variant.sectionGap) &&
+          variant.sectionGap >= 0 &&
+          variant.sectionGap <= 24,
+      );
+    if (variant.entryGap !== undefined)
+      requireValid(
+        typeof variant.entryGap === "number" &&
+          Number.isFinite(variant.entryGap) &&
+          variant.entryGap >= 0 &&
+          variant.entryGap <= 16,
+      );
+    if (variant.pageMargin !== undefined)
+      requireValid(
+        typeof variant.pageMargin === "number" &&
+          Number.isFinite(variant.pageMargin) &&
+          variant.pageMargin >= 20 &&
+          variant.pageMargin <= 80,
+      );
+    if (variant.accentColor !== undefined)
+      requireValid(/^#[0-9a-f]{6}$/i.test(variant.accentColor));
+    if (variant.headerAlign !== undefined)
+      requireValid(["left", "center"].includes(variant.headerAlign));
+    if (variant.sectionStyle !== undefined)
+      requireValid(["line", "underline", "plain"].includes(variant.sectionStyle));
     if (variant.hiddenSections !== undefined)
       requireValid(
         Array.isArray(variant.hiddenSections) &&
