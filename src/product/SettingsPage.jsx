@@ -17,6 +17,7 @@ export default function SettingsPage() {
     entitlements,
     settings,
     backup,
+    refreshAccount,
     save,
     dirty,
   } = useWorkspace();
@@ -101,8 +102,12 @@ export default function SettingsPage() {
   async function refreshPayments() {
     setPaymentLoading(true);
     try {
-      setPaymentData(await api("/payments"));
-      setMessage("Payment status refreshed.");
+      const [payments] = await Promise.all([
+        api("/payments"),
+        refreshAccount(),
+      ]);
+      setPaymentData(payments);
+      setMessage("Payment and account status refreshed.");
     } finally {
       setPaymentLoading(false);
     }
