@@ -1,15 +1,21 @@
 ﻿import PDFDocument from "pdfkit";
 import { fileURLToPath } from "node:url";
 import { resumeDocument } from "../src/product/document.js";
-import { DOCUMENT_STYLES } from "../src/product/document-styles.js";
+import { resolvedDocumentStyle } from "../src/product/document-styles.js";
 
 export function renderPdf(workspace, variantId) {
   const model = resumeDocument(workspace, variantId);
-  const style = DOCUMENT_STYLES[model.template];
+  const style = resolvedDocumentStyle(model);
+  const lineGap = Math.max(-2, Math.min(9, (style.lineSpacing - 1.12) * model.fontSize));
   return new Promise((resolve, reject) => {
     const pdf = new PDFDocument({
       size: model.paperSize,
-      margins: { top: 44, bottom: 44, left: 44, right: 44 },
+      margins: {
+        top: style.pageMargin,
+        bottom: style.pageMargin,
+        left: style.pageMargin,
+        right: style.pageMargin,
+      },
       bufferPages: true,
       info: {
         Title: `${model.name} ${model.documentType === "cv" ? "CV" : "Resume"}`,
@@ -32,12 +38,12 @@ export function renderPdf(workspace, variantId) {
     pdf.on("data", (chunk) => chunks.push(chunk));
     pdf.on("error", reject);
     pdf.on("end", () => resolve(Buffer.concat(chunks)));
-    const left = 44,
-      width = pdf.page.width - 88;
-    const bottom = () => pdf.page.height - 44;
+    const left = style.pageMargin,
+      width = pdf.page.width - style.pageMargin * 2;
+    const bottom = () => pdf.page.height - style.pageMargin;
     const font = (size = model.fontSize, bold = false, color = "#172033") =>
       pdf
-        .font(bold ? "Bold" : "Regular")
+        .font(bold ? style.font.pdfBold : style.font.pdfRegular)
         .fontSize(size)
         .fillColor(color);
     const room = (height) => {
@@ -55,14 +61,14 @@ export function renderPdf(workspace, variantId) {
       if (!text) return;
       font(size, bold, color).text(text, left, pdf.y, {
         width,
-        lineGap: style.lineGap,
+        lineGap,
         ...options,
       });
     };
     const measure = (text, available, size = model.fontSize, bold = false) =>
       font(size, bold).heightOfString(text || "", {
         width: available,
-        lineGap: style.lineGap,
+        lineGap,
       });
     const rule = (weight, color) => {
       const y = pdf.y;
@@ -113,11 +119,11 @@ export function renderPdf(workspace, variantId) {
           font(9, false, style.accent);
           const h = pdf.heightOfString(link.label, {
             width: link.length + 0.1,
-            lineGap: style.lineGap,
+            lineGap,
           });
           pdf.text(link.label, dx, y, {
             width: link.length + 0.1,
-            lineGap: style.lineGap,
+            lineGap,
             link: link.url,
           });
           height = Math.max(height, h);
@@ -163,7 +169,7 @@ export function renderPdf(workspace, variantId) {
     function row(item) {
       const { rightWidth, leftWidth, height } = rowMetrics(item);
       // Unbounded user text may exceed a whole page: let PDFKit paginate it safely.
-      if (height > bottom() - 44 - 25) {
+      if (height > bottom() - style.pageMargin - 25) {
         write(item.heading, { bold: true });
         if (item.dates) write(item.dates, { size: 9, align: "right" });
         for (const link of item.links || [])
@@ -174,7 +180,7 @@ export function renderPdf(workspace, variantId) {
       const y = pdf.y;
       font(model.fontSize, true).text(item.heading || "", left, y, {
         width: leftWidth,
-        lineGap: style.lineGap,
+        lineGap,
       });
       let rightY = y;
       if (item.links?.length)
@@ -183,7 +189,7 @@ export function renderPdf(workspace, variantId) {
         font(9).text(item.dates, left + width - rightWidth, rightY, {
           width: rightWidth,
           align: "right",
-          lineGap: style.lineGap,
+          lineGap,
         });
       pdf.x = left;
       pdf.y = y + height;
@@ -210,15 +216,42 @@ export function renderPdf(workspace, variantId) {
         first.heading || first.dates || first.links?.length
           ? rowMetrics(first).height
           : 0;
-      room(Math.min(bottom() - 44, style.sectionGap + 20 + firstRow + 24));
+      room(
+        Math.min(
+          bottom() - style.pageMargin,
+          style.sectionGap + 20 + firstRow + 24,
+        ),
+      );
       pdf.y += style.sectionGap;
-      write(style.uppercase ? section.title.toUpperCase() : section.title, {
+      const sectionTitle = style.uppercase
+        ? section.title.toUpperCase()
+        : section.title;
+      write(sectionTitle, {
         size: 10,
-        bold: model.template !== "minimal",
+        bold: !["minimal", "academic"].includes(model.template),
         color: style.accent,
       });
-      rule(style.rule, style.accent);
-      pdf.y += 4;
+      if (style.sectionStyle === "line") {
+        rule(style.rule, style.accent);
+        pdf.y += 4;
+      } else if (style.sectionStyle === "underline") {
+        const y = pdf.y;
+        const underlineWidth = Math.min(
+          width,
+          font(10, false, style.accent).widthOfString(sectionTitle) + 18,
+        );
+        pdf
+          .save()
+          .strokeColor(style.accent)
+          .lineWidth(Math.max(0.45, style.rule || 0.45))
+          .moveTo(left, y)
+          .lineTo(left + underlineWidth, y)
+          .stroke()
+          .restore();
+        pdf.y += 4;
+      } else {
+        pdf.y += 2;
+      }
       for (const item of section.items) {
         if (item.heading || item.dates || item.links?.length) row(item);
         if (item.subheading)
@@ -234,7 +267,7 @@ export function renderPdf(workspace, variantId) {
           font().text("\u2022", left + 2, y, { lineBreak: false });
           font().text(bullet, left + 12, y, {
             width: width - 12,
-            lineGap: style.lineGap,
+            lineGap,
           });
           pdf.x = left;
         }
