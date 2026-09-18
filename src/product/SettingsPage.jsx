@@ -1,5 +1,5 @@
 import { useContext, useEffect, useRef, useState } from "react";
-import { useLocation } from "react-router";
+import { Link, useLocation } from "react-router";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { AuthContext } from "../context/AuthContext";
 import { auth } from "../services/firebase";
@@ -193,6 +193,19 @@ export default function SettingsPage() {
           </p>
         )}
       </section>
+      {account.role === "owner" && purchaseIntent && (
+        <section className="pcv-card pcv-payment-section is-selected" id="payments">
+          <h2>Owner payment controls</h2>
+          <p>
+            Your Owner account already has Pro-level access and does not need to
+            purchase a plan or document slots. Configure the payment numbers,
+            pricing, and incoming payment approvals from the Owner dashboard.
+          </p>
+          <Link className="pcv-button pcv-primary" to="/admin">
+            Open Admin payment settings
+          </Link>
+        </section>
+      )}
       {account.role !== "owner" && (
         <section
           className={`pcv-card pcv-payment-section ${purchaseIntent ? "is-selected" : ""}`}
