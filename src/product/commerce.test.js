@@ -6,6 +6,26 @@ import {
   normalizeCommerce,
 } from "./commerce.js";
 
+test("legacy commerce settings migrate the old five-slot default to one slot", () => {
+  const legacy = normalizeCommerce({
+    proMonthlyBdt: 499,
+    proYearlyBdt: 4990,
+    documentPackSize: 5,
+    documentPackBdt: 100,
+  });
+  assert.equal(legacy.version, DEFAULT_COMMERCE.version);
+  assert.equal(legacy.documentPackSize, 1);
+  assert.equal(legacy.documentPackBdt, 100);
+
+  const current = normalizeCommerce({
+    version: DEFAULT_COMMERCE.version,
+    documentPackSize: 5,
+    documentPackBdt: 400,
+  });
+  assert.equal(current.documentPackSize, 5);
+  assert.equal(current.documentPackBdt, 400);
+});
+
 test("commerce defaults are bounded and payment methods expose only enabled numbers", () => {
   const normalized = normalizeCommerce({
     proMonthlyBdt: -1,
