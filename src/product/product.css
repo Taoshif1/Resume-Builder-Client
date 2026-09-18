@@ -266,6 +266,32 @@
   gap: 14px;
   margin: 12px 0 16px;
 }
+.pcv-payment-section {
+  scroll-margin-top: 20px;
+}
+.pcv-payment-section.is-selected {
+  border-color: #7ea0cf;
+  box-shadow: 0 10px 28px #244c8514;
+}
+.pcv-payment-loading {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: #52637a;
+  padding: 10px 0;
+}
+.pcv-payment-history-heading {
+  margin-top: 22px;
+  align-items: center;
+}
+.pcv-payment-history-heading h3 {
+  margin: 0;
+}
+.pcv-notice-success {
+  border-color: #9fcbb8;
+  background: #f2fbf6;
+  color: #245b44;
+}
 .pcv-plan-pack {
   background: #f8fbff;
   border: 1px solid #9fb9df;
