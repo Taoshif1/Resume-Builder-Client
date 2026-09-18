@@ -223,6 +223,49 @@
   animation: pcv-spin 800ms linear infinite;
   box-shadow: 0 6px 18px #17203312;
 }
+.pcv-loader-small {
+  width: 18px;
+  height: 18px;
+  border-width: 2px;
+  box-shadow: none;
+}
+.pcv-admin-busy {
+  position: sticky;
+  top: 12px;
+  z-index: 35;
+  width: fit-content;
+  max-width: 100%;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0 0 18px;
+  padding: 9px 12px;
+  border: 1px solid #cfd9e7;
+  border-radius: 9px;
+  background: #f7faff;
+  color: #304e77;
+  box-shadow: 0 6px 18px #1720330d;
+  font-size: 13px;
+  font-weight: 650;
+}
+.pcv-payment-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+.pcv-payment-number {
+  padding: 10px 12px;
+  border: 1px dashed #9db0ca;
+  border-radius: 8px;
+  background: #f5f8fc;
+  overflow-wrap: anywhere;
+}
+.pcv-payment-method-admin {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin: 12px 0 16px;
+}
 @keyframes pcv-spin {
   to {
     transform: rotate(360deg);
@@ -517,6 +560,8 @@
   .pcv-editor[data-view=edit] .pcv-preview-wrap,.pcv-editor[data-view=preview] .pcv-editor-controls { display:none; }
   .pcv-preview-wrap { position:static; max-height:none; }
   .pcv-editor-header h1 { font-size:26px; }
+  .pcv-payment-options,
+  .pcv-payment-method-admin { grid-template-columns:1fr; }
 }
 @media (max-width:640px) {
   .pcv-public-links { display:none; }
