@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useWorkspace } from "./workspaceContext";
 import { api } from "./api";
 import { Field } from "./Fields";
+import { PAYMENT_METHODS } from "./commerce";
 
 export default function AdminPage() {
   const { account } = useWorkspace();
@@ -41,18 +42,27 @@ export default function AdminPage() {
   }
   if (!data)
     return (
-      <main className="pcv-state">
+      <main
+        className="pcv-state pcv-loading-state"
+        role="status"
+        aria-live="polite"
+        aria-busy={!error}
+      >
+        {!error && <div className="pcv-loader" aria-hidden="true" />}
         <h1>Admin dashboard</h1>
-        <p role="status">{error || "Loading account metrics…"}</p>
-        <button
-          onClick={() =>
-            api("/admin")
-              .then(setData)
-              .catch((e) => setError(e.message))
-          }
-        >
-          Retry
-        </button>
+        <p>{error || "Loading users, payments and platform metrics…"}</p>
+        {error && (
+          <button
+            onClick={() => {
+              setError("");
+              api("/admin")
+                .then(setData)
+                .catch((e) => setError(e.message));
+            }}
+          >
+            Retry
+          </button>
+        )}
       </main>
     );
   return (
@@ -62,6 +72,12 @@ export default function AdminPage() {
         <h1>Owner dashboard</h1>
         <p>Account access, usage and product configuration.</p>
       </header>
+      {busy && (
+        <div className="pcv-admin-busy" role="status" aria-live="polite">
+          <span className="pcv-loader pcv-loader-small" aria-hidden="true" />
+          Updating admin data…
+        </div>
+      )}
       {error && (
         <p role="alert" className="pcv-notice">
           {error}
@@ -109,8 +125,8 @@ export default function AdminPage() {
                 Role: {u.role} · Created: {u.createdAt}
               </p>
               <p>
-                {u.projects || 0} projects · {u.variants || 0} variants ·{" "}
-                {u.exports || 0} exports
+                {u.projects || 0} projects · {u.variants || 0} documents ·{" "}
+                {u.exports || 0} exports · {u.purchasedDocumentSlots || 0} extra slots
               </p>
               {u.role !== "owner" && (
                 <>
@@ -265,6 +281,110 @@ export default function AdminPage() {
           ))}
           <button disabled={busy}>Save limits</button>
         </form>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            const fields = new FormData(e.currentTarget);
+            action("/admin/settings", "PUT", {
+              commerce: {
+                proMonthlyBdt: Number(fields.get("proMonthlyBdt")),
+                proYearlyBdt: Number(fields.get("proYearlyBdt")),
+                documentPackSize: Number(fields.get("documentPackSize")),
+                documentPackBdt: Number(fields.get("documentPackBdt")),
+                paymentMethods: Object.fromEntries(
+                  PAYMENT_METHODS.map(({ id }) => [
+                    id,
+                    {
+                      enabled: fields.get(`${id}Enabled`) === "on",
+                      number: fields.get(`${id}Number`) || "",
+                    },
+                  ]),
+                ),
+              },
+            });
+          }}
+        >
+          <h3>Manual payments</h3>
+          <p className="pcv-muted">
+            Control Bangladesh pricing and the payment numbers users see. Payments
+            stay pending until you approve them below.
+          </p>
+          <div className="pcv-fields">
+            <label className="pcv-field">
+              Pro monthly (৳)
+              <input
+                name="proMonthlyBdt"
+                type="number"
+                min="1"
+                max="100000"
+                required
+                defaultValue={data.settings.commerce?.proMonthlyBdt || 499}
+              />
+            </label>
+            <label className="pcv-field">
+              Pro yearly (৳)
+              <input
+                name="proYearlyBdt"
+                type="number"
+                min="1"
+                max="1000000"
+                required
+                defaultValue={data.settings.commerce?.proYearlyBdt || 4990}
+              />
+            </label>
+            <label className="pcv-field">
+              Documents per pack
+              <input
+                name="documentPackSize"
+                type="number"
+                min="1"
+                max="100"
+                required
+                defaultValue={data.settings.commerce?.documentPackSize || 5}
+              />
+            </label>
+            <label className="pcv-field">
+              Pack price (৳)
+              <input
+                name="documentPackBdt"
+                type="number"
+                min="1"
+                max="100000"
+                required
+                defaultValue={data.settings.commerce?.documentPackBdt || 100}
+              />
+            </label>
+          </div>
+          <div className="pcv-payment-method-admin">
+            {PAYMENT_METHODS.map(({ id, label }) => {
+              const method = data.settings.commerce?.paymentMethods?.[id] || {};
+              return (
+                <div className="pcv-record" key={id}>
+                  <label className="pcv-check">
+                    <input
+                      name={`${id}Enabled`}
+                      type="checkbox"
+                      defaultChecked={Boolean(method.enabled)}
+                    />
+                    Enable {label}
+                  </label>
+                  <label className="pcv-field">
+                    {label} number
+                    <input
+                      name={`${id}Number`}
+                      type="text"
+                      inputMode="tel"
+                      maxLength="50"
+                      defaultValue={method.number || ""}
+                      placeholder="01XXXXXXXXX"
+                    />
+                  </label>
+                </div>
+              );
+            })}
+          </div>
+          <button disabled={busy}>Save payment settings</button>
+        </form>
         <h3>Template catalog</h3>
         {["minimal", "corporate"].map((template) => (
           <label className="pcv-check" key={template}>
@@ -310,6 +430,73 @@ export default function AdminPage() {
           Template implementations are versioned with the application; deploy
           reviewed code to change their layouts.
         </p>
+      </section>
+      <section className="pcv-card">
+        <div className="pcv-row">
+          <div>
+            <h2>Manual payment requests</h2>
+            <p className="pcv-muted">
+              Verify the transaction in your bKash/Nagad/Rocket account before approval.
+            </p>
+          </div>
+          <span className="pcv-badge">
+            {data.paymentRequests.filter((request) => request.status === "pending").length} pending
+          </span>
+        </div>
+        {!data.paymentRequests.length && <p>No payment requests yet.</p>}
+        {data.paymentRequests.map((request) => (
+          <article className="pcv-record" key={request.id}>
+            <div className="pcv-row">
+              <strong>
+                {request.product === "pro"
+                  ? `Pro · ${request.period}`
+                  : `${request.documentSlots} extra documents`}
+              </strong>
+              <span className="pcv-badge">{request.status}</span>
+            </div>
+            <p>
+              {request.email || request.uid} · ৳{request.amountBdt?.toLocaleString?.("en-BD") || request.amountBdt}
+            </p>
+            <p>
+              {request.method} · Transaction: <strong>{request.transactionId}</strong>
+              {request.quantity > 1 ? ` · Quantity: ${request.quantity}` : ""}
+            </p>
+            <p className="pcv-muted">{request.createdAt}</p>
+            {request.status === "pending" && (
+              <div className="pcv-actions">
+                <button
+                  disabled={busy}
+                  onClick={() => {
+                    if (
+                      window.confirm(
+                        "Approve only after you have verified this transaction in the payment account.",
+                      )
+                    )
+                      action(
+                        `/admin/payments/${encodeURIComponent(request.id)}`,
+                        "PATCH",
+                        { action: "approve" },
+                      );
+                  }}
+                >
+                  Approve payment
+                </button>
+                <button
+                  disabled={busy}
+                  onClick={() =>
+                    action(
+                      `/admin/payments/${encodeURIComponent(request.id)}`,
+                      "PATCH",
+                      { action: "reject" },
+                    )
+                  }
+                >
+                  Reject
+                </button>
+              </div>
+            )}
+          </article>
+        ))}
       </section>
       <section className="pcv-card">
         <h2>Feedback (latest 100)</h2>
