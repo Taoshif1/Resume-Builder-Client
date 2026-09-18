@@ -119,6 +119,24 @@ test("Free users get two documents and purchased slots extend only the document 
   assert.equal(entitlements(freeAccount).maxProjects, 10);
 });
 
+test("Document Studio templates remain Free/Pro gated", () => {
+  assert.deepEqual(entitlements(free).templates, ["modern"]);
+  const proTemplates = entitlements({
+    role: "user",
+    plan: "pro",
+    status: "active",
+  }).templates;
+  for (const template of [
+    "modern",
+    "minimal",
+    "corporate",
+    "compact",
+    "classic",
+    "academic",
+  ])
+    assert.ok(proTemplates.includes(template));
+});
+
 test("grandfathered data is preserved on downgrade but cannot grow beyond limits", () => {
   let w = createWorkspace("alice");
   for (let i = 0; i < 4; i++) w = addVariant(w);
