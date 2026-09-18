@@ -2,6 +2,7 @@ export const PLANS = {
   free: {
     label: "Free",
     price: { monthly: 0, yearly: 0 },
+    priceBdt: { monthly: 0, yearly: 0 },
     maxProjects: 10,
     maxVariants: 3,
     templates: ["modern"],
@@ -13,6 +14,7 @@ export const PLANS = {
   pro: {
     label: "Pro",
     price: { monthly: 6, yearly: 60 },
+    priceBdt: { monthly: 750, yearly: 7500 },
     maxProjects: 100,
     maxVariants: 50,
     templates: ["modern", "minimal", "corporate"],
