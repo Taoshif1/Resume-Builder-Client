@@ -287,6 +287,20 @@
 .pcv-payment-history-heading h3 {
   margin: 0;
 }
+.pcv-payment-admin-preview {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border: 1px solid #d7e0ec;
+  border-radius: 9px;
+  background: #f8fafc;
+}
+.pcv-payment-admin-preview ul {
+  margin: 8px 0 0;
+  padding-left: 18px;
+}
+.pcv-payment-admin-preview p {
+  margin: 8px 0 0;
+}
 .pcv-notice-success {
   border-color: #9fcbb8;
   background: #f2fbf6;
