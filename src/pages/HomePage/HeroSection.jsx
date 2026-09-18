@@ -1,5 +1,8 @@
-﻿import { Link } from "react-router";
+﻿import { useContext } from "react";
+import { Link } from "react-router";
+import { AuthContext } from "../../context/AuthContext";
 export default function HeroSection() {
+  const { user } = useContext(AuthContext);
   return (
     <section className="pcv-home-hero">
       <div className="pcv-hero-copy">
@@ -17,8 +20,8 @@ export default function HeroSection() {
           document, and export a clean, ATS-friendly PDF.
         </p>
         <div className="pcv-public-ctas">
-          <Link className="pcv-public-primary" to="/get-started/register">
-            Build your Resume / CV <span aria-hidden="true">↗</span>
+          <Link className="pcv-public-primary" to={user ? "/dashboard" : "/get-started/register"}>
+            {user ? "Open your workspace" : "Build your Resume / CV"} <span aria-hidden="true">↗</span>
           </Link>
           <Link className="pcv-public-secondary" to="/features">
             Explore Features
