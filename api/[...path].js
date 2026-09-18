@@ -1,8 +1,5 @@
-import { createApp } from "../server/app.js";
-import { firebaseServices } from "../server/firebase.js";
-
-const app = createApp(firebaseServices());
+import { handleVercelRequest } from "../server/vercel-handler.js";
 
 export default function handler(req, res) {
-  app.emit("request", req, res);
+  handleVercelRequest(req, res);
 }
