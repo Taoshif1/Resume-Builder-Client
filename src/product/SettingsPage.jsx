@@ -65,7 +65,7 @@ export default function SettingsPage() {
   }, [requestedPeriod]);
 
   useEffect(() => {
-    if (location.hash !== "#payments" || account.role === "owner") return;
+    if (location.hash !== "#payments") return;
     const timer = window.setTimeout(() => {
       document.getElementById("payments")?.scrollIntoView({
         behavior: "smooth",
@@ -73,7 +73,7 @@ export default function SettingsPage() {
       });
     }, 80);
     return () => window.clearTimeout(timer);
-  }, [location.hash, account.role, paymentData]);
+  }, [location.hash, purchaseIntent, paymentData]);
   async function action(fn) {
     setBusy(true);
     setMessage("");
