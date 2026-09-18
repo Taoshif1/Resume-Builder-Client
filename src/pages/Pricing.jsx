@@ -50,21 +50,26 @@ export default function Pricing({ headingLevel = 1 }) {
         Online checkout is not enabled yet. Pro access is assigned by the Owner
         after a request.
       </p>
-      <div className="pcv-pricing-grid">
+      <div className="pcv-pricing-grid pcv-pricing-grid-three">
         {["free", "pro"].map((id) => {
           const plan = PLANS[id];
           return (
-            <article className={`pcv-plan-card pcv-plan-${id}`} key={id}>
+            <article
+              className={`pcv-plan-card pcv-plan-${id} ${id === "pro" ? "pcv-plan-pro-card" : ""}`}
+              key={id}
+            >
               <div className="pcv-plan-heading">
                 <h2>{plan.label}</h2>
                 <span>
                   {id === "pro" ? "The complete toolkit" : "A solid start"}
                 </span>
               </div>
+
               <p className="pcv-plan-price" aria-live="polite">
                 <strong>${plan.price[yearly ? "yearly" : "monthly"]}</strong>
                 <span className="pcv-plan-local-price">
-                  · ৳{(
+                  · ৳
+                  {(
                     id === "pro"
                       ? yearly
                         ? commerce.proYearlyBdt
@@ -74,6 +79,7 @@ export default function Pricing({ headingLevel = 1 }) {
                 </span>
                 <span>/{yearly ? "year" : "month"}</span>
               </p>
+
               <p className="pcv-plan-price-note">
                 {id === "free"
                   ? "Core tools, no payment required"
@@ -81,6 +87,7 @@ export default function Pricing({ headingLevel = 1 }) {
                     ? "Bangladesh regional yearly price · 2 months included"
                     : "Bangladesh regional price shown in BDT"}
               </p>
+
               <ul>
                 {PUBLIC_PLAN_FEATURES[id].map((feature) => (
                   <li key={feature}>
@@ -89,12 +96,13 @@ export default function Pricing({ headingLevel = 1 }) {
                   </li>
                 ))}
               </ul>
+
               <Link
                 className="pcv-plan-action"
                 to={
                   id === "free"
                     ? "/get-started/register"
-                    : "/dashboard/settings"
+                    : "/dashboard/settings#payments"
                 }
               >
                 {id === "free" ? "Start Free" : "Request Pro access"}
@@ -103,112 +111,60 @@ export default function Pricing({ headingLevel = 1 }) {
             </article>
           );
         })}
-      </div>
-      <div className="pcv-pricing-grid">
-  {["free", "pro"].map((id) => {
-    const plan = PLANS[id];
-    return (
-      <article className={`pcv-plan-card pcv-plan-${id}`} key={id}>
-        <div className="pcv-plan-heading">
-          <h2>{plan.label}</h2>
-          <span>
-            {id === "pro" ? "The complete toolkit" : "A solid start"}
-          </span>
-        </div>
 
-        <p className="pcv-plan-price" aria-live="polite">
-          <strong>${plan.price[yearly ? "yearly" : "monthly"]}</strong>
-          <span className="pcv-plan-local-price">
-            · ৳
-            {(
-              id === "pro"
-                ? yearly
-                  ? commerce.proYearlyBdt
-                  : commerce.proMonthlyBdt
-                : 0
-            ).toLocaleString("en-BD")}
-          </span>
-          <span>/{yearly ? "year" : "month"}</span>
-        </p>
+        <article className="pcv-plan-card pcv-plan-pack">
+          <div className="pcv-plan-heading">
+            <h2>Extra Slots</h2>
+            <span>Pay only when you need more</span>
+          </div>
 
-        <p className="pcv-plan-price-note">
-          {id === "free"
-            ? "Core tools, no payment required"
-            : yearly
-              ? "Bangladesh regional yearly price · 2 months included"
-              : "Bangladesh regional price shown in BDT"}
-        </p>
+          <p className="pcv-plan-price">
+            <strong>
+              ৳{commerce.documentPackBdt.toLocaleString("en-BD")}
+            </strong>
+            <span>
+              /{commerce.documentPackSize}{" "}
+              {commerce.documentPackSize === 1 ? "document" : "documents"}
+            </span>
+          </p>
 
-        <ul>
-          {PUBLIC_PLAN_FEATURES[id].map((feature) => (
-            <li key={feature}>
+          <p className="pcv-plan-price-note">
+            Keep the Free plan and add more Resume/CV slots whenever you need them.
+          </p>
+
+          <ul>
+            <li>
               <span aria-hidden="true">✓</span>
-              {feature}
+              {commerce.documentPackSize} extra Resume/CV{" "}
+              {commerce.documentPackSize === 1 ? "slot" : "slots"}
             </li>
-          ))}
-        </ul>
+            <li>
+              <span aria-hidden="true">✓</span>
+              Buy multiple packs by changing the quantity
+            </li>
+            <li>
+              <span aria-hidden="true">✓</span>
+              No Pro subscription required
+            </li>
+            <li>
+              <span aria-hidden="true">✓</span>
+              bKash / Nagad / Rocket when enabled by the Owner
+            </li>
+            <li>
+              <span aria-hidden="true">✓</span>
+              Activated after manual payment approval
+            </li>
+          </ul>
 
-        <Link
-          className="pcv-plan-action"
-          to={id === "free" ? "/get-started/register" : "/dashboard/settings"}
-        >
-          {id === "free" ? "Start Free" : "Request Pro access"}
-          <span aria-hidden="true">↗</span>
-        </Link>
-      </article>
-    );
-  })}
-
-  <article className="pcv-plan-card pcv-plan-pack">
-    <div className="pcv-plan-heading">
-      <h2>Extra Slots</h2>
-      <span>For users who do not need Pro</span>
-    </div>
-
-    <p className="pcv-plan-price">
-      <strong>
-        ৳{commerce.documentPackBdt.toLocaleString("en-BD")}
-      </strong>
-      <span>
-        /{commerce.documentPackSize}{" "}
-        {commerce.documentPackSize === 1 ? "document" : "documents"}
-      </span>
-    </p>
-
-    <p className="pcv-plan-price-note">
-      Buy only what you need. Quantity can be increased after sign-in.
-    </p>
-
-    <ul>
-      <li>
-        <span aria-hidden="true">✓</span>
-        {commerce.documentPackSize} extra Resume/CV{" "}
-        {commerce.documentPackSize === 1 ? "slot" : "slots"}
-      </li>
-      <li>
-        <span aria-hidden="true">✓</span>
-        Works without upgrading to Pro
-      </li>
-      <li>
-        <span aria-hidden="true">✓</span>
-        Buy multiple packs as needed
-      </li>
-      <li>
-        <span aria-hidden="true">✓</span>
-        Manual admin approval after payment
-      </li>
-      <li>
-        <span aria-hidden="true">✓</span>
-        bKash / Nagad / Rocket supported if enabled
-      </li>
-    </ul>
-
-    <Link className="pcv-plan-action" to="/dashboard/settings#payments">
-      Buy document slots
-      <span aria-hidden="true">↗</span>
-    </Link>
-  </article>
-</div>
+          <Link
+            className="pcv-plan-action"
+            to="/dashboard/settings#payments"
+          >
+            Buy extra slots
+            <span aria-hidden="true">↗</span>
+          </Link>
+        </article>
+      </div>
     </section>
   );
 }
