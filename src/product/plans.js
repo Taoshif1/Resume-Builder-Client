@@ -4,7 +4,7 @@ export const PLANS = {
     price: { monthly: 0, yearly: 0 },
     priceBdt: { monthly: 0, yearly: 0 },
     maxProjects: 10,
-    maxVariants: 3,
+    maxVariants: 2,
     templates: ["modern"],
     advancedATS: false,
     jobMatching: false,
@@ -13,8 +13,8 @@ export const PLANS = {
   },
   pro: {
     label: "Pro",
-    price: { monthly: 6, yearly: 60 },
-    priceBdt: { monthly: 750, yearly: 7500 },
+    price: { monthly: 4, yearly: 40 },
+    priceBdt: { monthly: 499, yearly: 4990 },
     maxProjects: 100,
     maxVariants: 50,
     templates: ["modern", "minimal", "corporate"],
@@ -27,7 +27,7 @@ export const PLANS = {
 
 export const PUBLIC_PLAN_FEATURES = {
   free: [
-    "3 resume or CV documents",
+    "2 resume or CV documents",
     "10 reusable projects",
     "Public GitHub import",
     "Master Profile",
@@ -65,6 +65,10 @@ export function entitlements(account, settings = {}) {
 
   const plan = normalizedPlan(account);
   const limits = { ...PLANS[plan], ...settings.plans?.[plan] };
+  limits.maxVariants += Math.max(
+    0,
+    Number(account?.purchasedDocumentSlots || 0),
+  );
   limits.templates = [...PLANS[plan].templates];
   if (settings.enabledTemplates) {
     limits.templates = limits.templates.filter((template) =>
