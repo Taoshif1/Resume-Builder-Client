@@ -3,6 +3,8 @@ import { useWorkspace } from "./workspaceContext";
 import { api } from "./api";
 import { Field } from "./Fields";
 import { DEFAULT_COMMERCE, PAYMENT_METHODS } from "./commerce";
+import { TEMPLATES } from "../resume/data/workspace";
+import { DOCUMENT_STYLES } from "./document-styles";
 
 export default function AdminPage() {
   const { account } = useWorkspace();
@@ -430,35 +432,23 @@ export default function AdminPage() {
           </div>
         </form>
         <h3>Template catalog</h3>
-        {["minimal", "corporate"].map((template) => (
+        {TEMPLATES.filter((template) => template !== "modern").map((template) => (
           <label className="pcv-check" key={template}>
             <input
               type="checkbox"
               disabled={busy}
               checked={(
-                data.settings.enabledTemplates || [
-                  "modern",
-                  "minimal",
-                  "corporate",
-                ]
+                data.settings.enabledTemplates || TEMPLATES
               ).includes(template)}
               onChange={(e) =>
                 action("/admin/settings", "PUT", {
                   enabledTemplates: e.target.checked
                     ? [
-                        ...(data.settings.enabledTemplates || [
-                          "modern",
-                          "minimal",
-                          "corporate",
-                        ]),
+                        ...(data.settings.enabledTemplates || TEMPLATES),
                         template,
                       ]
                     : (
-                        data.settings.enabledTemplates || [
-                          "modern",
-                          "minimal",
-                          "corporate",
-                        ]
+                        data.settings.enabledTemplates || TEMPLATES
                       ).filter((t) => t !== template),
                 })
               }
