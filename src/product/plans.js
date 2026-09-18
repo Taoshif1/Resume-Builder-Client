@@ -13,7 +13,7 @@ export const PLANS = {
   },
   pro: {
     label: "Pro",
-    price: { monthly: 4, yearly: 40 },
+    price: { monthly: 6, yearly: 60 },
     priceBdt: { monthly: 499, yearly: 4990 },
     maxProjects: 100,
     maxVariants: 50,
@@ -65,10 +65,11 @@ export function entitlements(account, settings = {}) {
 
   const plan = normalizedPlan(account);
   const limits = { ...PLANS[plan], ...settings.plans?.[plan] };
-  limits.maxVariants += Math.max(
-    0,
-    Number(account?.purchasedDocumentSlots || 0),
-  );
+  const purchasedDocumentSlots = Number(account?.purchasedDocumentSlots || 0);
+  limits.maxVariants +=
+    Number.isSafeInteger(purchasedDocumentSlots) && purchasedDocumentSlots > 0
+      ? purchasedDocumentSlots
+      : 0;
   limits.templates = [...PLANS[plan].templates];
   if (settings.enabledTemplates) {
     limits.templates = limits.templates.filter((template) =>
