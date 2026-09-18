@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useWorkspace } from "./workspaceContext";
 import { api } from "./api";
 import { Field } from "./Fields";
-import { PAYMENT_METHODS } from "./commerce";
+import { DEFAULT_COMMERCE, PAYMENT_METHODS } from "./commerce";
 
 export default function AdminPage() {
   const { account } = useWorkspace();
@@ -287,6 +287,7 @@ export default function AdminPage() {
             const fields = new FormData(e.currentTarget);
             action("/admin/settings", "PUT", {
               commerce: {
+                version: DEFAULT_COMMERCE.version,
                 proMonthlyBdt: Number(fields.get("proMonthlyBdt")),
                 proYearlyBdt: Number(fields.get("proYearlyBdt")),
                 documentPackSize: Number(fields.get("documentPackSize")),
