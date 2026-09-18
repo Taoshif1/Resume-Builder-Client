@@ -85,19 +85,19 @@ export default function SettingsPage() {
           />
         )}
         <p>
-          Resumes: {workspace.resumeVariants.length} /{" "}
+          Documents: {workspace.resumeVariants.length} /{" "}
           {account.role === "owner" ? "Unlimited" : entitlements.maxVariants}
         </p>
         {account.role !== "owner" && (
           <progress
             className="pcv-usage"
-            aria-label="Resume usage"
+            aria-label="Document usage"
             value={workspace.resumeVariants.length}
             max={entitlements.maxVariants}
           />
         )}
         <p>
-          Free includes master profile, 10 projects, 3 resumes, public GitHub
+          Free includes master profile, 10 projects, 3 documents, public GitHub
           import and PDF export. Pro adds more capacity, templates, history and
           job targeting.
         </p>
