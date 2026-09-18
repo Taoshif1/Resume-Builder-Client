@@ -1,40 +1,92 @@
-import { resolveResume } from "../resume/data/resolveResume.js";
+﻿import { resolveResume } from "../resume/data/resolveResume.js";
 import { safeUrl } from "./operations.js";
 
+function readableLink(label, value) {
+  const url = safeUrl(value);
+  if (!url) return null;
+  const host = new URL(url).hostname.replace(/^www\./, "");
+  const requestedLabel = label?.trim() || "";
+  const normalizedLabel = requestedLabel.toLowerCase();
+  const displayLabel =
+    host === "github.com" || normalizedLabel.includes("github")
+      ? "GitHub"
+      : host.endsWith("linkedin.com") || normalizedLabel.includes("linkedin")
+        ? "LinkedIn"
+        : requestedLabel || host;
+  return { label: displayLabel, url };
+}
+function uniqueLinks(links) {
+  const seen = new Set();
+  return links.filter(Boolean).filter((link) => {
+    const key = link.url.replace(/\/$/, "");
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+// Preserve authored prose; only explicit bullets or multiple authored lines become a list.
+export function authoredContent(value = "") {
+  const lines = value
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+  const bullet = /^\s*(?:[\u2022*-]|\d+[.)])\s+/;
+  return lines.length > 1 || lines.some((line) => bullet.test(line))
+    ? { bullets: lines.map((line) => line.replace(bullet, "")), text: "" }
+    : { text: value, bullets: [] };
+}
 export function resumeDocument(workspace, variantId) {
   const variant = workspace.resumeVariants.find((v) => v.id === variantId);
-  if (!variant) throw new Error("Resume not found.");
+  if (!variant) throw new Error("Document not found.");
   const resume = resolveResume(workspace, variantId);
   const p = resume.personalInfo;
   const sections = {
-    summary: { title: "Professional Summary", items: [{ text: p.summary }] },
-    skills: { title: "Skills", items: [{ text: resume.skills.join(" · ") }] },
+    summary: {
+      title:
+        variant.template === "modern"
+          ? "Career Objective"
+          : "Professional Summary",
+      items: [{ text: p.summary }],
+    },
+    skills: { title: "Skills", items: [{ text: resume.skills.join(" | ") }] },
     experience: {
-      title: "Work Experience",
+      title: "Experience",
       items: resume.experience.map((x) => ({
-        heading: [x.role, x.company].filter(Boolean).join(" — "),
-        dates: [x.startDate, x.endDate].filter(Boolean).join(" – "),
-        text: x.description,
+        heading: x.role,
+        subheading: x.company,
+        dates: [x.startDate, x.endDate].filter(Boolean).join(" \u2013 "),
+        ...authoredContent(x.description),
       })),
     },
     education: {
       title: "Education",
       items: resume.education.map((x) => ({
         heading: x.degree,
-        text: x.institution,
-        dates: [x.startDate, x.endDate].filter(Boolean).join(" – "),
+        subheading: x.institution,
+        dates: [x.startDate, x.endDate].filter(Boolean).join(" \u2013 "),
       })),
     },
     projects: {
       title: "Projects",
       items: resume.projects.map((x, index) => {
-        const project = workspace.projects.find(p => p.id === variant.projectIds[index]);
+        const project = workspace.projects.find(
+          (p) => p.id === variant.projectIds[index],
+        );
         const metadata = project?.metadata || {};
         return {
-          heading: [x.title, metadata.role].filter(Boolean).join(' - '),
-          dates: [metadata.startDate, metadata.endDate].filter(Boolean).join(' - '),
-          text: [x.techStack, x.description].filter(Boolean).join("\n"),
-          url: safeUrl(x.liveLink) || safeUrl(metadata.githubUrl) || safeUrl(project?.sourceData.repoUrl),
+          heading: [x.title, metadata.role].filter(Boolean).join(" \u2014 "),
+          dates: [metadata.startDate, metadata.endDate]
+            .filter(Boolean)
+            .join(" \u2013 "),
+          ...authoredContent(x.description),
+          tech: x.techStack,
+          links: uniqueLinks([
+            readableLink(
+              "GitHub",
+              safeUrl(metadata.githubUrl) || project?.sourceData.repoUrl,
+            ),
+            readableLink("Live", x.liveLink),
+          ]),
         };
       }),
     },
@@ -42,22 +94,42 @@ export function resumeDocument(workspace, variantId) {
   for (const [key, title] of Object.entries({
     certifications: "Certifications",
     achievements: "Achievements",
-    languages: "Languages",
     volunteering: "Volunteering",
     customSections: "Additional Information",
-  }))
+  })) {
     sections[key] = {
       title,
-      items: (workspace.profile[key] || []).map((x) => ({
-        heading: x.title,
-        text: x.description,
-      })),
+      items: (workspace.profile[key] || []).map((x) =>
+        key === "achievements"
+          ? {
+              bullets: [
+                x.title,
+                ...authoredContent(x.description).bullets,
+                authoredContent(x.description).text,
+              ].filter(Boolean),
+            }
+          : { heading: x.title, ...authoredContent(x.description) },
+      ),
     };
+  }
+  sections.languages = {
+    title: "Languages",
+    items: [
+      {
+        text: (workspace.profile.languages || [])
+          .map((x) => [x.title, x.description].filter(Boolean).join(": "))
+          .join(" | "),
+      },
+    ],
+  };
   return {
+    documentType: variant.documentType || "resume",
     name: p.fullName,
     title: p.title,
-    contact: [p.email, p.phone, p.location].filter(Boolean).join(" | "),
-    links: workspace.profile.links.filter((x) => safeUrl(x.url)),
+    contact: [p.location, p.phone, p.email].filter(Boolean).join(" | "),
+    links: uniqueLinks(
+      workspace.profile.links.map((x) => readableLink(x.label, x.url)),
+    ),
     paperSize: variant.paperSize || "A4",
     fontSize: variant.fontSize || 11,
     template: variant.template,
@@ -73,7 +145,16 @@ export function resumeDocument(workspace, variantId) {
       .map((key) => ({
         ...sections[key],
         key,
-        items: sections[key].items.filter((x) => x.heading || x.text || x.url),
+        items: sections[key].items.filter(
+          (x) =>
+            x.heading ||
+            x.subheading ||
+            x.dates ||
+            x.text ||
+            x.bullets?.length ||
+            x.links?.length ||
+            x.tech,
+        ),
       }))
       .filter((x) => x.items.length),
   };
@@ -87,15 +168,19 @@ export function qualityChecks(document) {
     checks.push("Select relevant skills.");
   const summary =
     document.sections.find((s) => s.key === "summary")?.items[0]?.text || "";
-  if (summary.split(/\s+/).length > 100)
-    checks.push("Shorten the summary to about 100 words or fewer.");
-  if (text.split(/\s+/).length > 1000)
-    checks.push("Review length; prioritize the most relevant content.");
+  if (document.documentType !== "cv") {
+    if (summary.split(/\s+/).length > 100)
+      checks.push("Shorten the summary to about 100 words or fewer.");
+    if (text.split(/\s+/).length > 1000)
+      checks.push("Review length; prioritize the most relevant content.");
+  }
   if (
     !document.sections.some(
       (s) =>
         ["projects", "experience"].includes(s.key) &&
-        s.items.some((i) => /\d/.test(i.text)),
+        s.items.some((i) =>
+          /\d/.test([i.text, ...(i.bullets || [])].join(" ")),
+        ),
     )
   )
     checks.push("Include measurable results where you can substantiate them.");
@@ -129,7 +214,7 @@ export function matchJob(document, description) {
         s.items.map((i) => ({
           title: i.heading,
           matches: terms.filter((w) =>
-            `${i.heading} ${i.text}`.toLowerCase().includes(w),
+            JSON.stringify(i).toLowerCase().includes(w),
           ).length,
         })),
       )
@@ -138,10 +223,15 @@ export function matchJob(document, description) {
       .slice(0, 5),
   };
 }
-export function pdfFilename(name, title) {
-  return `${`${name || "resume"}-${title || "PersonaCV"}`
+export function pdfFilename(name, title, documentType = "resume") {
+  const stem = `${name || "PersonaCV"}-${title || (documentType === "cv" ? "CV" : "Resume")}`;
+  const safe = stem
     .normalize("NFKD")
     .replace(/[^a-zA-Z0-9_-]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 100)}.pdf`;
+    .replace(/^-+|-+$/g, "");
+  const filename =
+    documentType === "cv"
+      ? safe.replace(/-CV$/i, "").slice(0, 96).replace(/-+$/g, "") + "-CV"
+      : safe.slice(0, 100);
+  return `${filename}.pdf`;
 }

@@ -15,7 +15,7 @@ import { AuthContext } from "../context/AuthContext";
 import { useWorkspace } from "./workspaceContext";
 
 export default function ProductLayout() {
-  const { account, workspace, dirty } = useWorkspace();
+  const { account, workspace, dirty, notices } = useWorkspace();
   const { user, logout } = useContext(AuthContext);
   const { pathname } = useLocation();
   const [openPath, setOpenPath] = useState(null);
@@ -30,7 +30,7 @@ export default function ProductLayout() {
     ["Overview", "/dashboard", FiHome],
     ["Master Profile", "/dashboard/profile", FiUser],
     ["Projects", "/dashboard/projects", FiFolder],
-    ["Resumes", "/dashboard/resumes", FiFileText],
+    ["Resumes & CVs", "/dashboard/resumes", FiFileText],
     ["Settings", "/dashboard/settings", FiSettings],
     ...(account.role === "owner" ? [["Admin", "/admin", FiShield]] : []),
   ];
@@ -130,6 +130,7 @@ export default function ProductLayout() {
         className="pcv-workspace-content"
         tabIndex={-1}
       >
+        {notices}
         <Outlet />
       </div>
     </div>

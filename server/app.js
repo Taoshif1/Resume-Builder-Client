@@ -232,7 +232,7 @@ export function createApp({
         await service.recordExport(uid);
         res.writeHead(200, {
           "Content-Type": "application/pdf",
-          "Content-Disposition": `attachment; filename="${pdfFilename(workspace.profile.personalInfo.fullName, variant.name)}"`,
+          "Content-Disposition": `attachment; filename="${pdfFilename(workspace.profile.personalInfo.fullName, variant.name, variant.documentType)}"`,
         });
         return res.end(content);
       }

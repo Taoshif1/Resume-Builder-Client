@@ -95,8 +95,8 @@ export default function EditorPage() {
   if (!variant)
     return (
       <main className="pcv-page">
-        <h1>Resume not found</h1>
-        <Link to="/dashboard/resumes">Back to resumes</Link>
+        <h1>Document not found</h1>
+        <Link to="/dashboard/resumes">Back to Resumes &amp; CVs</Link>
       </main>
     );
 
@@ -136,7 +136,10 @@ export default function EditorPage() {
         (await blob.slice(0, 5).text()) !== "%PDF-"
       )
         throw new Error("The PDF response is invalid. Please try again.");
-      downloadBlob(blob, pdfFilename(model.name, variant.name));
+      downloadBlob(
+        blob,
+        pdfFilename(model.name, variant.name, model.documentType),
+      );
       setMessage("PDF downloaded.");
     });
   }
@@ -162,9 +165,9 @@ export default function EditorPage() {
     <main className="pcv-editor" data-view={view}>
       <header className="pcv-editor-header">
         <div>
-          <Link to="/dashboard/resumes">← Back to Resumes</Link>
+          <Link to="/dashboard/resumes">← Back to Resumes &amp; CVs</Link>
           <h1>{variant.name}</h1>
-          <p>Edits here apply only to this resume.</p>
+          <p>Edits here apply only to this {model.documentType === "cv" ? "CV" : "resume"}.</p>
         </div>
         <div className="pcv-actions">
           <span className="pcv-editor-save-state" role="status">
@@ -228,13 +231,13 @@ export default function EditorPage() {
             )}
           </nav>
           <section className="pcv-card" hidden={tab !== "Basics"}>
-            <h2>Resume details</h2>
+            <h2>{model.documentType === "cv" ? "CV details" : "Resume details"}</h2>
             <Field
-              label="Resume name"
+              label={model.documentType === "cv" ? "CV name" : "Resume name"}
               value={variant.name}
               onChange={(value) =>
                 edit((v) => {
-                  v.name = value || "Untitled resume";
+                  v.name = value || (v.documentType === "cv" ? "Untitled CV" : "Untitled resume");
                 })
               }
             />
@@ -265,6 +268,25 @@ export default function EditorPage() {
                 })
               }
             />
+            <label className="pcv-field">
+              Document type
+              <select
+                value={variant.documentType || "resume"}
+                onChange={(e) =>
+                  edit((v) => {
+                    v.documentType = e.target.value;
+                  })
+                }
+              >
+                <option value="resume">Resume</option>
+                <option value="cv">CV</option>
+              </select>
+            </label>
+            <p className="pcv-muted">
+              {model.documentType === "cv"
+                ? "A broader career record. Include education, certifications and custom sections; multiple pages are welcome."
+                : "A focused application. Choose relevant evidence and aim for a concise one or two pages."}
+            </p>
             <label className="pcv-field">
               Template
               <select
@@ -320,10 +342,10 @@ export default function EditorPage() {
             </label>
           </section>
           <section className="pcv-card" hidden={tab !== "Content"}>
-            <h2>Summary for this resume</h2>
+            <h2>Summary for this {model.documentType === "cv" ? "CV" : "resume"}</h2>
             <p className="pcv-badge">
               {variant.overrides.personalInfo.summary !== undefined
-                ? "Customized for this resume"
+                ? "Customized for this document"
                 : "Using master summary"}
             </p>
             <Field
@@ -542,12 +564,12 @@ export default function EditorPage() {
                             {Object.keys(
                               variant.overrides[collection][record.id] || {},
                             ).length
-                              ? "Customized for this resume"
+                              ? "Customized for this document"
                               : "Using master content"}{" "}
                             · Edit
                           </summary>
                           <p className="pcv-muted">
-                            Changes here affect this resume only. Deselecting a
+                            Changes here affect this document only. Deselecting a
                             project keeps it in your Project Library.
                           </p>
                           {fields.map((field) => (
@@ -587,7 +609,7 @@ export default function EditorPage() {
             </section>
           ))}
           <section className="pcv-card" hidden={tab !== "Review"}>
-            <h2>Resume checks</h2>
+            <h2>{model.documentType === "cv" ? "CV" : "Resume"} checks</h2>
             <p>
               Editorial checks, not an authoritative ATS score or hiring
               prediction.
@@ -639,7 +661,7 @@ export default function EditorPage() {
                   <div>
                     <h3>Matched terms</h3>
                     <p>{guidance.match.matched.join(", ") || "None found"}</p>
-                    <h3>Terms absent from this resume</h3>
+                    <h3>Terms absent from this document</h3>
                     <p>{guidance.match.missing.join(", ") || "None found"}</p>
                     <p>
                       Add a term only if it truthfully describes your

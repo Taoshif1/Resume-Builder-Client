@@ -30,11 +30,18 @@ export function removeRecord(workspace, collection, id) {
     }
   });
 }
-export function addVariant(workspace, original) {
+export function addVariant(workspace, original, documentType = "resume") {
   return mutateWorkspace(workspace, (next) => {
-    const variant = original ? structuredClone(original) : createVariant();
+    const variant = original
+      ? structuredClone(original)
+      : createVariant(undefined, undefined, documentType);
+    variant.documentType = variant.documentType || documentType;
     variant.id = newId();
-    variant.name = original ? `${original.name} copy` : "New resume";
+    variant.name = original
+      ? `${original.name} copy`
+      : documentType === "cv"
+        ? "New CV"
+        : "New resume";
     variant.createdAt = new Date().toISOString();
     variant.updatedAt = variant.createdAt;
     if (!original) {

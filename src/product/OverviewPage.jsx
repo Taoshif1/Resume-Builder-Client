@@ -24,7 +24,7 @@ export default function OverviewPage() {
     ],
     ["Add or import a project", projects.length > 0, "/dashboard/projects"],
     [
-      "Tailor a resume",
+      "Tailor a resume or CV",
       resumeVariants.some((v) => v.targetRole?.trim()),
       "/dashboard/resumes",
     ],
@@ -43,11 +43,11 @@ export default function OverviewPage() {
         </h1>
         <p>
           Your experience, ready for the next opportunity. Keep your foundation
-          up to date and tailor a resume for each role.
+          up to date and tailor a resume or CV for each opportunity.
         </p>
         <div className="pcv-actions">
           <Link className="pcv-button pcv-primary" to="/dashboard/resumes">
-            <FiPlus aria-hidden="true" /> Create resume
+            <FiPlus aria-hidden="true" /> Create resume / CV
           </Link>
           <Link className="pcv-button" to="/dashboard/profile">
             Complete profile
@@ -59,7 +59,7 @@ export default function OverviewPage() {
       </header>
       <div className="pcv-grid">
         {[
-          ["Resume variants", resumeVariants.length, "/dashboard/resumes"],
+          ["Documents", resumeVariants.length, "/dashboard/resumes"],
           ["Projects", projects.length, "/dashboard/projects"],
           [
             "Your plan",
@@ -84,7 +84,7 @@ export default function OverviewPage() {
       <div className="pcv-grid">
         <section className="pcv-card">
           <div className="pcv-row">
-            <h2>Recent resumes</h2>
+            <h2>Recent documents</h2>
             <Link to="/dashboard/resumes">View all</Link>
           </div>
           {recent.length ? (
@@ -106,7 +106,7 @@ export default function OverviewPage() {
             ))
           ) : (
             <p>
-              No active resumes yet. Create one to choose the experience you
+              No active documents yet. Create a resume or CV to choose the experience you
               want to share.
             </p>
           )}
@@ -143,7 +143,7 @@ export default function OverviewPage() {
             ))}
           </ul>
           <p className="pcv-muted">
-            When ready, review your resume and download a PDF from the editor.
+            When ready, review your document and download a PDF from the editor.
           </p>
         </section>
       </div>

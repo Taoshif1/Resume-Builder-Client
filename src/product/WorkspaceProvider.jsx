@@ -169,24 +169,8 @@ function AccountWorkspace({ uid, children }) {
         </button>
       </main>
     );
-  return (
-    <WorkspaceContext.Provider
-      value={{
-        workspace,
-        update,
-        account: account.account,
-        entitlements: account.entitlements,
-        features: account.features,
-        billing: account.billing,
-        settings: account.settings,
-        save,
-        saving,
-        dirty,
-        status,
-        error,
-        backup,
-      }}
-    >
+  const notices = (
+    <>
       <div className="pcv-savebar">
         <span role="status">
           {saving ? "Saving…" : dirty ? "Unsaved cloud changes" : status}
@@ -246,6 +230,27 @@ function AccountWorkspace({ uid, children }) {
           <button onClick={() => setLegacy(null)}>Dismiss</button>
         </aside>
       )}
+    </>
+  );
+  return (
+    <WorkspaceContext.Provider
+      value={{
+        workspace,
+        notices,
+        update,
+        account: account.account,
+        entitlements: account.entitlements,
+        features: account.features,
+        billing: account.billing,
+        settings: account.settings,
+        save,
+        saving,
+        dirty,
+        status,
+        error,
+        backup,
+      }}
+    >
       {children}
     </WorkspaceContext.Provider>
   );

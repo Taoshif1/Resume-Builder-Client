@@ -1,109 +1,88 @@
-import { useState } from "react";
-import { useNavigate } from "react-router";
+﻿import { useState } from "react";
+import { Link } from "react-router";
 import { PLANS, PUBLIC_PLAN_FEATURES } from "../product/plans";
-
-const cards = [
-  {
-    id: "free",
-    cta: "Start Free",
-    className: "bg-[#EFECE3] text-black",
-  },
-  {
-    id: "pro",
-    cta: "Request Pro access",
-    badge: "Full product",
-    className: "bg-[#4A70A9] text-white",
-  },
-];
-
-export default function Pricing() {
+export default function Pricing({ headingLevel = 1 }) {
   const [yearly, setYearly] = useState(false);
-  const navigate = useNavigate();
-
+  const Heading = headingLevel === 1 ? "h1" : "h2";
   return (
-    <section className="py-16 px-4 sm:px-6 bg-[#EFECE3]/30" aria-label="Pricing">
-      <header className="text-center max-w-2xl mx-auto mb-10 text-black">
-        <h1 className="text-3xl sm:text-5xl font-black tracking-tighter">
-          Simple, transparent <span className="glow">pricing</span>
-        </h1>
-        <p className="mt-5 text-gray-600">
-          Free covers the core resume workflow. Pro adds higher limits, all
-          templates, history, job targeting and optional configured writing
-          assistance.
-        </p>
-        <label className="inline-flex flex-wrap justify-center items-center gap-3 mt-6 font-bold">
-          Monthly
-          <input
-            type="checkbox"
-            className="toggle toggle-primary"
-            checked={yearly}
-            onChange={(event) => setYearly(event.target.checked)}
-          />
-          Yearly
-          <span className="badge badge-success">2 months included</span>
-        </label>
-        <p className="mt-4 text-sm text-gray-600">
-          Online checkout is not enabled yet. Pro access is currently assigned
-          by the Owner after a request.
+    <section
+      className="pcv-pricing pcv-home-section"
+      aria-label="Pricing"
+      data-billing={yearly ? "yearly" : "monthly"}
+    >
+      <header>
+        <p className="pcv-public-eyebrow">A PLAN FOR YOUR NEXT STEP</p>
+        <Heading>
+          Start with the essentials.
+          <br />
+          Grow when you need more.
+        </Heading>
+        <p>
+          Free covers the core Resume and CV workflow. Pro adds more room, all
+          templates, history and job targeting.
         </p>
       </header>
-
-      <section
-        className="grid grid-cols-1 min-w-0 max-w-4xl mx-auto gap-6 md:grid-cols-2"
-        aria-label="PersonaCV plans"
+      <div
+        className="pcv-billing-toggle"
+        role="group"
+        aria-label="Billing period"
       >
-        {cards.map((card) => {
-          const plan = PLANS[card.id];
-          const price = plan.price[yearly ? "yearly" : "monthly"];
+        <button aria-pressed={!yearly} onClick={() => setYearly(false)}>
+          Monthly
+        </button>
+        <button aria-pressed={yearly} onClick={() => setYearly(true)}>
+          Yearly <span>2 months included</span>
+        </button>
+      </div>
+      <p className="pcv-checkout-note">
+        Online checkout is not enabled yet. Pro access is assigned by the Owner
+        after a request.
+      </p>
+      <div className="pcv-pricing-grid">
+        {["free", "pro"].map((id) => {
+          const plan = PLANS[id];
           return (
-            <article
-              key={card.id}
-              className={
-                "relative min-w-0 rounded-[2rem] p-5 sm:p-8 shadow-xl flex flex-col " +
-                card.className
-              }
-            >
-              {card.badge && (
-                <span className="absolute -top-3 left-8 rounded-full bg-yellow-300 text-black px-3 py-1 text-xs font-black uppercase">
-                  {card.badge}
+            <article className={`pcv-plan-card pcv-plan-${id}`} key={id}>
+              <div className="pcv-plan-heading">
+                <h2>{plan.label}</h2>
+                <span>
+                  {id === "pro" ? "The complete toolkit" : "A solid start"}
                 </span>
-              )}
-              <h2 className="text-2xl font-black">{plan.label}</h2>
-              <p className="mt-4 text-4xl font-black">
-                ${price}
-                <span className="text-base font-medium opacity-70">
-                  /{yearly ? "yr" : "mo"}
-                </span>
+              </div>
+              <p className="pcv-plan-price" aria-live="polite">
+                <strong>${plan.price[yearly ? "yearly" : "monthly"]}</strong>
+                <span>/{yearly ? "year" : "month"}</span>
               </p>
-              {yearly && price > 0 && (
-                <p className="text-sm mt-1 opacity-80">Planned annual price</p>
-              )}
-              <ul className="mt-7 space-y-3 flex-1">
-                {PUBLIC_PLAN_FEATURES[card.id].map((feature) => (
-                  <li key={feature}>• {feature}</li>
+              <p className="pcv-plan-price-note">
+                {id === "free"
+                  ? "Core tools, no payment required"
+                  : yearly
+                    ? "Planned annual price · $5/month equivalent"
+                    : "Planned monthly price"}
+              </p>
+              <ul>
+                {PUBLIC_PLAN_FEATURES[id].map((feature) => (
+                  <li key={feature}>
+                    <span aria-hidden="true">✓</span>
+                    {feature}
+                  </li>
                 ))}
               </ul>
-              <button
-                className={
-                  "mt-8 w-full rounded-2xl py-4 font-black " +
-                  (card.id === "free"
-                    ? "bg-black text-white"
-                    : "bg-white text-black")
-                }
-                onClick={() =>
-                  navigate(
-                    card.id === "free"
-                      ? "/get-started/register"
-                      : "/dashboard/settings",
-                  )
+              <Link
+                className="pcv-plan-action"
+                to={
+                  id === "free"
+                    ? "/get-started/register"
+                    : "/dashboard/settings"
                 }
               >
-                {card.cta}
-              </button>
+                {id === "free" ? "Start Free" : "Request Pro access"}
+                <span aria-hidden="true">↗</span>
+              </Link>
             </article>
           );
         })}
-      </section>
+      </div>
     </section>
   );
 }

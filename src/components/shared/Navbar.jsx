@@ -73,7 +73,7 @@ export default function Navbar() {
               ...(user
                 ? [
                     ["Dashboard", "/dashboard"],
-                    ["My Resumes", "/dashboard/resumes"],
+                    ["My Resumes & CVs", "/dashboard/resumes"],
                     ["Settings", "/dashboard/settings"],
                   ]
                 : [["Sign in", "/get-started"]]),

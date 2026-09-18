@@ -165,6 +165,25 @@ try {
     ).status,
     200,
   );
+  const cvState = (await request(alice, "/api/workspace")).data;
+  cvState.workspace = addVariant(cvState.workspace, undefined, "cv");
+  const cvId = cvState.workspace.resumeVariants.at(-1).id;
+  assert.equal(
+    (await request(alice, "/api/workspace", "PUT", cvState)).status,
+    200,
+  );
+  const reloadedCv = (
+    await request(alice, "/api/workspace")
+  ).data.workspace.resumeVariants.find((v) => v.id === cvId);
+  assert.equal(
+    reloadedCv.documentType,
+    "cv",
+    "CV type survives a real Firestore save/reload",
+  );
+  assert.equal(
+    (await request(alice, "/api/export", "POST", { variantId: cvId })).status,
+    200,
+  );
   assert.ok((await request(owner, "/api/admin")).data.metrics.exports >= 1);
   assert.equal(
     (

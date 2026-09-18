@@ -73,7 +73,13 @@ test("GitHub refresh updates facts and never replaces authored or variant conten
     resumeDocument(refreshed, refreshed.resumeVariants[0].id).sections.find(
       (s) => s.key === "projects",
     ).items[0].text,
-    "JavaScript\nTailored impact",
+    "Tailored impact",
+  );
+  assert.equal(
+    resumeDocument(refreshed, refreshed.resumeVariants[0].id).sections.find(
+      (s) => s.key === "projects",
+    ).items[0].tech,
+    "JavaScript",
   );
   assert.throws(() => importRepositories(w, [{ ...repo, private: true }]));
 });
