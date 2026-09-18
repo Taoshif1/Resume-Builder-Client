@@ -97,7 +97,9 @@ export default function ProjectsPage() {
           <p className="pcv-notice">
             Project limit reached. Refresh existing imports, remove an unused
             project, or{" "}
-            <Link to="/dashboard/settings#plan">request Pro access</Link>.
+            <Link to="/dashboard/settings?purchase=pro#payments">
+              choose Pro in Settings
+            </Link>.
             Archived projects count toward your limit.
           </p>
         )}
