@@ -4,6 +4,7 @@ import { once } from "node:events";
 import { firebaseServices } from "./firebase.js";
 import { createApp } from "./app.js";
 import { addVariant } from "../src/product/operations.js";
+import { DEFAULT_COMMERCE } from "../src/product/commerce.js";
 
 if (
   !process.env.FIREBASE_AUTH_EMULATOR_HOST ||
@@ -67,6 +68,7 @@ try {
     (
       await request(owner, "/api/admin/settings", "PUT", {
         commerce: {
+          version: DEFAULT_COMMERCE.version,
           proMonthlyBdt: 499,
           proYearlyBdt: 4990,
           documentPackSize: 5,
