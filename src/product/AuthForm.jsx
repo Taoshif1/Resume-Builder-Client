@@ -180,7 +180,10 @@ export default function AuthForm({ register = false }) {
         )}
         <p>
           {register ? "Already have an account?" : "Don't have an account?"}{" "}
-          <Link to={register ? "/get-started" : "/get-started/register"}>
+          <Link
+            to={register ? "/get-started" : "/get-started/register"}
+            state={location.state}
+          >
             {register ? "Sign in" : "Create one"}
           </Link>
         </p>
