@@ -56,7 +56,7 @@ PersonaCV does not claim that its editorial checks predict a hiring result or re
 ### Free
 
 - Up to 10 reusable projects by default
-- Up to 3 resume variants by default
+- Up to 2 Resume/CV documents by default
 - Master Profile
 - Public GitHub import
 - Modern resume template
@@ -66,7 +66,7 @@ PersonaCV does not claim that its editorial checks predict a hiring result or re
 ### Pro
 
 - Up to 100 reusable projects by default
-- Up to 50 resume variants by default
+- Up to 50 Resume/CV documents by default
 - All bundled resume templates
 - Advanced resume guidance
 - Saved job targeting and keyword comparison
@@ -77,7 +77,7 @@ PersonaCV does not claim that its editorial checks predict a hiring result or re
 
 Owner is a server-authorized administrative role, not a third subscription tier. The Owner can manage user accounts, Free/Pro assignments, suspensions, platform usage, plan limits, template availability, feature flags, feedback and private admin notes.
 
-Online billing is not implemented in V1. Pro access is currently assigned administratively after a request.
+PersonaCV currently uses an Owner-reviewed manual payment flow rather than an automatic gateway. The Owner can enable or disable bKash, Nagad, and Rocket receiving numbers, adjust Bangladesh pricing, review submitted transaction IDs, approve Pro access, and grant paid document-slot packs. Automatic payment verification/webhooks are not implemented yet.
 
 ## Architecture
 
@@ -178,7 +178,7 @@ Production Firebase authentication and cloud-workspace smoke verification were c
 
 ## Current V1 Boundaries
 
-- No live payment checkout or billing webhook implementation
+- No automatic payment verification or billing webhook implementation; manual payments require Owner review
 - No private GitHub repository import
 - AI writing depends on optional external provider configuration
 - Built-in request throttling is per server instance

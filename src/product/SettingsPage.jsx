@@ -1,4 +1,4 @@
-import { useContext, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { AuthContext } from "../context/AuthContext";
 import { auth } from "../services/firebase";
@@ -9,13 +9,36 @@ import { assertWorkspace } from "../resume/data/workspace";
 
 export default function SettingsPage() {
   const { user, logout } = useContext(AuthContext);
-  const { workspace, update, account, entitlements, backup, save, dirty } =
-    useWorkspace();
+  const {
+    workspace,
+    update,
+    account,
+    entitlements,
+    settings,
+    backup,
+    save,
+    dirty,
+  } = useWorkspace();
   const supportRef = useRef(null);
   const [message, setMessage] = useState("");
   const [feedback, setFeedback] = useState("");
   const [history, setHistory] = useState([]);
+  const [paymentData, setPaymentData] = useState(null);
+  const [paymentMethod, setPaymentMethod] = useState("");
+  const [transactionId, setTransactionId] = useState("");
+  const [packQuantity, setPackQuantity] = useState(1);
+  const [proPeriod, setProPeriod] = useState("monthly");
   const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    if (account.role === "owner") return;
+    const controller = new AbortController();
+    api("/payments", { signal: controller.signal })
+      .then(setPaymentData)
+      .catch((e) => {
+        if (!controller.signal.aborted) setMessage(e.message);
+      });
+    return () => controller.abort();
+  }, [account.role]);
   async function action(fn) {
     setBusy(true);
     setMessage("");
@@ -27,6 +50,17 @@ export default function SettingsPage() {
       setBusy(false);
     }
   }
+  const commerce = paymentData?.commerce || settings.commerce || {
+    proMonthlyBdt: 499,
+    proYearlyBdt: 4990,
+    documentPackSize: 5,
+    documentPackBdt: 100,
+    paymentMethods: [],
+  };
+  const paymentMethods = commerce.paymentMethods || [];
+  const selectedMethod = paymentMethods.find(
+    (method) => method.id === paymentMethod,
+  );
   return (
     <main className="pcv-page">
       <header>
@@ -97,24 +131,214 @@ export default function SettingsPage() {
           />
         )}
         <p>
-          Free includes master profile, 10 projects, 3 documents, public GitHub
+          Free includes master profile, 10 projects, 2 documents, public GitHub
           import and PDF export. Pro adds more capacity, templates, history and
           job targeting.
         </p>
-        <p>
-          Online billing is not configured. Send a Pro access request below; the
-          owner can assign your plan.
-        </p>
-        <button
-          onClick={() => {
-            setFeedback("I would like to request Pro access for my account.");
-            supportRef.current?.scrollIntoView();
-            supportRef.current?.querySelector("textarea")?.focus();
-          }}
-        >
-          Request Pro access
-        </button>
+        {account.role !== "owner" && (
+          <p>
+            Extra document slots purchased: {account.purchasedDocumentSlots || 0}.
+            Manual payments are reviewed by the Owner before access changes.
+          </p>
+        )}
       </section>
+      {account.role !== "owner" && (
+        <section className="pcv-card" id="payments">
+          <h2>Manual payments</h2>
+          <p>
+            Send the exact amount to an enabled account, then submit the transaction
+            ID. Nothing is activated until the Owner verifies and approves it.
+          </p>
+          {!paymentMethods.length ? (
+            <p className="pcv-notice">
+              Manual payment numbers are not enabled right now. Use Feedback & support
+              below if you need access.
+            </p>
+          ) : (
+            <>
+              <div className="pcv-payment-options">
+                <form
+                  className="pcv-record"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    action(async () => {
+                      await api("/payments", {
+                        method: "POST",
+                        body: {
+                          product: "document_pack",
+                          quantity: Number(packQuantity),
+                          method: paymentMethod,
+                          transactionId,
+                        },
+                      });
+                      setPaymentData(await api("/payments"));
+                      setTransactionId("");
+                      setMessage("Document-pack payment submitted for Owner review.");
+                    });
+                  }}
+                >
+                  <h3>Buy extra document slots</h3>
+                  <p>
+                    {commerce.documentPackSize} additional Resume/CV slots cost ৳
+                    {commerce.documentPackBdt.toLocaleString("en-BD")} per pack.
+                  </p>
+                  <label className="pcv-field">
+                    Quantity
+                    <input
+                      type="number"
+                      min="1"
+                      max="20"
+                      value={packQuantity}
+                      onChange={(e) => setPackQuantity(e.target.value)}
+                    />
+                  </label>
+                  <p>
+                    You receive{" "}
+                    <strong>
+                      {Number(packQuantity || 0) * commerce.documentPackSize}
+                    </strong>{" "}
+                    extra slots for{" "}
+                    <strong>
+                      ৳
+                      {(
+                        Number(packQuantity || 0) * commerce.documentPackBdt
+                      ).toLocaleString("en-BD")}
+                    </strong>
+                    .
+                  </p>
+                  <label className="pcv-field">
+                    Payment method
+                    <select
+                      required
+                      value={paymentMethod}
+                      onChange={(e) => setPaymentMethod(e.target.value)}
+                    >
+                      <option value="">Choose method</option>
+                      {paymentMethods.map((method) => (
+                        <option value={method.id} key={method.id}>
+                          {method.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  {selectedMethod && (
+                    <p className="pcv-payment-number">
+                      Send to {selectedMethod.label}:{" "}
+                      <strong>{selectedMethod.number}</strong>
+                    </p>
+                  )}
+                  <label className="pcv-field">
+                    Transaction ID
+                    <input
+                      required
+                      value={transactionId}
+                      onChange={(e) => setTransactionId(e.target.value)}
+                      maxLength="80"
+                      autoComplete="off"
+                    />
+                  </label>
+                  <button disabled={busy || !paymentMethod || !transactionId.trim()}>
+                    Submit pack payment
+                  </button>
+                </form>
+
+                <form
+                  className="pcv-record"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    action(async () => {
+                      await api("/payments", {
+                        method: "POST",
+                        body: {
+                          product: "pro",
+                          period: proPeriod,
+                          method: paymentMethod,
+                          transactionId,
+                        },
+                      });
+                      setPaymentData(await api("/payments"));
+                      setTransactionId("");
+                      setMessage("Pro payment submitted for Owner review.");
+                    });
+                  }}
+                >
+                  <h3>Request Pro</h3>
+                  <label className="pcv-field">
+                    Billing period
+                    <select
+                      value={proPeriod}
+                      onChange={(e) => setProPeriod(e.target.value)}
+                    >
+                      <option value="monthly">
+                        Monthly · ৳{commerce.proMonthlyBdt.toLocaleString("en-BD")}
+                      </option>
+                      <option value="yearly">
+                        Yearly · ৳{commerce.proYearlyBdt.toLocaleString("en-BD")}
+                      </option>
+                    </select>
+                  </label>
+                  <p>
+                    Pro unlocks all bundled templates, history and job targeting.
+                    Renewal is manually managed during this payment phase.
+                  </p>
+                  <label className="pcv-field">
+                    Payment method
+                    <select
+                      required
+                      value={paymentMethod}
+                      onChange={(e) => setPaymentMethod(e.target.value)}
+                    >
+                      <option value="">Choose method</option>
+                      {paymentMethods.map((method) => (
+                        <option value={method.id} key={method.id}>
+                          {method.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  {selectedMethod && (
+                    <p className="pcv-payment-number">
+                      Send to {selectedMethod.label}:{" "}
+                      <strong>{selectedMethod.number}</strong>
+                    </p>
+                  )}
+                  <label className="pcv-field">
+                    Transaction ID
+                    <input
+                      required
+                      value={transactionId}
+                      onChange={(e) => setTransactionId(e.target.value)}
+                      maxLength="80"
+                      autoComplete="off"
+                    />
+                  </label>
+                  <button disabled={busy || !paymentMethod || !transactionId.trim()}>
+                    Submit Pro payment
+                  </button>
+                </form>
+              </div>
+              <h3>Your recent payment requests</h3>
+              {!paymentData?.requests?.length && <p>No requests submitted yet.</p>}
+              {paymentData?.requests?.map((request) => (
+                <div className="pcv-record" key={request.id}>
+                  <div className="pcv-row">
+                    <strong>
+                      {request.product === "pro"
+                        ? `Pro · ${request.period}`
+                        : `${request.documentSlots} extra document slots`}
+                    </strong>
+                    <span className="pcv-badge">{request.status}</span>
+                  </div>
+                  <p>
+                    ৳{request.amountBdt.toLocaleString("en-BD")} · {request.method} ·
+                    Transaction {request.transactionId}
+                  </p>
+                </div>
+              ))}
+            </>
+          )}
+        </section>
+      )}
       <section className="pcv-card">
         <h2>Data & backup</h2>
         <button onClick={() => backup()}>Download full workspace backup</button>

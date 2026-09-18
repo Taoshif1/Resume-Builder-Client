@@ -15,6 +15,11 @@ import {
   qualityChecks,
   resumeDocument,
 } from "../src/product/document.js";
+import {
+  PAYMENT_METHODS,
+  enabledPaymentMethods,
+  normalizeCommerce,
+} from "../src/product/commerce.js";
 
 const fail = (message, status = 400) => {
   throw Object.assign(new Error(message), { status });
@@ -49,6 +54,7 @@ export function validatePayload(workspace, uid) {
 export function createService(db, auth) {
   const users = db.collection("users");
   const workspaces = db.collection("workspaces");
+  const paymentRequests = db.collection("paymentRequests");
   const settingsRef = db.collection("system").doc("settings");
 
   async function account(uid) {
@@ -76,10 +82,12 @@ export function createService(db, auth) {
           projects: 0,
           variants: 1,
           exports: 0,
+          purchasedDocumentSlots: 0,
         });
     });
     const user = await account(identity.uid);
     const config = await settings();
+    const commerce = normalizeCommerce(config.commerce);
     return {
       account: Object.fromEntries(
         Object.entries(user).filter(([key]) => key !== "notes"),
@@ -89,8 +97,17 @@ export function createService(db, auth) {
         ai: Boolean(process.env.AI_API_KEY) && config.aiEnabled !== false,
         publicGithub: config.publicGithub !== false,
       },
-      billing: { configured: false },
-      settings: { supportEmail: config.supportEmail || "" },
+      billing: { configured: false, manualPayments: true },
+      settings: {
+        supportEmail: config.supportEmail || "",
+        commerce: {
+          proMonthlyBdt: commerce.proMonthlyBdt,
+          proYearlyBdt: commerce.proYearlyBdt,
+          documentPackSize: commerce.documentPackSize,
+          documentPackBdt: commerce.documentPackBdt,
+          paymentMethods: enabledPaymentMethods(commerce),
+        },
+      },
     };
   }
 
@@ -183,9 +200,159 @@ export function createService(db, auth) {
     };
   }
 
+  async function publicConfig() {
+    const config = await settings();
+    const commerce = normalizeCommerce(config.commerce);
+    return {
+      commerce: {
+        proMonthlyBdt: commerce.proMonthlyBdt,
+        proYearlyBdt: commerce.proYearlyBdt,
+        documentPackSize: commerce.documentPackSize,
+        documentPackBdt: commerce.documentPackBdt,
+      },
+    };
+  }
+
+  async function listPayments(uid) {
+    await account(uid);
+    const config = normalizeCommerce((await settings()).commerce);
+    const requests = (
+      await paymentRequests.where("uid", "==", uid).limit(20).get()
+    ).docs
+      .map((doc) => ({ id: doc.id, ...doc.data() }))
+      .sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""));
+    return {
+      commerce: {
+        proMonthlyBdt: config.proMonthlyBdt,
+        proYearlyBdt: config.proYearlyBdt,
+        documentPackSize: config.documentPackSize,
+        documentPackBdt: config.documentPackBdt,
+        paymentMethods: enabledPaymentMethods(config),
+      },
+      requests,
+    };
+  }
+
+  async function createPayment(uid, body) {
+    const user = await account(uid);
+    const config = normalizeCommerce((await settings()).commerce);
+    const methods = enabledPaymentMethods(config);
+    const method = methods.find((entry) => entry.id === body.method);
+    if (!method) fail("Choose an enabled payment method.");
+
+    const transactionId = String(body.transactionId || "").trim().toUpperCase();
+    if (!/^[A-Z0-9_-]{4,80}$/.test(transactionId))
+      fail("Enter a valid transaction ID.");
+
+    const duplicate = await paymentRequests
+      .where("transactionId", "==", transactionId)
+      .limit(1)
+      .get();
+    if (!duplicate.empty)
+      fail("This transaction ID has already been submitted.", 409);
+
+    const recent = await paymentRequests.where("uid", "==", uid).limit(20).get();
+    if (recent.docs.filter((doc) => doc.data().status === "pending").length >= 5)
+      fail("You already have several pending payment requests.", 429);
+
+    const product = body.product;
+    let amountBdt;
+    let quantity = 1;
+    let documentSlots = 0;
+    let period = null;
+    if (product === "document_pack") {
+      quantity = Number(body.quantity);
+      if (!Number.isSafeInteger(quantity) || quantity < 1 || quantity > 20)
+        fail("Choose between 1 and 20 document packs.");
+      documentSlots = quantity * config.documentPackSize;
+      amountBdt = quantity * config.documentPackBdt;
+    } else if (product === "pro") {
+      period = body.period === "yearly" ? "yearly" : "monthly";
+      amountBdt =
+        period === "yearly" ? config.proYearlyBdt : config.proMonthlyBdt;
+    } else {
+      fail("Choose a valid purchase.");
+    }
+
+    const request = {
+      uid,
+      email: user.email || "",
+      product,
+      period,
+      quantity,
+      documentSlots,
+      amountBdt,
+      method: method.id,
+      receiverNumber: method.number,
+      transactionId,
+      status: "pending",
+      createdAt: new Date().toISOString(),
+    };
+    const ref = paymentRequests.doc();
+    await ref.set(request);
+    return { request: { id: ref.id, ...request } };
+  }
+
+  async function reviewPayment(uid, id, action) {
+    assertOwner(await account(uid));
+    if (!/^[\w-]+$/.test(id)) fail("Invalid payment request ID.");
+    if (!["approve", "reject"].includes(action))
+      fail("Choose approve or reject.");
+
+    const requestRef = paymentRequests.doc(id);
+    await db.runTransaction(async (tx) => {
+      const requestDoc = await tx.get(requestRef);
+      if (!requestDoc.exists) fail("Payment request not found.", 404);
+      const request = requestDoc.data();
+      if (request.status !== "pending")
+        fail("This payment request has already been reviewed.", 409);
+      const targetRef = users.doc(request.uid);
+      const targetDoc = await tx.get(targetRef);
+      if (!targetDoc.exists) fail("User not found.", 404);
+
+      if (action === "approve") {
+        if (request.product === "document_pack") {
+          const current = Number(targetDoc.data().purchasedDocumentSlots || 0);
+          tx.update(targetRef, {
+            purchasedDocumentSlots: current + request.documentSlots,
+            updatedAt: new Date().toISOString(),
+          });
+        } else if (request.product === "pro") {
+          tx.update(targetRef, {
+            plan: "pro",
+            lastManualPlanPeriod: request.period,
+            lastManualPaymentAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          });
+        }
+      }
+
+      tx.update(requestRef, {
+        status: action === "approve" ? "approved" : "rejected",
+        reviewedAt: new Date().toISOString(),
+        reviewedBy: uid,
+      });
+      tx.set(db.collection("adminAudit").doc(), {
+        actor: uid,
+        target: request.uid,
+        action: `payment-${action}`,
+        paymentRequestId: id,
+        product: request.product,
+        amountBdt: request.amountBdt,
+        createdAt: new Date().toISOString(),
+      });
+    });
+    return { ok: true };
+  }
+
   async function adminList(uid) {
     assertOwner(await account(uid));
     const records = (await users.get()).docs.map((d) => normalizeAccount(d.data()));
+    const config = await settings();
+    const commerce = normalizeCommerce(config.commerce);
+    const recentPayments = (
+      await paymentRequests.orderBy("createdAt", "desc").limit(100).get()
+    ).docs.map((d) => ({ id: d.id, ...d.data() }));
     const metrics = {
       users: records.length,
       free: records.filter((u) => u.plan === "free").length,
@@ -194,12 +361,14 @@ export function createService(db, auth) {
       projects: records.reduce((s, u) => s + (u.projects || 0), 0),
       variants: records.reduce((s, u) => s + (u.variants || 0), 0),
       exports: records.reduce((s, u) => s + (u.exports || 0), 0),
+      pendingPayments: recentPayments.filter((p) => p.status === "pending").length,
     };
     return {
       users: records,
       metrics,
-      settings: await settings(),
+      settings: { ...config, commerce },
       plans: PLANS,
+      paymentRequests: recentPayments,
       feedback: (
         await db
           .collection("feedback")
@@ -258,6 +427,8 @@ export function createService(db, auth) {
       .where("uid", "==", target)
       .get();
     for (const doc of feedback.docs) await doc.ref.delete();
+    const payments = await paymentRequests.where("uid", "==", target).get();
+    for (const doc of payments.docs) await doc.ref.delete();
     await users.doc(target).delete();
     return { ok: true };
   }
@@ -272,6 +443,16 @@ export function createService(db, auth) {
       }
     if (body.supportEmail !== undefined)
       next.supportEmail = String(body.supportEmail).slice(0, 200);
+    if (body.commerce !== undefined) {
+      const commerce = normalizeCommerce(body.commerce);
+      for (const { id } of PAYMENT_METHODS)
+        if (
+          commerce.paymentMethods[id].enabled &&
+          !commerce.paymentMethods[id].number
+        )
+          fail("Enabled payment methods require an account number.");
+      next.commerce = commerce;
+    }
     if (body.enabledTemplates !== undefined) {
       if (
         !Array.isArray(body.enabledTemplates) ||
@@ -341,6 +522,10 @@ export function createService(db, auth) {
     initialize,
     account,
     settings,
+    publicConfig,
+    listPayments,
+    createPayment,
+    reviewPayment,
     load,
     save,
     history,

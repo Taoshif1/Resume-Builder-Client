@@ -54,13 +54,113 @@ async function request(user, path, method = "GET", body) {
 try {
   const alice = await user("alice");
   const bob = await user("bob");
+  const payer = await user("payer");
   const owner = await user("owner");
-  for (const u of [alice, bob, owner])
+  for (const u of [alice, bob, payer, owner])
     assert.equal((await request(u, "/api/account")).status, 200);
   await db
     .collection("users")
     .doc(owner.uid)
     .update({ role: "owner", plan: "pro" });
+
+  assert.equal(
+    (
+      await request(owner, "/api/admin/settings", "PUT", {
+        commerce: {
+          proMonthlyBdt: 499,
+          proYearlyBdt: 4990,
+          documentPackSize: 5,
+          documentPackBdt: 100,
+          paymentMethods: {
+            bkash: { enabled: true, number: "01700000000" },
+            nagad: { enabled: false, number: "" },
+            rocket: { enabled: false, number: "" },
+          },
+        },
+      })
+    ).status,
+    200,
+  );
+  const paymentOptions = await request(payer, "/api/payments");
+  assert.equal(paymentOptions.status, 200);
+  assert.equal(paymentOptions.data.commerce.paymentMethods[0].id, "bkash");
+  assert.equal(paymentOptions.data.commerce.documentPackSize, 5);
+  assert.equal(
+    (await request(payer, "/api/account")).data.entitlements.maxVariants,
+    2,
+    "new Free accounts start with two document slots",
+  );
+  const packRequest = await request(payer, "/api/payments", "POST", {
+    product: "document_pack",
+    quantity: 2,
+    method: "bkash",
+    transactionId: "TESTPACK001",
+  });
+  assert.equal(packRequest.status, 200, JSON.stringify(packRequest));
+  assert.equal(packRequest.data.request.amountBdt, 200);
+  assert.equal(packRequest.data.request.documentSlots, 10);
+  assert.equal(
+    (
+      await request(
+        payer,
+        `/api/admin/payments/${packRequest.data.request.id}`,
+        "PATCH",
+        { action: "approve" },
+      )
+    ).status,
+    403,
+    "non-owner cannot approve a payment",
+  );
+  assert.equal(
+    (
+      await request(
+        owner,
+        `/api/admin/payments/${packRequest.data.request.id}`,
+        "PATCH",
+        { action: "approve" },
+      )
+    ).status,
+    200,
+  );
+  const payerAfterPack = (await request(payer, "/api/account")).data;
+  assert.equal(payerAfterPack.account.purchasedDocumentSlots, 10);
+  assert.equal(payerAfterPack.entitlements.maxVariants, 12);
+  assert.equal(
+    (
+      await request(payer, "/api/payments", "POST", {
+        product: "document_pack",
+        quantity: 1,
+        method: "bkash",
+        transactionId: "TESTPACK001",
+      })
+    ).status,
+    409,
+    "transaction IDs cannot be reused",
+  );
+  const proRequest = await request(payer, "/api/payments", "POST", {
+    product: "pro",
+    period: "monthly",
+    method: "bkash",
+    transactionId: "TESTPRO001",
+  });
+  assert.equal(proRequest.status, 200);
+  assert.equal(proRequest.data.request.amountBdt, 499);
+  assert.equal(
+    (
+      await request(
+        owner,
+        `/api/admin/payments/${proRequest.data.request.id}`,
+        "PATCH",
+        { action: "approve" },
+      )
+    ).status,
+    200,
+  );
+  assert.equal(
+    (await request(payer, "/api/account")).data.account.plan,
+    "pro",
+    "approved manual Pro payments activate Pro",
+  );
   const first = (await request(alice, "/api/workspace")).data;
   assert.equal(
     (await request(alice, "/api/workspace")).data.workspace.resumeVariants[0]
@@ -228,7 +328,7 @@ try {
     false,
   );
   console.log(
-    "PASS: real emulator Auth -> HTTP API -> Firestore isolation, stable IDs, conflicts, limits, Pro/admin separation, notes privacy, history, PDF, feedback, suspension, reactivation, deletion and rules.",
+    "PASS: real emulator Auth -> HTTP API -> Firestore isolation, stable IDs, conflicts, Free limits, manual payment approval, purchased slots, Pro/admin separation, notes privacy, history, PDF, feedback, suspension, reactivation, deletion and rules.",
   );
 } finally {
   server.close();

@@ -129,6 +129,10 @@ export function createApp({
       const origin = req.headers.origin;
       if (origin && process.env.APP_ORIGIN && origin !== process.env.APP_ORIGIN)
         return json({ error: "Origin not allowed." }, 403);
+      if (path === "/api/public-config" && req.method === "GET") {
+        await readiness();
+        return json(await service.publicConfig());
+      }
       const match = /^Bearer (.+)$/.exec(req.headers.authorization || "");
       if (!match) return json({ error: "Sign in required." }, 401);
       await readiness();
@@ -171,6 +175,10 @@ export function createApp({
         return json(await service.guidance(uid, await readBody(req)));
       if (path === "/api/feedback" && method === "POST")
         return json(await service.feedback(uid, await readBody(req)));
+      if (path === "/api/payments" && method === "GET")
+        return json(await service.listPayments(uid));
+      if (path === "/api/payments" && method === "POST")
+        return json(await service.createPayment(uid, await readBody(req)));
       if (path === "/api/billing" && method === "POST")
         return json(await billingAdapter.createCheckout(uid));
       if (path === "/api/github" && method === "GET") {
@@ -321,6 +329,13 @@ export function createApp({
         );
       if (userPath && method === "DELETE")
         return json(await service.deleteAccount(uid, userPath[1]));
+      const paymentPath = /^\/api\/admin\/payments\/([^/]+)$/.exec(path);
+      if (paymentPath && method === "PATCH") {
+        const body = await readBody(req);
+        return json(
+          await service.reviewPayment(uid, paymentPath[1], body.action),
+        );
+      }
       const feedbackPath = /^\/api\/admin\/feedback\/([^/]+)$/.exec(path);
       if (feedbackPath && method === "PATCH")
         return json(await service.resolveFeedback(uid, feedbackPath[1]));

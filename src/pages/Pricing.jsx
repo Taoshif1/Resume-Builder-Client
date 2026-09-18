@@ -1,9 +1,21 @@
-﻿import { useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import { PLANS, PUBLIC_PLAN_FEATURES } from "../product/plans";
+import { DEFAULT_COMMERCE } from "../product/commerce";
 export default function Pricing({ headingLevel = 1 }) {
   const [yearly, setYearly] = useState(false);
+  const [commerce, setCommerce] = useState(DEFAULT_COMMERCE);
   const Heading = headingLevel === 1 ? "h1" : "h2";
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch("/api/public-config", { signal: controller.signal })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data) => {
+        if (data?.commerce) setCommerce((current) => ({ ...current, ...data.commerce }));
+      })
+      .catch(() => {});
+    return () => controller.abort();
+  }, []);
   return (
     <section
       className="pcv-pricing pcv-home-section"
@@ -52,7 +64,13 @@ export default function Pricing({ headingLevel = 1 }) {
               <p className="pcv-plan-price" aria-live="polite">
                 <strong>${plan.price[yearly ? "yearly" : "monthly"]}</strong>
                 <span className="pcv-plan-local-price">
-                  · ৳{plan.priceBdt[yearly ? "yearly" : "monthly"].toLocaleString("en-BD")}
+                  · ৳{(
+                    id === "pro"
+                      ? yearly
+                        ? commerce.proYearlyBdt
+                        : commerce.proMonthlyBdt
+                      : 0
+                  ).toLocaleString("en-BD")}
                 </span>
                 <span>/{yearly ? "year" : "month"}</span>
               </p>
@@ -60,8 +78,8 @@ export default function Pricing({ headingLevel = 1 }) {
                 {id === "free"
                   ? "Core tools, no payment required"
                   : yearly
-                    ? "Planned annual price · 2 months included"
-                    : "Planned monthly price · USD and BDT shown"}
+                    ? "Bangladesh regional yearly price · 2 months included"
+                    : "Bangladesh regional price shown in BDT"}
               </p>
               <ul>
                 {PUBLIC_PLAN_FEATURES[id].map((feature) => (
@@ -86,6 +104,15 @@ export default function Pricing({ headingLevel = 1 }) {
           );
         })}
       </div>
+      <aside className="pcv-document-pack-note">
+        <strong>Need more Resume/CV slots without Pro?</strong>
+        <span>
+          Buy {commerce.documentPackSize} extra document slots for ৳
+          {commerce.documentPackBdt.toLocaleString("en-BD")} per pack. Choose the
+          quantity after signing in; activation happens after manual payment approval.
+        </span>
+        <Link to="/dashboard/settings">Buy document slots →</Link>
+      </aside>
     </section>
   );
 }
