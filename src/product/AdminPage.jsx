@@ -8,6 +8,7 @@ export default function AdminPage() {
   const { account } = useWorkspace();
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
   const [busy, setBusy] = useState(false);
@@ -28,12 +29,20 @@ export default function AdminPage() {
         <p>Your account does not have admin permissions.</p>
       </main>
     );
-  async function action(path, method, body) {
+  async function action(path, method, body, successMessage = "") {
     setBusy(true);
     setError("");
+    setNotice("");
     try {
       await api(path, { method, body });
-      setData(await api("/admin"));
+      if (successMessage) setNotice(successMessage);
+      try {
+        setData(await api("/admin"));
+      } catch (refreshError) {
+        setError(
+          `${successMessage || "Change saved."} The dashboard could not refresh automatically: ${refreshError.message}`,
+        );
+      }
     } catch (e) {
       setError(e.message);
     } finally {
@@ -77,6 +86,11 @@ export default function AdminPage() {
           <span className="pcv-loader pcv-loader-small" aria-hidden="true" />
           Updating admin data…
         </div>
+      )}
+      {notice && (
+        <p role="status" className="pcv-notice pcv-notice-success">
+          {notice}
+        </p>
       )}
       {error && (
         <p role="alert" className="pcv-notice">
@@ -282,6 +296,7 @@ export default function AdminPage() {
           <button disabled={busy}>Save limits</button>
         </form>
         <form
+          key={JSON.stringify(data.settings.commerce || {})}
           onSubmit={(e) => {
             e.preventDefault();
             const fields = new FormData(e.currentTarget);
@@ -302,13 +317,14 @@ export default function AdminPage() {
                   ]),
                 ),
               },
-            });
+            }, "Payment settings saved successfully.");
           }}
         >
           <h3>Manual payments</h3>
           <p className="pcv-muted">
-            Control Bangladesh pricing and the payment numbers users see. Payments
-            stay pending until you approve them below.
+            Control Bangladesh pricing and the payment numbers users see. Enter a
+            number, tick "Enable" for that method, then save. Payments stay pending
+            until you approve them below.
           </p>
           <div className="pcv-fields">
             <label className="pcv-field">
@@ -384,7 +400,9 @@ export default function AdminPage() {
               );
             })}
           </div>
-          <button disabled={busy}>Save payment settings</button>
+          <button type="submit" disabled={busy}>
+            {busy ? "Saving…" : "Save payment settings"}
+          </button>
         </form>
         <h3>Template catalog</h3>
         {["minimal", "corporate"].map((template) => (
