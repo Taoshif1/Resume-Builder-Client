@@ -266,6 +266,33 @@
   gap: 14px;
   margin: 12px 0 16px;
 }
+.pcv-plan-pack {
+  background: #f8fbff;
+  border: 1px solid #9fb9df;
+  color: #172033;
+}
+
+.pcv-plan-pack .pcv-plan-heading span {
+  color: #4a5d78;
+}
+
+.pcv-plan-pack .pcv-plan-price strong {
+  color: #244c85;
+}
+
+.pcv-plan-pack .pcv-plan-price-note {
+  color: #4f627c;
+}
+
+.pcv-plan-pack .pcv-plan-action {
+  background: #244c85;
+  color: #fff;
+}
+
+.pcv-plan-pack .pcv-plan-action:hover {
+  background: #1c3d6d;
+  color: #fff;
+}
 @keyframes pcv-spin {
   to {
     transform: rotate(360deg);
