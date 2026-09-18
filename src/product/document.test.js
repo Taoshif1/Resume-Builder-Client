@@ -109,6 +109,44 @@ test("CV length is unrestricted while Resume encourages brevity and both retain 
   );
   assert.match(pdfFilename("Alex", "Career", "cv"), /-CV\.pdf$/);
 });
+test("Document Studio controls remain backward compatible and validate safe bounds", () => {
+  const w = documentFixture({
+    template: "compact",
+    paperSize: "LEGAL",
+    fontSize: 8.5,
+    design: {
+      fontFamily: "serif",
+      lineSpacing: 1.5,
+      sectionGap: 2,
+      entryGap: 1,
+      pageMargin: 30,
+      accentColor: "#7a3344",
+      headerAlign: "left",
+      sectionStyle: "underline",
+    },
+  });
+  assert.doesNotThrow(() => assertWorkspace(w, w.ownerUid));
+  const model = resumeDocument(w, w.resumeVariants[0].id);
+  assert.equal(model.template, "compact");
+  assert.equal(model.paperSize, "LEGAL");
+  assert.equal(model.fontSize, 8.5);
+  assert.equal(model.fontFamily, "serif");
+  assert.equal(model.lineSpacing, 1.5);
+  assert.equal(model.sectionGap, 2);
+  assert.equal(model.entryGap, 1);
+  assert.equal(model.pageMargin, 30);
+  assert.equal(model.accentColor, "#7a3344");
+  assert.equal(model.headerAlign, "left");
+  assert.equal(model.sectionStyle, "underline");
+
+  const invalid = structuredClone(w);
+  invalid.resumeVariants[0].fontSize = 30;
+  assert.throws(() => assertWorkspace(invalid, invalid.ownerUid));
+  invalid.resumeVariants[0].fontSize = 11;
+  invalid.resumeVariants[0].accentColor = "red";
+  assert.throws(() => assertWorkspace(invalid, invalid.ownerUid));
+});
+
 test("refresh of GitHub facts keeps authored data and old document overrides", () => {
   const repo = {
     id: 77,
