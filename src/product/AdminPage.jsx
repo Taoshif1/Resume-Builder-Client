@@ -458,7 +458,9 @@ export default function AdminPage() {
               {request.email || request.uid} · ৳{request.amountBdt?.toLocaleString?.("en-BD") || request.amountBdt}
             </p>
             <p>
-              {request.method} · Transaction: <strong>{request.transactionId}</strong>
+              {request.method}
+              {request.receiverNumber ? ` · Sent to: ${request.receiverNumber}` : ""} · Transaction:{" "}
+              <strong>{request.transactionId}</strong>
               {request.quantity > 1 ? ` · Quantity: ${request.quantity}` : ""}
             </p>
             <p className="pcv-muted">{request.createdAt}</p>
