@@ -17,7 +17,7 @@ export const PLANS = {
     priceBdt: { monthly: 499, yearly: 4990 },
     maxProjects: 100,
     maxVariants: 50,
-    templates: ["modern", "minimal", "corporate"],
+    templates: ["modern", "minimal", "corporate", "compact", "classic", "academic"],
     advancedATS: true,
     jobMatching: true,
     aiTools: true,

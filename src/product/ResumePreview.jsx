@@ -1,4 +1,4 @@
-﻿import { DOCUMENT_STYLES } from "./document-styles.js";
+import { resolvedDocumentStyle } from "./document-styles.js";
 
 function DocumentLinks({ links = [] }) {
   return (
@@ -13,24 +13,37 @@ function DocumentLinks({ links = [] }) {
     )
   );
 }
-export default function ResumePreview({ model }) {
-  const style = DOCUMENT_STYLES[model.template];
+
+const PAGE_DIMENSIONS = {
+  A4: { width: "794px", height: "1123px" },
+  LETTER: { width: "816px", height: "1056px" },
+  LEGAL: { width: "816px", height: "1344px" },
+};
+
+export default function ResumePreview({ model, zoom = 100 }) {
+  const style = resolvedDocumentStyle(model);
+  const page = PAGE_DIMENSIONS[model.paperSize] || PAGE_DIMENSIONS.A4;
   return (
     <article
-      className={`pcv-paper pcv-template-${model.template}`}
+      className={`pcv-paper pcv-template-${model.template} pcv-font-${style.fontFamily} pcv-section-style-${style.sectionStyle}`}
       style={{
         fontSize: `${model.fontSize}pt`,
-        maxWidth: model.paperSize === "LETTER" ? "816px" : "794px",
+        maxWidth: page.width,
+        minHeight: page.height,
+        padding: `${style.pageMargin}pt`,
+        fontFamily: style.font.css,
+        transform: `scale(${zoom / 100})`,
+        transformOrigin: "top center",
         "--document-accent": style.accent,
         "--document-section-gap": `${style.sectionGap}pt`,
         "--document-entry-gap": `${style.entryGap}pt`,
         "--document-name-size": `${style.nameSize}pt`,
         "--document-rule": `${style.rule}pt`,
-        "--document-line-gap": `${style.lineGap}pt`,
+        "--document-line-height": style.lineSpacing,
       }}
       aria-label={`Live ${model.documentType === "cv" ? "CV" : "resume"} preview`}
     >
-      <header className="pcv-document-header">
+      <header className="pcv-document-header" style={{ textAlign: style.align }}>
         <h1>{model.name || "Your name"}</h1>
         {model.title && <p className="pcv-paper-title">{model.title}</p>}
         {model.contact && (
@@ -43,7 +56,7 @@ export default function ResumePreview({ model }) {
           key={section.key}
           className={`pcv-document-section pcv-document-${section.key}`}
         >
-          <h2>{section.title}</h2>
+          <h2>{style.uppercase ? section.title.toUpperCase() : section.title}</h2>
           {section.items.map((item, index) => (
             <div className="pcv-paper-entry" key={index}>
               {(item.heading || item.dates || item.links?.length > 0) && (

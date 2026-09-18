@@ -24,8 +24,15 @@ import {
   PROJECT_FIELDS,
   EXPERIENCE_FIELDS,
   EDUCATION_FIELDS,
+  TEMPLATES,
 } from "../resume/data/workspace";
 import ResumePreview from "./ResumePreview";
+import {
+  ACCENT_PRESETS,
+  DESIGN_PRESETS,
+  DOCUMENT_STYLES,
+  FONT_FAMILIES,
+} from "./document-styles";
 import { api, downloadBlob } from "./api";
 
 function SectionOrder({ id, children }) {
@@ -81,6 +88,7 @@ export default function EditorPage() {
   const variant = workspace.resumeVariants.find((v) => v.id === id);
   const [tab, setTab] = useState("Basics");
   const [view, setView] = useState("edit");
+  const [previewZoom, setPreviewZoom] = useState(100);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [guidance, setGuidance] = useState(null);
@@ -218,7 +226,7 @@ export default function EditorPage() {
       <div className="pcv-editor-columns">
         <div className="pcv-editor-controls">
           <nav className="pcv-editor-tabs" aria-label="Editor sections">
-            {["Basics", "Content", "Order", "Targeting", "Review"].map(
+            {["Basics", "Design", "Content", "Order", "Targeting", "Review"].map(
               (label) => (
                 <button
                   key={label}
@@ -287,59 +295,366 @@ export default function EditorPage() {
                 ? "A broader career record. Include education, certifications and custom sections; multiple pages are welcome."
                 : "A focused application. Choose relevant evidence and aim for a concise one or two pages."}
             </p>
-            <label className="pcv-field">
-              Template
-              <select
-                value={variant.template}
-                onChange={(e) =>
+          </section>
+          <section className="pcv-card pcv-design-panel" hidden={tab !== "Design"}>
+            <div className="pcv-row">
+              <div>
+                <p className="pcv-eyebrow">DOCUMENT STUDIO</p>
+                <h2>Layout & typography</h2>
+                <p className="pcv-muted">
+                  Google Docs-style control, while keeping the document structured
+                  and ATS-friendly.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() =>
                   edit((v) => {
-                    v.template = e.target.value;
+                    for (const key of [
+                      "fontSize",
+                      "fontFamily",
+                      "lineSpacing",
+                      "sectionGap",
+                      "entryGap",
+                      "pageMargin",
+                      "accentColor",
+                      "headerAlign",
+                      "sectionStyle",
+                    ])
+                      delete v[key];
                   })
                 }
               >
-                {["modern", "minimal", "corporate"].map((t) => (
-                  <option
-                    key={t}
-                    disabled={!entitlements.templates.includes(t)}
-                    value={t}
-                  >
-                    {t}
-                    {!entitlements.templates.includes(t) ? " · Pro" : ""}
-                  </option>
+                Reset design
+              </button>
+            </div>
+
+            <div className="pcv-density-presets" aria-label="Density presets">
+              {Object.entries(DESIGN_PRESETS).map(([name, preset]) => (
+                <button
+                  type="button"
+                  key={name}
+                  onClick={() =>
+                    edit((v) => {
+                      Object.assign(v, preset);
+                    })
+                  }
+                >
+                  {name}
+                </button>
+              ))}
+            </div>
+
+            <div className="pcv-fields">
+              <label className="pcv-field">
+                Template
+                <select
+                  value={variant.template}
+                  onChange={(e) =>
+                    edit((v) => {
+                      v.template = e.target.value;
+                    })
+                  }
+                >
+                  {TEMPLATES.map((t) => (
+                    <option
+                      key={t}
+                      disabled={!entitlements.templates.includes(t)}
+                      value={t}
+                    >
+                      {DOCUMENT_STYLES[t]?.label || t}
+                      {!entitlements.templates.includes(t) ? " · Pro" : ""}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="pcv-field">
+                Paper size
+                <select
+                  value={variant.paperSize || "A4"}
+                  onChange={(e) =>
+                    edit((v) => {
+                      v.paperSize = e.target.value;
+                    })
+                  }
+                >
+                  <option value="A4">A4</option>
+                  <option value="LETTER">US Letter</option>
+                  <option value="LEGAL">US Legal</option>
+                </select>
+              </label>
+
+              <label className="pcv-field">
+                Font
+                <select
+                  value={variant.fontFamily || ""}
+                  onChange={(e) =>
+                    edit((v) => {
+                      if (e.target.value) v.fontFamily = e.target.value;
+                      else delete v.fontFamily;
+                    })
+                  }
+                >
+                  <option value="">Template default</option>
+                  {Object.entries(FONT_FAMILIES).map(([id, font]) => (
+                    <option key={id} value={id}>
+                      {font.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="pcv-field">
+                Text size
+                <div className="pcv-design-number">
+                  <input
+                    type="range"
+                    min="8"
+                    max="18"
+                    step="0.5"
+                    value={variant.fontSize || 11}
+                    onChange={(e) =>
+                      edit((v) => {
+                        v.fontSize = Number(e.target.value);
+                      })
+                    }
+                  />
+                  <input
+                    type="number"
+                    min="8"
+                    max="18"
+                    step="0.5"
+                    value={variant.fontSize || 11}
+                    onChange={(e) =>
+                      edit((v) => {
+                        v.fontSize = Math.min(
+                          18,
+                          Math.max(8, Number(e.target.value) || 11),
+                        );
+                      })
+                    }
+                    aria-label="Text size in points"
+                  />
+                  <span>pt</span>
+                </div>
+              </label>
+
+              <label className="pcv-field">
+                Line spacing
+                <div className="pcv-design-number">
+                  <input
+                    type="range"
+                    min="0.9"
+                    max="2"
+                    step="0.05"
+                    value={variant.lineSpacing || DOCUMENT_STYLES[variant.template]?.lineSpacing || 1.15}
+                    onChange={(e) =>
+                      edit((v) => {
+                        v.lineSpacing = Number(e.target.value);
+                      })
+                    }
+                  />
+                  <input
+                    type="number"
+                    min="0.9"
+                    max="2"
+                    step="0.05"
+                    value={variant.lineSpacing || DOCUMENT_STYLES[variant.template]?.lineSpacing || 1.15}
+                    onChange={(e) =>
+                      edit((v) => {
+                        v.lineSpacing = Math.min(
+                          2,
+                          Math.max(0.9, Number(e.target.value) || 1.15),
+                        );
+                      })
+                    }
+                    aria-label="Line spacing"
+                  />
+                  <span>×</span>
+                </div>
+              </label>
+
+              <label className="pcv-field">
+                Section spacing
+                <div className="pcv-design-number">
+                  <input
+                    type="range"
+                    min="0"
+                    max="24"
+                    step="1"
+                    value={variant.sectionGap ?? DOCUMENT_STYLES[variant.template]?.sectionGap ?? 7}
+                    onChange={(e) =>
+                      edit((v) => {
+                        v.sectionGap = Number(e.target.value);
+                      })
+                    }
+                  />
+                  <input
+                    type="number"
+                    min="0"
+                    max="24"
+                    value={variant.sectionGap ?? DOCUMENT_STYLES[variant.template]?.sectionGap ?? 7}
+                    onChange={(e) =>
+                      edit((v) => {
+                        v.sectionGap = Math.min(
+                          24,
+                          Math.max(0, Number(e.target.value) || 0),
+                        );
+                      })
+                    }
+                    aria-label="Section spacing in points"
+                  />
+                  <span>pt</span>
+                </div>
+              </label>
+
+              <label className="pcv-field">
+                Entry spacing
+                <div className="pcv-design-number">
+                  <input
+                    type="range"
+                    min="0"
+                    max="16"
+                    step="0.5"
+                    value={variant.entryGap ?? DOCUMENT_STYLES[variant.template]?.entryGap ?? 4}
+                    onChange={(e) =>
+                      edit((v) => {
+                        v.entryGap = Number(e.target.value);
+                      })
+                    }
+                  />
+                  <input
+                    type="number"
+                    min="0"
+                    max="16"
+                    step="0.5"
+                    value={variant.entryGap ?? DOCUMENT_STYLES[variant.template]?.entryGap ?? 4}
+                    onChange={(e) =>
+                      edit((v) => {
+                        v.entryGap = Math.min(
+                          16,
+                          Math.max(0, Number(e.target.value) || 0),
+                        );
+                      })
+                    }
+                    aria-label="Entry spacing in points"
+                  />
+                  <span>pt</span>
+                </div>
+              </label>
+
+              <label className="pcv-field">
+                Page margins
+                <div className="pcv-design-number">
+                  <input
+                    type="range"
+                    min="20"
+                    max="80"
+                    step="2"
+                    value={variant.pageMargin ?? DOCUMENT_STYLES[variant.template]?.pageMargin ?? 44}
+                    onChange={(e) =>
+                      edit((v) => {
+                        v.pageMargin = Number(e.target.value);
+                      })
+                    }
+                  />
+                  <input
+                    type="number"
+                    min="20"
+                    max="80"
+                    step="2"
+                    value={variant.pageMargin ?? DOCUMENT_STYLES[variant.template]?.pageMargin ?? 44}
+                    onChange={(e) =>
+                      edit((v) => {
+                        v.pageMargin = Math.min(
+                          80,
+                          Math.max(20, Number(e.target.value) || 44),
+                        );
+                      })
+                    }
+                    aria-label="Page margins in points"
+                  />
+                  <span>pt</span>
+                </div>
+              </label>
+
+              <label className="pcv-field">
+                Header alignment
+                <select
+                  value={variant.headerAlign || ""}
+                  onChange={(e) =>
+                    edit((v) => {
+                      if (e.target.value) v.headerAlign = e.target.value;
+                      else delete v.headerAlign;
+                    })
+                  }
+                >
+                  <option value="">Template default</option>
+                  <option value="left">Left</option>
+                  <option value="center">Center</option>
+                </select>
+              </label>
+
+              <label className="pcv-field">
+                Section heading format
+                <select
+                  value={variant.sectionStyle || ""}
+                  onChange={(e) =>
+                    edit((v) => {
+                      if (e.target.value) v.sectionStyle = e.target.value;
+                      else delete v.sectionStyle;
+                    })
+                  }
+                >
+                  <option value="">Template default</option>
+                  <option value="line">Full divider</option>
+                  <option value="underline">Short underline</option>
+                  <option value="plain">No divider</option>
+                </select>
+              </label>
+            </div>
+
+            <div className="pcv-color-control">
+              <div>
+                <strong>Accent color</strong>
+                <p className="pcv-muted">
+                  Used for your name, section headings and document links.
+                </p>
+              </div>
+              <div className="pcv-color-swatches">
+                {ACCENT_PRESETS.map((color) => (
+                  <button
+                    type="button"
+                    key={color.value}
+                    title={color.label}
+                    aria-label={`Use ${color.label}`}
+                    aria-pressed={
+                      (variant.accentColor || DOCUMENT_STYLES[variant.template]?.accent)
+                        ?.toLowerCase() === color.value.toLowerCase()
+                    }
+                    style={{ background: color.value }}
+                    onClick={() =>
+                      edit((v) => {
+                        v.accentColor = color.value;
+                      })
+                    }
+                  />
                 ))}
-              </select>
-            </label>
-            <label className="pcv-field">
-              Paper size
-              <select
-                value={variant.paperSize || "A4"}
-                onChange={(e) =>
-                  edit((v) => {
-                    v.paperSize = e.target.value;
-                  })
-                }
-              >
-                <option>A4</option>
-                <option value="LETTER">US Letter</option>
-              </select>
-            </label>
-            <label className="pcv-field">
-              Text size
-              <select
-                value={variant.fontSize || 11}
-                onChange={(e) =>
-                  edit((v) => {
-                    v.fontSize = Number(e.target.value);
-                  })
-                }
-              >
-                {[10, 11, 12].map((n) => (
-                  <option key={n} value={n}>
-                    {n} pt
-                  </option>
-                ))}
-              </select>
-            </label>
+                <label className="pcv-custom-color">
+                  Custom
+                  <input
+                    type="color"
+                    value={variant.accentColor || DOCUMENT_STYLES[variant.template]?.accent || "#345b91"}
+                    onChange={(e) =>
+                      edit((v) => {
+                        v.accentColor = e.target.value;
+                      })
+                    }
+                  />
+                </label>
+              </div>
+            </div>
           </section>
           <section className="pcv-card" hidden={tab !== "Content"}>
             <h2>Summary for this {model.documentType === "cv" ? "CV" : "resume"}</h2>
@@ -691,10 +1006,34 @@ export default function EditorPage() {
           </section>
         </div>
         <div className="pcv-preview-wrap">
-          <p className="pcv-muted">
-            Live preview · {model.paperSize} · PDF paginates automatically
-          </p>
-          <ResumePreview model={model} />
+          <div className="pcv-document-toolbar" aria-label="Document preview controls">
+            <span>
+              Live preview · {model.paperSize} · PDF paginates automatically
+            </span>
+            <div>
+              <button
+                type="button"
+                onClick={() => setPreviewZoom((z) => Math.max(60, z - 10))}
+                aria-label="Zoom out"
+              >
+                −
+              </button>
+              <span>{previewZoom}%</span>
+              <button
+                type="button"
+                onClick={() => setPreviewZoom((z) => Math.min(140, z + 10))}
+                aria-label="Zoom in"
+              >
+                +
+              </button>
+              <button type="button" onClick={() => setPreviewZoom(100)}>
+                100%
+              </button>
+            </div>
+          </div>
+          <div className="pcv-preview-canvas">
+            <ResumePreview model={model} zoom={previewZoom} />
+          </div>
         </div>
       </div>
     </main>

@@ -103,3 +103,71 @@ for (const template of ["modern", "minimal", "corporate"]) {
         }
   });
 }
+
+
+test("Document Studio exports custom typography, spacing, color and new template formats", async (t) => {
+  let workspace;
+  const server = createApp({
+    auth: { verifyIdToken: async () => ({ uid: "fixture-user" }) },
+    service: {
+      account: async () => ({ role: "owner", plan: "pro", status: "active" }),
+      load: async () => ({ workspace }),
+      recordExport: async () => {},
+    },
+  });
+  server.listen(0, "127.0.0.1");
+  await once(server, "listening");
+  t.after(() => server.close());
+
+  for (const template of ["compact", "classic", "academic"]) {
+    workspace = documentFixture({
+      template,
+      documentType: template === "academic" ? "cv" : "resume",
+      paperSize: template === "academic" ? "LEGAL" : "A4",
+      fontSize: 9.5,
+      long: false,
+      design: {
+        fontFamily: template === "compact" ? "mono" : "serif",
+        lineSpacing: 1.3,
+        sectionGap: 5,
+        entryGap: 2,
+        pageMargin: 36,
+        accentColor: "#7a3344",
+        headerAlign: "left",
+        sectionStyle: template === "academic" ? "underline" : "plain",
+      },
+    });
+    const response = await fetch(
+      `http://127.0.0.1:${server.address().port}/api/export`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer fixture",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          variantId: workspace.resumeVariants[0].id,
+        }),
+      },
+    );
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get("content-type"), "application/pdf");
+    const bytes = new Uint8Array(await response.arrayBuffer());
+    assert.ok(bytes.length > 1000);
+    const loading = getDocument({ data: bytes, useSystemFonts: true });
+    const pdf = await loading.promise;
+    assert.ok(pdf.numPages >= 1);
+    const firstPage = await pdf.getPage(1);
+    const content = await firstPage.getTextContent();
+    assert.ok(content.items.some((item) => item.str.includes("Alex Morgan")));
+    for (const item of content.items)
+      if (item.str.trim()) {
+        assert.ok(item.transform[4] >= 25, `${template}: left margin respected`);
+        assert.ok(
+          item.transform[4] + item.width <= firstPage.view[2] - 25,
+          `${template}: right margin respected for ${item.str}`,
+        );
+      }
+    await loading.destroy();
+  }
+});

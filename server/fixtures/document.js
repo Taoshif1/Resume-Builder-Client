@@ -5,6 +5,7 @@ export function documentFixture({
   paperSize = "A4",
   fontSize = 11,
   long = false,
+  design = {},
 } = {}) {
   const w = createWorkspace("fixture-user", () => "document-one");
   Object.assign(w.profile.personalInfo, {
@@ -106,7 +107,13 @@ export function documentFixture({
       },
     });
   const v = w.resumeVariants[0];
-  Object.assign(v, { template, documentType, paperSize, fontSize });
+  Object.assign(v, {
+    template,
+    documentType,
+    paperSize,
+    fontSize,
+    ...design,
+  });
   for (const [key, records] of Object.entries({
     projectIds: w.projects,
     experienceIds: w.profile.experience,
