@@ -7,7 +7,7 @@ export const PAYMENT_METHODS = [
 export const DEFAULT_COMMERCE = {
   proMonthlyBdt: 499,
   proYearlyBdt: 4990,
-  documentPackSize: 5,
+  documentPackSize: 1,
   documentPackBdt: 100,
   paymentMethods: {
     bkash: { enabled: false, number: "" },
