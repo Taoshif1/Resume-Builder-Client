@@ -53,7 +53,7 @@ export default function SettingsPage() {
   const commerce = paymentData?.commerce || settings.commerce || {
     proMonthlyBdt: 499,
     proYearlyBdt: 4990,
-    documentPackSize: 5,
+    documentPackSize: 1,
     documentPackBdt: 100,
     paymentMethods: [],
   };
