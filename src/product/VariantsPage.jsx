@@ -84,17 +84,17 @@ export default function VariantsPage() {
         <section className="pcv-card">
           <h2>
             {search
-              ? "No matching resumes"
+              ? "No matching documents"
               : archived
-                ? "No archived resumes"
+                ? "No archived documents"
                 : "Your next opportunity starts here"}
           </h2>
           <p>
             {search
               ? "Try a different name, role or label."
               : archived
-                ? "Archived resumes will appear here. Restore one whenever you need it."
-                : "Create a resume, choose your strongest evidence, and tailor it to a role."}
+                ? "Archived resumes and CVs will appear here. Restore one whenever you need it."
+                : "Create a resume or CV, choose your strongest evidence, and tailor it to your goal."}
           </p>
           {search && (
             <button onClick={() => setSearch("")}>Clear search</button>
@@ -108,7 +108,7 @@ export default function VariantsPage() {
               <Link to={`/resume/${v.id}`}>{v.name}</Link>
             </h2>
             <p>
-              {v.targetRole || "General developer resume"}
+              {v.targetRole || (v.documentType === "cv" ? "General developer CV" : "General developer resume")}
               {v.company ? ` · ${v.company}` : ""}
             </p>
             <p className="pcv-muted">
