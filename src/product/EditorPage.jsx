@@ -1079,28 +1079,54 @@ function DocumentEditor({
                 ))}
               </SortableContext>
             </DndContext>
-            {[
-              "certifications",
-              "achievements",
-              "languages",
-              "volunteering",
-              "customSections",
-            ].map((section) => (
-              <label className="pcv-check" key={section}>
-                <input
-                  type="checkbox"
-                  checked={!variant.hiddenSections?.includes(section)}
-                  onChange={(e) =>
-                    edit((v) => {
-                      v.hiddenSections = e.target.checked
-                        ? (v.hiddenSections || []).filter((s) => s !== section)
-                        : [...(v.hiddenSections || []), section];
-                    })
-                  }
-                />
-                {section.replace(/([A-Z])/g, " $1")}
-              </label>
-            ))}
+            <div className="pcv-add-section-panel">
+              <h3>Add or restore sections</h3>
+              <p className="pcv-muted">
+                Choose core entries in Content. Additional sections use reusable
+                Master Profile entries and can be shown or hidden here.
+              </p>
+              {[
+                ["certifications", "Certifications"],
+                ["achievements", "Achievements"],
+                ["languages", "Languages"],
+                ["volunteering", "Volunteering"],
+                ["customSections", "Custom sections"],
+              ].map(([section, label]) => {
+                const count = (workspace.profile[section] || []).length;
+                const visible =
+                  count > 0 &&
+                  !variant.hiddenSections?.includes(section);
+                return (
+                  <div className="pcv-add-section-row" key={section}>
+                    <label className="pcv-check">
+                      <input
+                        type="checkbox"
+                        checked={visible}
+                        disabled={count === 0}
+                        onChange={(event) =>
+                          edit((currentVariant) =>
+                            setDocumentSectionHidden(
+                              currentVariant,
+                              section,
+                              !event.target.checked,
+                            ),
+                          )
+                        }
+                      />
+                      <span>{label}</span>
+                    </label>
+                    <span className="pcv-muted">
+                      {count
+                        ? `${count} ${count === 1 ? "entry" : "entries"}`
+                        : "No entries"}
+                    </span>
+                    <Link to={`/dashboard/profile#${section}`}>
+                      {count ? "Edit entries" : "Add entries"}
+                    </Link>
+                  </div>
+                );
+              })}
+            </div>
           </section>
           {groups.map(([collection, key, records, fields]) => (
             <section className="pcv-card" key={key} hidden={tab !== "Content"}>
