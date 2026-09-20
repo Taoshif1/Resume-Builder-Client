@@ -61,6 +61,19 @@ test("safe labelled project links deduplicate URLs and preserve authored feature
     .items[0];
   assert.deepEqual(item.links, []);
 });
+test("direct-edit projection keeps PDF text and separates authored project titles from source metadata", () => {
+  const w = documentFixture();
+  const model = resumeDocument(w, w.resumeVariants[0].id);
+  const skills = model.sections.find((section) => section.key === "skills").items[0];
+  const project = model.sections.find((section) => section.key === "projects").items[0];
+  const experience = model.sections.find((section) => section.key === "experience").items[0];
+  assert.equal(skills.text, model.sections.find((section) => section.key === "skills").items[0].parts.map((part) => part.value).join(" | "));
+  assert.equal(skills.parts[0].source.collection, "skills");
+  assert.equal(project.heading, w.projects[0].resumeData.title);
+  assert.equal(project.subheading, w.projects[0].metadata.role);
+  assert.deepEqual(experience.dateParts.map((part) => part.field), ["startDate", "endDate"]);
+  assert.deepEqual(model.contactItems.map((item) => item.field), ["location", "phone", "email"]);
+});
 test("common profile links render with compact platform labels", () => {
   const w = documentFixture();
   w.profile.links = [

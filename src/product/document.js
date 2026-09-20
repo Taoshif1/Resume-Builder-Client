@@ -48,7 +48,21 @@ export function resumeDocument(workspace, variantId) {
           : "Professional Summary",
       items: [{ text: p.summary, source: { type: "personal", field: "summary" } }],
     },
-    skills: { title: "Skills", items: [{ text: resume.skills.join(" | ") }] },
+    skills: {
+      title: "Skills",
+      items: [{
+        text: resume.skills.join(" | "),
+        parts: resume.skills.map((name, index) => ({
+          value: name,
+          source: {
+            type: "entry",
+            collection: "skills",
+            id: variant.skillIds[index],
+            field: "name",
+          },
+        })),
+      }],
+    },
     experience: {
       title: "Experience",
       items: resume.experience.map((x, index) => ({
@@ -57,6 +71,10 @@ export function resumeDocument(workspace, variantId) {
         heading: x.role,
         subheading: x.company,
         dates: [x.startDate, x.endDate].filter(Boolean).join(" \u2013 "),
+        dateParts: [
+          { value: x.startDate, field: "startDate" },
+          { value: x.endDate, field: "endDate" },
+        ],
         ...authoredContent(x.description),
       })),
     },
@@ -68,6 +86,10 @@ export function resumeDocument(workspace, variantId) {
         heading: x.degree,
         subheading: x.institution,
         dates: [x.startDate, x.endDate].filter(Boolean).join(" \u2013 "),
+        dateParts: [
+          { value: x.startDate, field: "startDate" },
+          { value: x.endDate, field: "endDate" },
+        ],
       })),
     },
     projects: {
@@ -80,7 +102,8 @@ export function resumeDocument(workspace, variantId) {
         return {
           sourceId: variant.projectIds[index],
           sourceCollection: "projects",
-          heading: [x.title, metadata.role].filter(Boolean).join(" \u2014 "),
+          heading: x.title,
+          subheading: metadata.role,
           dates: [metadata.startDate, metadata.endDate]
             .filter(Boolean)
             .join(" \u2013 "),
@@ -134,6 +157,11 @@ export function resumeDocument(workspace, variantId) {
     title: p.title,
     personalInfo: p,
     contact: [p.location, p.phone, p.email].filter(Boolean).join(" | "),
+    contactItems: [
+      { field: "location", value: p.location, placeholder: "Location" },
+      { field: "phone", value: p.phone, placeholder: "Phone" },
+      { field: "email", value: p.email, placeholder: "Email" },
+    ],
     links: uniqueLinks(
       workspace.profile.links.map((x) => readableLink(x.label, x.url)),
     ),
@@ -165,6 +193,7 @@ export function resumeDocument(workspace, variantId) {
             x.heading ||
             x.subheading ||
             x.dates ||
+            x.parts?.length ||
             x.text ||
             x.bullets?.length ||
             x.links?.length ||

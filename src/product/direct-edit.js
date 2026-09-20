@@ -1,9 +1,17 @@
 const ENTRY_FIELDS = {
-  experience: new Set(["role", "company", "description"]),
-  education: new Set(["degree", "institution"]),
+  experience: new Set(["role", "company", "startDate", "endDate", "description"]),
+  education: new Set(["degree", "institution", "startDate", "endDate"]),
   projects: new Set(["title", "description", "techStack"]),
+  skills: new Set(["name"]),
 };
-const PERSONAL_FIELDS = new Set(["fullName", "title", "summary"]);
+const PERSONAL_FIELDS = new Set([
+  "fullName",
+  "title",
+  "email",
+  "phone",
+  "location",
+  "summary",
+]);
 
 export function normalizeDirectText(value, multiline = false) {
   const text = String(value || "")

@@ -47,6 +47,19 @@ function DocumentLinks({ links = [] }) {
   );
 }
 
+function EditableParts({ parts = [], onEdit, separator = " | " }) {
+  return parts.map((part, index) => (
+    <span key={part.source?.id || part.field || index}>
+      {index > 0 && <span aria-hidden="true">{separator}</span>}
+      <EditableText
+        value={part.value || part.placeholder || ""}
+        onEdit={onEdit}
+        change={part.source || { type: "personal", field: part.field }}
+      />
+    </span>
+  ));
+}
+
 const PAGE_DIMENSIONS = {
   A4: { width: "794px", height: "1123px" },
   LETTER: { width: "816px", height: "1056px" },
@@ -81,8 +94,13 @@ export default function ResumePreview({ model, zoom = 100, onEdit }) {
       <header className="pcv-document-header" style={{ textAlign: style.align }}>
         <EditableText as="h1" value={model.name || "Your name"} onEdit={onEdit} change={{ type: "personal", field: "fullName" }} />
         {(model.title || onEdit) && <EditableText as="p" className="pcv-paper-title" value={model.title || "Your headline"} onEdit={onEdit} change={{ type: "personal", field: "title" }} />}
-        {model.contact && (
-          <p className="pcv-document-contact">{model.contact}</p>
+        {(model.contact || onEdit) && (
+          <p className="pcv-document-contact">
+            <EditableParts
+              parts={onEdit ? model.contactItems : model.contactItems.filter((item) => item.value)}
+              onEdit={onEdit}
+            />
+          </p>
         )}
         <DocumentLinks links={model.links} />
       </header>
@@ -99,8 +117,25 @@ export default function ResumePreview({ model, zoom = 100, onEdit }) {
                   <EditableText as="h3" value={item.heading} onEdit={onEdit && item.sourceId ? onEdit : null} change={{ type: "entry", collection: item.sourceCollection, id: item.sourceId, field: item.sourceCollection === "experience" ? "role" : item.sourceCollection === "education" ? "degree" : "title" }} />
                   <div className="pcv-document-aside">
                     <DocumentLinks links={item.links} />
-                    {item.dates && (
-                      <span className="pcv-paper-dates">{item.dates}</span>
+                    {(item.dates || (onEdit && item.dateParts)) && (
+                      <span className="pcv-paper-dates">
+                        {item.dateParts && item.sourceId ? (
+                          <EditableParts
+                            parts={item.dateParts.map((part) => ({
+                              ...part,
+                              value: part.value || (part.field === "startDate" ? "Start" : "End"),
+                              source: {
+                                type: "entry",
+                                collection: item.sourceCollection,
+                                id: item.sourceId,
+                                field: part.field,
+                              },
+                            }))}
+                            onEdit={onEdit}
+                            separator=" – "
+                          />
+                        ) : item.dates}
+                      </span>
                     )}
                   </div>
                 </div>
@@ -111,7 +146,12 @@ export default function ResumePreview({ model, zoom = 100, onEdit }) {
               {section.key === "projects" && item.bullets?.length > 0 && (
                 <p className="pcv-document-label">Features:</p>
               )}
-              {item.text && <EditableText as="p" className="pcv-paper-text" value={item.text} multiline onEdit={onEdit && (item.source || item.sourceId) ? onEdit : null} change={item.source || { type: "entry", collection: item.sourceCollection, id: item.sourceId, field: "description" }} />}
+              {item.parts?.length > 0 && (
+                <p className="pcv-paper-text">
+                  <EditableParts parts={item.parts} onEdit={onEdit} />
+                </p>
+              )}
+              {item.text && !item.parts?.length && <EditableText as="p" className="pcv-paper-text" value={item.text} multiline onEdit={onEdit && (item.source || item.sourceId) ? onEdit : null} change={item.source || { type: "entry", collection: item.sourceCollection, id: item.sourceId, field: "description" }} />}
               {item.bullets?.length > 0 && (
                 <ul>
                   {item.bullets.map((bullet, i) => (

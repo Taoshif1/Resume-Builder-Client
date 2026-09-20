@@ -20,10 +20,19 @@ test("direct edits write only resume-specific structured overrides", () => {
     description: "Built products",
   });
   variant.experienceIds.push("experience-one");
+  workspace.profile.skills.push({ id: "skill-one", name: "JavaScript" });
+  variant.skillIds.push("skill-one");
   applyVariantDirectEdit(variant, { type: "personal", field: "fullName", value: " Ada Lovelace " });
+  applyVariantDirectEdit(variant, { type: "personal", field: "email", value: " ada@example.com " });
   applyVariantDirectEdit(variant, { type: "entry", collection: "experience", id: "experience-one", field: "role", value: "Staff Engineer" });
+  applyVariantDirectEdit(variant, { type: "entry", collection: "experience", id: "experience-one", field: "startDate", value: "2025" });
+  applyVariantDirectEdit(variant, { type: "entry", collection: "skills", id: "skill-one", field: "name", value: "TypeScript" });
   assert.equal(variant.overrides.personalInfo.fullName, "Ada Lovelace");
+  assert.equal(variant.overrides.personalInfo.email, "ada@example.com");
   assert.equal(variant.overrides.experience["experience-one"].role, "Staff Engineer");
+  assert.equal(variant.overrides.experience["experience-one"].startDate, "2025");
+  assert.equal(variant.overrides.skills["skill-one"].name, "TypeScript");
   assert.equal(workspace.profile.experience[0].role, "Engineer");
+  assert.equal(workspace.profile.skills[0].name, "JavaScript");
   assert.throws(() => applyVariantDirectEdit(variant, { type: "entry", collection: "experience", id: "experience-one", field: "id", value: "changed" }), /Unsupported/);
 });
