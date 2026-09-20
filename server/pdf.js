@@ -34,6 +34,10 @@ export function renderPdf(workspace, variantId) {
         new URL("../public/fonts/NotoSans-Bold.ttf", import.meta.url),
       ),
     );
+    for (const [name, family] of [["Serif", "NotoSerif"], ["Mono", "NotoSansMono"]]) {
+      for (const weight of ["Regular", "Bold"])
+        pdf.registerFont(name + weight, fileURLToPath(new URL('../public/fonts/' + family + '-' + weight + '.ttf', import.meta.url)));
+    }
     const chunks = [];
     pdf.on("data", (chunk) => chunks.push(chunk));
     pdf.on("error", reject);

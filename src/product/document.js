@@ -46,12 +46,14 @@ export function resumeDocument(workspace, variantId) {
         variant.template === "modern"
           ? "Career Objective"
           : "Professional Summary",
-      items: [{ text: p.summary }],
+      items: [{ text: p.summary, source: { type: "personal", field: "summary" } }],
     },
     skills: { title: "Skills", items: [{ text: resume.skills.join(" | ") }] },
     experience: {
       title: "Experience",
-      items: resume.experience.map((x) => ({
+      items: resume.experience.map((x, index) => ({
+        sourceId: variant.experienceIds[index],
+        sourceCollection: "experience",
         heading: x.role,
         subheading: x.company,
         dates: [x.startDate, x.endDate].filter(Boolean).join(" \u2013 "),
@@ -60,7 +62,9 @@ export function resumeDocument(workspace, variantId) {
     },
     education: {
       title: "Education",
-      items: resume.education.map((x) => ({
+      items: resume.education.map((x, index) => ({
+        sourceId: variant.educationIds[index],
+        sourceCollection: "education",
         heading: x.degree,
         subheading: x.institution,
         dates: [x.startDate, x.endDate].filter(Boolean).join(" \u2013 "),
@@ -74,6 +78,8 @@ export function resumeDocument(workspace, variantId) {
         );
         const metadata = project?.metadata || {};
         return {
+          sourceId: variant.projectIds[index],
+          sourceCollection: "projects",
           heading: [x.title, metadata.role].filter(Boolean).join(" \u2014 "),
           dates: [metadata.startDate, metadata.endDate]
             .filter(Boolean)
@@ -126,6 +132,7 @@ export function resumeDocument(workspace, variantId) {
     documentType: variant.documentType || "resume",
     name: p.fullName,
     title: p.title,
+    personalInfo: p,
     contact: [p.location, p.phone, p.email].filter(Boolean).join(" | "),
     links: uniqueLinks(
       workspace.profile.links.map((x) => readableLink(x.label, x.url)),

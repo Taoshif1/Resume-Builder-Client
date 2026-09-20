@@ -3,9 +3,10 @@ import assert from "node:assert/strict";
 import { once } from "node:events";
 import { getDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
 import { createApp } from "./app.js";
+import { resolvedDocumentStyle } from "../src/product/document-styles.js";
 import { documentFixture } from "./fixtures/document.js";
 
-for (const template of ["modern", "minimal", "corporate"]) {
+for (const template of ["modern", "minimal", "corporate", "compact", "classic", "academic"]) {
   test(`${template}: authenticated PDF export matrix, selectable text, safe links and page bounds`, async (t) => {
     let workspace;
     const server = createApp({
@@ -20,7 +21,7 @@ for (const template of ["modern", "minimal", "corporate"]) {
     await once(server, "listening");
     t.after(() => server.close());
     for (const documentType of ["resume", "cv"])
-      for (const paperSize of ["A4", "LETTER"])
+      for (const paperSize of ["A4", "LETTER", "LEGAL"])
         for (const fontSize of [10, 11, 12]) {
           workspace = documentFixture({
             template,
@@ -50,16 +51,21 @@ for (const template of ["modern", "minimal", "corporate"]) {
               /-CV\.pdf/,
             );
           const bytes = new Uint8Array(await response.arrayBuffer());
+          assert.equal(Buffer.from(bytes.subarray(0, 5)).toString(), "%PDF-");
           assert.ok(bytes.length > 1000);
           const loading = getDocument({ data: bytes, useSystemFonts: true });
           const pdf = await loading.promise;
           if (documentType === "cv") assert.ok(pdf.numPages > 2);
           else assert.ok(pdf.numPages <= 2);
+          const margin = resolvedDocumentStyle(workspace.resumeVariants[0]).pageMargin;
           let text = "",
             annotations = [];
           for (let n = 1; n <= pdf.numPages; n++) {
             const page = await pdf.getPage(n);
             const content = await page.getTextContent();
+            assert.ok(content.items.some((item) => item.str.trim()), "No empty pages");
+            const expected = { A4: [595.28, 841.89], LETTER: [612, 792], LEGAL: [612, 1008] }[paperSize];
+            assert.ok(Math.abs(page.view[2] - expected[0]) < 1 && Math.abs(page.view[3] - expected[1]) < 1, "Selected paper dimensions");
             annotations.push(...(await page.getAnnotations()));
             for (const item of content.items)
               if (item.str.trim()) {
@@ -67,11 +73,11 @@ for (const template of ["modern", "minimal", "corporate"]) {
                 const x = item.transform[4],
                   y = item.transform[5];
                 assert.ok(
-                  x >= 40 && x + item.width <= page.view[2] - 35,
+                  x >= margin - 1 && x + item.width <= page.view[2] - margin + 1,
                   `${template} ${fontSize} horizontal bounds: ${item.str}`,
                 );
                 assert.ok(
-                  y >= 35 && y <= page.view[3] - 35,
+                  y >= margin - 1 && y <= page.view[3] - margin + 1,
                   `${template} vertical bounds: ${item.str}`,
                 );
               }

@@ -8,15 +8,15 @@ export const FONT_FAMILIES = {
   },
   serif: {
     label: "Classic Serif",
-    css: "Georgia, 'Times New Roman', serif",
-    pdfRegular: "Times-Roman",
-    pdfBold: "Times-Bold",
+    css: "PersonaSerif, Georgia, 'Times New Roman', serif",
+    pdfRegular: "SerifRegular",
+    pdfBold: "SerifBold",
   },
   mono: {
     label: "Developer Mono",
-    css: "'Courier New', Courier, monospace",
-    pdfRegular: "Courier",
-    pdfBold: "Courier-Bold",
+    css: "PersonaMono, 'Courier New', Courier, monospace",
+    pdfRegular: "MonoRegular",
+    pdfBold: "MonoBold",
   },
 };
 

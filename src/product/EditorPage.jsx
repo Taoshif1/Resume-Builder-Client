@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router";
 import {
   DndContext,
@@ -34,6 +34,7 @@ import {
   FONT_FAMILIES,
 } from "./document-styles";
 import { api, downloadBlob } from "./api";
+import { applyVariantDirectEdit } from "./direct-edit";
 
 function SectionOrder({ id, children }) {
   const {
@@ -75,7 +76,19 @@ function SectionOrder({ id, children }) {
 
 export default function EditorPage() {
   const { id } = useParams();
-  const {
+  const workspaceState = useWorkspace();
+  const variant = workspaceState.workspace.resumeVariants.find((v) => v.id === id);
+  if (!variant)
+    return (
+      <main className="pcv-page">
+        <h1>Document not found</h1>
+        <Link to="/dashboard/resumes">Back to Resumes &amp; CVs</Link>
+      </main>
+    );
+  return <DocumentEditor {...workspaceState} variant={variant} />;
+}
+
+function DocumentEditor({
     workspace,
     update,
     entitlements,
@@ -84,8 +97,8 @@ export default function EditorPage() {
     saving,
     dirty,
     error,
-  } = useWorkspace();
-  const variant = workspace.resumeVariants.find((v) => v.id === id);
+  variant,
+  }) {
   const [tab, setTab] = useState("Basics");
   const [view, setView] = useState("edit");
   const [previewZoom, setPreviewZoom] = useState(100);
@@ -93,6 +106,10 @@ export default function EditorPage() {
   const [message, setMessage] = useState("");
   const [guidance, setGuidance] = useState(null);
   const [suggestion, setSuggestion] = useState(null);
+  const [history, setHistory] = useState({ undo: [], redo: [] });
+  const [autoSaveBlocked, setAutoSaveBlocked] = useState(false);
+  const workspaceRef = useRef(workspace);
+  workspaceRef.current = workspace;
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
     useSensor(KeyboardSensor, {
@@ -100,17 +117,15 @@ export default function EditorPage() {
     }),
   );
 
-  if (!variant)
-    return (
-      <main className="pcv-page">
-        <h1>Document not found</h1>
-        <Link to="/dashboard/resumes">Back to Resumes &amp; CVs</Link>
-      </main>
-    );
-
   const model = resumeDocument(workspace, variant.id);
   const checks = qualityChecks(model);
-  const edit = (fn) =>
+  const edit = (fn) => {
+    const before = workspaceRef.current;
+    setHistory((current) => ({
+      undo: [...current.undo.slice(-49), before],
+      redo: [],
+    }));
+    setAutoSaveBlocked(false);
     update((w) =>
       mutateWorkspace(w, (n) => {
         const v = n.resumeVariants.find((v) => v.id === variant.id);
@@ -118,6 +133,64 @@ export default function EditorPage() {
         v.updatedAt = new Date().toISOString();
       }),
     );
+  };
+
+  function undo() {
+    if (!history.undo.length) return;
+    const previous = history.undo.at(-1);
+    setHistory((current) => ({
+      undo: current.undo.slice(0, -1),
+      redo: [workspaceRef.current, ...current.redo].slice(0, 50),
+    }));
+    setAutoSaveBlocked(false);
+    update(previous);
+  }
+
+  function redo() {
+    if (!history.redo.length) return;
+    const next = history.redo[0];
+    setHistory((current) => ({
+      undo: [...current.undo, workspaceRef.current].slice(-50),
+      redo: current.redo.slice(1),
+    }));
+    setAutoSaveBlocked(false);
+    update(next);
+  }
+
+  function directEdit(change) {
+    edit((currentVariant) => applyVariantDirectEdit(currentVariant, change));
+  }
+
+  async function saveNow() {
+    setAutoSaveBlocked(false);
+    await save();
+  }
+
+  useEffect(() => {
+    if (!dirty || saving || autoSaveBlocked) return undefined;
+    const timer = window.setTimeout(() => {
+      save().catch(() => setAutoSaveBlocked(true));
+    }, 1500);
+    return () => window.clearTimeout(timer);
+  }, [dirty, saving, autoSaveBlocked, workspace, save]);
+
+  useEffect(() => {
+    const handleShortcut = (event) => {
+      const command = event.ctrlKey || event.metaKey;
+      if (command && event.key.toLowerCase() === "s") {
+        event.preventDefault();
+        if (dirty && !saving) action(saveNow);
+      } else if (command && event.key.toLowerCase() === "z") {
+        event.preventDefault();
+        if (event.shiftKey) redo();
+        else undo();
+      } else if (event.key === "Escape" && document.activeElement?.isContentEditable) {
+        document.activeElement.blur();
+      }
+    };
+    window.addEventListener("keydown", handleShortcut);
+    return () => window.removeEventListener("keydown", handleShortcut);
+  });
 
   async function action(fn) {
     setBusy(true);
@@ -181,17 +254,25 @@ export default function EditorPage() {
           <span className="pcv-editor-save-state" role="status">
             {saving
               ? "Saving…"
-              : error
-                ? "Save needs attention"
+              : error && /another tab|conflict/i.test(error)
+                ? "Conflict detected"
+                : error
+                  ? "Save failed"
                 : dirty
-                  ? "Unsaved changes"
+                  ? "Unsaved"
                   : "Saved"}
           </span>
+          <button disabled={!history.undo.length || saving} onClick={undo} aria-label="Undo document change">
+            Undo
+          </button>
+          <button disabled={!history.redo.length || saving} onClick={redo} aria-label="Redo document change">
+            Redo
+          </button>
           <button
             disabled={saving || !dirty}
-            onClick={() => action(() => save())}
+            onClick={() => action(saveNow)}
           >
-            Save
+            {error ? "Retry save" : "Save"}
           </button>
           <button
             className="pcv-primary"
@@ -1032,7 +1113,7 @@ export default function EditorPage() {
             </div>
           </div>
           <div className="pcv-preview-canvas">
-            <ResumePreview model={model} zoom={previewZoom} />
+            <ResumePreview model={model} zoom={previewZoom} onEdit={directEdit} />
           </div>
         </div>
       </div>

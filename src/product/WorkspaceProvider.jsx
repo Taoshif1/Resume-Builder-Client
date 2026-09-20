@@ -17,9 +17,19 @@ function WorkspaceLoading({ message, detail }) {
       aria-live="polite"
       aria-busy="true"
     >
-      <div className="pcv-loader" aria-hidden="true" />
-      <h1>{message}</h1>
-      <p>{detail}</p>
+      <div className="pcv-workspace-skeleton" aria-hidden="true">
+        <div className="pcv-skeleton-sidebar" />
+        <div className="pcv-skeleton-content">
+          <span />
+          <strong />
+          <div><i /><i /><i /></div>
+          <b />
+        </div>
+      </div>
+      <div className="pcv-visually-hidden">
+        <h1>{message}</h1>
+        <p>{detail}</p>
+      </div>
     </main>
   );
 }
