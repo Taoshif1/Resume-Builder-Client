@@ -1,16 +1,21 @@
 import { useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { Navigate, useLocation } from "react-router";
+import AppLoader from "../product/AppLoader";
 
 const PrivateRoute = ({ children }) => {
   const location = useLocation();
-  const { user, loading } = useContext(AuthContext);
+  const { user, status, error } = useContext(AuthContext);
 
-  if (loading) {
+  if (status === "initializing") return <AppLoader />;
+
+  if (status === "error") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#EFECE3]">
-        <span className="loading loading-spinner loading-lg text-primary"></span>
-      </div>
+      <main className="pcv-state" role="alert">
+        <h1>Sign-in is unavailable</h1>
+        <p>{error}</p>
+        <button onClick={() => window.location.reload()}>Retry</button>
+      </main>
     );
   }
 

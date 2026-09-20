@@ -1,9 +1,12 @@
-import { useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router";
+import { useContext, useState } from "react";
+import { Link, Navigate, useLocation, useNavigate } from "react-router";
 import { sendPasswordResetEmail } from "firebase/auth";
-import { auth } from "../services/firebase";
+import { auth, authConfigurationError } from "../services/firebase";
 import { loginUser, registerUser, googleLogin } from "../services/auth";
+import { AuthContext } from "../context/AuthContext";
+import { authErrorMessage, safeAuthDestination } from "../services/auth-errors";
 import { Field } from "./Fields";
+import AppLoader from "./AppLoader";
 
 export default function AuthForm({ register = false }) {
   const [name, setName] = useState("");
@@ -16,20 +19,18 @@ export default function AuthForm({ register = false }) {
   const [message, setMessage] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
+  const { status } = useContext(AuthContext);
 
-  const requestedDestination = location.state?.from;
-  const destination =
-    typeof requestedDestination === "string" &&
-    requestedDestination.startsWith("/") &&
-    !requestedDestination.startsWith("//") &&
-    !requestedDestination.includes("\\")
-      ? requestedDestination
-      : "/dashboard";
+  const destination = safeAuthDestination(location.state?.from);
 
   async function action(fn, redirect = true) {
     setBusy(true);
     setMessage("");
     try {
+      if (!auth)
+        throw Object.assign(new Error(authConfigurationError), {
+          code: "auth/configuration-not-found",
+        });
       await fn();
       if (redirect) navigate(destination, { replace: true });
       else
@@ -37,15 +38,10 @@ export default function AuthForm({ register = false }) {
           "If this email has an account, a password reset link has been requested.",
         );
     } catch (error) {
-      const messages = {
-        "auth/email-already-in-use": "An account already uses this email.",
-        "auth/invalid-credential": "Email or password is incorrect.",
-        "auth/weak-password": "Use at least 8 characters for your password.",
-        "auth/popup-closed-by-user": "Google sign-in was cancelled.",
-      };
       setMessage(
-        messages[error.code] ||
-          "Unable to complete the request. Please try again.",
+        error.code === "auth/configuration-not-found"
+          ? authConfigurationError
+          : authErrorMessage(error),
       );
     } finally {
       setBusy(false);
@@ -74,6 +70,13 @@ export default function AuthForm({ register = false }) {
     ? "Start with your reusable profile, then tailor each application."
     : "Sign in to continue building focused, ATS-friendly resumes.";
 
+  if (status === "initializing") return <AppLoader />;
+
+  if (status === "authenticated")
+    return <Navigate to={destination} replace />;
+
+  const unavailable = status === "error" || Boolean(authConfigurationError);
+
   return (
     <main
       className={
@@ -85,6 +88,7 @@ export default function AuthForm({ register = false }) {
         data-theme="light"
         className="pcv-card pcv-auth-card space-y-4"
         onSubmit={submit}
+        aria-busy={busy}
       >
         <p className="pcv-eyebrow">PERSONACV</p>
         <h1>{title}</h1>
@@ -150,14 +154,14 @@ export default function AuthForm({ register = false }) {
             </label>
           </>
         )}
-        <button className="btn btn-primary w-full" disabled={busy}>
-          {busy ? "Please wait..." : register ? "Create Account" : "Sign In"}
+        <button className="btn btn-primary w-full" disabled={busy || unavailable}>
+          {busy ? "Please wait…" : register ? "Create Account" : "Sign In"}
         </button>
         {!register && (
           <button
             className="btn btn-ghost w-full"
             type="button"
-            disabled={busy || !email}
+            disabled={busy || !email || unavailable}
             onClick={() =>
               action(() => sendPasswordResetEmail(auth, email), false)
             }
@@ -168,14 +172,14 @@ export default function AuthForm({ register = false }) {
         <button
           className="btn btn-outline w-full"
           type="button"
-          disabled={busy || (register && !terms)}
+          disabled={busy || unavailable || (register && !terms)}
           onClick={() => action(googleLogin)}
         >
           Continue with Google
         </button>
-        {message && (
+        {(message || (unavailable && authConfigurationError)) && (
           <p role="status" className="pcv-notice">
-            {message}
+            {message || authConfigurationError}
           </p>
         )}
         <p>

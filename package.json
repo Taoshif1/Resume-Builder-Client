@@ -14,7 +14,7 @@
     "bootstrap:owner": "node --env-file-if-exists=.env.server server/bootstrap-owner.js",
     "test:integration": "node server/integration.mjs",
     "dev:full": "concurrently --kill-others --names api,web \"npm run server:dev\" \"npm run dev\"",
-    "smoke:authenticated": "node --env-file-if-exists=.env.local --env-file-if-exists=.env.server server/smoke-authenticated.mjs"
+    "smoke:authenticated": "node --env-file-if-exists=.env.local --env-file-if-exists=.env.server --env-file-if-exists=.env.smoke.local server/smoke-authenticated.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

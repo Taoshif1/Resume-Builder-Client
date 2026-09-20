@@ -25,15 +25,15 @@ function WorkspaceLoading({ message, detail }) {
 }
 
 export default function WorkspaceProvider({ children }) {
-  const { user, loading } = useContext(AuthContext);
-  if (loading)
+  const { user, status: authStatus } = useContext(AuthContext);
+  if (authStatus === "initializing")
     return (
       <WorkspaceLoading
         message="Checking your session…"
         detail="Confirming your secure PersonaCV sign-in."
       />
     );
-  if (!user) return children;
+  if (authStatus !== "authenticated" || !user) return children;
   return (
     <AccountWorkspace key={user.uid} uid={user.uid}>
       {children}
@@ -58,10 +58,9 @@ function AccountWorkspace({ uid, children }) {
     const controller = new AbortController();
     async function initialize() {
       try {
-        const [accountData, cloud] = await Promise.all([
-          api("/account", { signal: controller.signal }),
-          api("/workspace", { signal: controller.signal }),
-        ]);
+        // New accounts must exist before their protected workspace can load.
+        const accountData = await api("/account", { signal: controller.signal });
+        const cloud = await api("/workspace", { signal: controller.signal });
         if (controller.signal.aborted) return;
         assertWorkspace(cloud.workspace, uid);
         let local = null;

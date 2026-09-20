@@ -19,9 +19,21 @@ if (import.meta.env.DEV)
     environment: import.meta.env.MODE,
     requiredConfigPresent: Object.values(firebaseConfig).every(Boolean),
   });
-const app = initializeApp(firebaseConfig);
-
-export const auth = getAuth(app);
-
-if (import.meta.env.DEV && import.meta.env.VITE_AUTH_EMULATOR_URL)
-  connectAuthEmulator(auth, import.meta.env.VITE_AUTH_EMULATOR_URL);
+let auth = null;
+let authConfigurationError = "";
+try {
+  if (
+    !firebaseConfig.apiKey ||
+    !firebaseConfig.projectId ||
+    !firebaseConfig.authDomain ||
+    !firebaseConfig.appId
+  )
+    throw new Error("Missing Firebase configuration");
+  const app = initializeApp(firebaseConfig);
+  auth = getAuth(app);
+  if (import.meta.env.DEV && import.meta.env.VITE_AUTH_EMULATOR_URL)
+    connectAuthEmulator(auth, import.meta.env.VITE_AUTH_EMULATOR_URL);
+} catch {
+  authConfigurationError = "PersonaCV sign-in is unavailable because this deployment's Firebase configuration is incomplete or invalid.";
+}
+export { auth, authConfigurationError };
