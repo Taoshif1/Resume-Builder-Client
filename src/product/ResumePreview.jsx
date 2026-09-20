@@ -1,6 +1,7 @@
 import { createElement } from "react";
 import { resolvedDocumentStyle } from "./document-styles.js";
 import { normalizeDirectText } from "./direct-edit.js";
+import { entrySelection, sectionSelection, selectionKey } from "./document-interactions.js";
 
 function EditableText({ as = "span", value, onEdit, change, multiline = false, className }) {
   if (!onEdit) return createElement(as, { className }, value);
@@ -66,9 +67,17 @@ const PAGE_DIMENSIONS = {
   LEGAL: { width: "816px", height: "1344px" },
 };
 
-export default function ResumePreview({ model, zoom = 100, onEdit }) {
+export default function ResumePreview({
+  model,
+  zoom = 100,
+  onEdit,
+  selection,
+  onSelect,
+  onClearSelection,
+}) {
   const style = resolvedDocumentStyle(model);
   const page = PAGE_DIMENSIONS[model.paperSize] || PAGE_DIMENSIONS.A4;
+  const selectedKey = selectionKey(selection);
   return (
     <>
     <style>{`@page personacv { size: ${model.paperSize === "LEGAL" ? "legal" : model.paperSize === "LETTER" ? "letter" : "A4"}; margin: ${style.pageMargin}pt; }`}</style>
@@ -90,6 +99,7 @@ export default function ResumePreview({ model, zoom = 100, onEdit }) {
         "--document-line-height": style.lineSpacing,
       }}
       aria-label={`Live ${model.documentType === "cv" ? "CV" : "resume"} preview`}
+      onClick={() => onClearSelection?.()}
     >
       <header className="pcv-document-header" style={{ textAlign: style.align }}>
         <EditableText as="h1" value={model.name || "Your name"} onEdit={onEdit} change={{ type: "personal", field: "fullName" }} />
@@ -104,14 +114,47 @@ export default function ResumePreview({ model, zoom = 100, onEdit }) {
         )}
         <DocumentLinks links={model.links} />
       </header>
-      {model.sections.map((section) => (
+      {model.sections.map((section) => {
+        const sectionChoice = sectionSelection(section.key);
+        const sectionChoiceKey = selectionKey(sectionChoice);
+        return (
         <section
           key={section.key}
           className={`pcv-document-section pcv-document-${section.key}`}
+          data-selection-key={sectionChoiceKey}
+          data-selected={selectedKey === sectionChoiceKey || undefined}
+          tabIndex={onSelect ? 0 : undefined}
+          aria-label={onSelect ? `Select ${section.title} section` : undefined}
+          onClick={onSelect ? (event) => { event.stopPropagation(); onSelect(sectionChoice); } : undefined}
+          onKeyDown={onSelect ? (event) => {
+            if (event.target === event.currentTarget && (event.key === "Enter" || event.key === " ")) {
+              event.preventDefault();
+              onSelect(sectionChoice);
+            }
+          } : undefined}
         >
           <h2>{style.uppercase ? section.title.toUpperCase() : section.title}</h2>
-          {section.items.map((item, index) => (
-            <div className="pcv-paper-entry" key={index}>
+          {section.items.map((item, index) => {
+            const entryChoice = item.sourceId && item.sourceCollection
+              ? entrySelection(section.key, item.sourceCollection, item.sourceId)
+              : null;
+            const entryChoiceKey = selectionKey(entryChoice);
+            return (
+            <div
+              className="pcv-paper-entry"
+              key={item.sourceId || `${section.key}-${index}`}
+              data-selection-key={entryChoiceKey || undefined}
+              data-selected={entryChoiceKey && selectedKey === entryChoiceKey ? true : undefined}
+              tabIndex={entryChoice && onSelect ? 0 : undefined}
+              aria-label={entryChoice && onSelect ? `Select ${item.heading || section.title} entry` : undefined}
+              onClick={entryChoice && onSelect ? (event) => { event.stopPropagation(); onSelect(entryChoice); } : undefined}
+              onKeyDown={entryChoice && onSelect ? (event) => {
+                if (event.target === event.currentTarget && (event.key === "Enter" || event.key === " ")) {
+                  event.preventDefault();
+                  onSelect(entryChoice);
+                }
+              } : undefined}
+            >
               {(item.heading || item.dates || item.links?.length > 0) && (
                 <div className="pcv-document-row">
                   <EditableText as="h3" value={item.heading} onEdit={onEdit && item.sourceId ? onEdit : null} change={{ type: "entry", collection: item.sourceCollection, id: item.sourceId, field: item.sourceCollection === "experience" ? "role" : item.sourceCollection === "education" ? "degree" : "title" }} />
@@ -166,9 +209,11 @@ export default function ResumePreview({ model, zoom = 100, onEdit }) {
                 </p>
               )}
             </div>
-          ))}
+            );
+          })}
         </section>
-      ))}
+        );
+      })}
     </article>
     </>
   );

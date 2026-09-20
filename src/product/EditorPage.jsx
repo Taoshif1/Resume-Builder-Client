@@ -36,6 +36,7 @@ import {
   EXPERIENCE_FIELDS,
   EDUCATION_FIELDS,
   TEMPLATES,
+  newId,
 } from "../resume/data/workspace";
 import ResumePreview from "./ResumePreview";
 import {
@@ -54,6 +55,17 @@ import {
   redoHistory,
   undoHistory,
 } from "./editor-history";
+import {
+  duplicateDocumentEntry,
+  entryOrderState,
+  moveDocumentEntry,
+  moveDocumentSection,
+  removeDocumentEntry,
+  resetDocumentEntryOverride,
+  sectionSelection,
+  selectionKey,
+  setDocumentSectionHidden,
+} from "./document-interactions";
 
 function SectionOrder({ id, children }) {
   const {
@@ -127,9 +139,11 @@ function DocumentEditor({
   const [guidance, setGuidance] = useState(null);
   const [suggestion, setSuggestion] = useState(null);
   const [history, setHistory] = useState(emptyHistory);
+  const [selection, setSelection] = useState(null);
   const [autoSaveBlocked, setAutoSaveBlocked] = useState(false);
   const workspaceRef = useRef(workspace);
   const historyRef = useRef(history);
+  const previewRef = useRef(null);
   workspaceRef.current = workspace;
   historyRef.current = history;
   const sensors = useSensors(
@@ -204,6 +218,9 @@ function DocumentEditor({
         undo();
       } else if (event.key === "Escape" && document.activeElement?.isContentEditable) {
         document.activeElement.blur();
+      } else if (event.key === "Escape" && selection) {
+        setSelection(null);
+        previewRef.current?.focus();
       }
     };
     window.addEventListener("keydown", handleShortcut);
@@ -242,6 +259,46 @@ function DocumentEditor({
       setMessage("PDF downloaded.");
     });
   }
+
+  function focusSelection(nextSelection, editable = false) {
+    const key = selectionKey(nextSelection);
+    window.requestAnimationFrame(() => {
+      const target = [...(previewRef.current?.querySelectorAll("[data-selection-key]") || [])]
+        .find((element) => element.dataset.selectionKey === key);
+      const focusTarget = editable ? target?.querySelector(".pcv-direct-edit") : target;
+      if (focusTarget) focusTarget.focus();
+      else previewRef.current?.focus();
+    });
+  }
+
+  function applyContextAction(change, nextSelection = selection) {
+    edit(change);
+    setSelection(nextSelection);
+    focusSelection(nextSelection);
+  }
+
+  function duplicateSelectedEntry() {
+    if (selection?.type !== "entry") return;
+    const before = workspaceRef.current;
+    const nextHistory = recordHistory(historyRef.current, before);
+    historyRef.current = nextHistory;
+    setHistory(nextHistory);
+    setAutoSaveBlocked(false);
+    const result = duplicateDocumentEntry(before, variant.id, selection.collection, selection.id, newId);
+    const nextVariant = result.workspace.resumeVariants.find((item) => item.id === variant.id);
+    nextVariant.updatedAt = new Date().toISOString();
+    update(result.workspace);
+    const nextSelection = { ...selection, id: result.id };
+    setSelection(nextSelection);
+    focusSelection(nextSelection);
+  }
+
+  const selectedSectionIndex = selection ? variant.sectionOrder.indexOf(selection.sectionKey) : -1;
+  const selectedEntryOrder = selection?.type === "entry"
+    ? entryOrderState(variant, selection.collection, selection.id)
+    : null;
+  const selectedHasOverride = selection?.type === "entry" &&
+    Boolean(variant.overrides[selection.collection]?.[selection.id]);
 
   const groups = [
     [
@@ -1192,15 +1249,56 @@ function DocumentEditor({
             )}
           </section>
         </div>
-        <div className="pcv-preview-wrap">
+        <div className="pcv-preview-wrap" ref={previewRef} tabIndex={-1}>
           <div className="pcv-document-toolbar" aria-label="Document preview details">
             <span>
               Live preview · {model.paperSize} · PDF paginates automatically
             </span>
             <span>{previewZoom}% zoom</span>
           </div>
-          <div className="pcv-preview-canvas">
-            <ResumePreview model={model} zoom={previewZoom} onEdit={directEdit} />
+          <div className="pcv-context-toolbar" role={selection ? "toolbar" : "status"} aria-label={selection ? "Selected document content actions" : undefined}>
+            {!selection && <span>Select a section or entry for document actions.</span>}
+            {selection?.type === "section" && (
+              <>
+                <strong>{model.sections.find((item) => item.key === selection.sectionKey)?.title || selection.sectionKey}</strong>
+                {selectedSectionIndex >= 0 && (
+                  <>
+                    <button type="button" disabled={selectedSectionIndex === 0} onClick={() => applyContextAction((currentVariant) => moveDocumentSection(currentVariant, selection.sectionKey, -1))}>Move up</button>
+                    <button type="button" disabled={selectedSectionIndex === variant.sectionOrder.length - 1} onClick={() => applyContextAction((currentVariant) => moveDocumentSection(currentVariant, selection.sectionKey, 1))}>Move down</button>
+                  </>
+                )}
+                <button type="button" onClick={() => { setTab(["summary", "skills", "experience", "projects", "education"].includes(selection.sectionKey) ? "Content" : "Order"); setView("edit"); }}>Open inspector</button>
+                <button type="button" onClick={() => {
+                  edit((currentVariant) => setDocumentSectionHidden(currentVariant, selection.sectionKey, true));
+                  setSelection(null);
+                  window.requestAnimationFrame(() => previewRef.current?.focus());
+                }}>Hide section</button>
+              </>
+            )}
+            {selection?.type === "entry" && (
+              <>
+                <strong>Selected entry</strong>
+                <button type="button" onClick={() => focusSelection(selection, true)}>Edit</button>
+                <button type="button" disabled={!selectedEntryOrder?.canMoveUp} onClick={() => applyContextAction((currentVariant) => moveDocumentEntry(currentVariant, selection.collection, selection.id, -1))}>Move up</button>
+                <button type="button" disabled={!selectedEntryOrder?.canMoveDown} onClick={() => applyContextAction((currentVariant) => moveDocumentEntry(currentVariant, selection.collection, selection.id, 1))}>Move down</button>
+                <button type="button" onClick={duplicateSelectedEntry} title="Creates a new source copy in your Master Profile or Project Library">Duplicate</button>
+                <button type="button" disabled={!selectedHasOverride} onClick={() => applyContextAction((currentVariant) => resetDocumentEntryOverride(currentVariant, selection.collection, selection.id))}>Reset customization</button>
+                <button type="button" onClick={() => {
+                  const nextSelection = sectionSelection(selection.sectionKey);
+                  edit((currentVariant) => removeDocumentEntry(currentVariant, selection.collection, selection.id));
+                  setSelection(nextSelection);
+                  focusSelection(nextSelection);
+                }} title="Keeps the source record in your Master Profile or Project Library">Remove from this document</button>
+              </>
+            )}
+            {selection && (
+              <button type="button" className="pcv-context-close" onClick={() => { setSelection(null); previewRef.current?.focus(); }} aria-label="Clear document selection" title="Clear selection (Escape)">×</button>
+            )}
+          </div>
+          <div className="pcv-preview-canvas" onClick={(event) => {
+            if (event.target === event.currentTarget) setSelection(null);
+          }}>
+            <ResumePreview model={model} zoom={previewZoom} onEdit={directEdit} selection={selection} onSelect={setSelection} onClearSelection={() => setSelection(null)} />
           </div>
         </div>
       </div>

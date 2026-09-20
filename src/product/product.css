@@ -1133,3 +1133,89 @@ body:has(.pcv-editor) .pcv-savebar { display:none; }
     clip: auto;
   }
 }
+/* Contextual document selection stays editor-only and outside document geometry. */
+.pcv-context-toolbar {
+  position: sticky;
+  top: 53px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 5px;
+  min-height: 42px;
+  max-height: 42px;
+  overflow-x: auto;
+  margin-bottom: 10px;
+  padding: 5px 8px;
+  border: 1px solid #dce3ed;
+  border-radius: 9px;
+  background: #fffefaf2;
+  backdrop-filter: blur(8px);
+  color: #536176;
+  font-size: 12px;
+}
+.pcv-context-toolbar > span {
+  padding: 5px;
+}
+.pcv-context-toolbar strong {
+  max-width: 180px;
+  margin-right: 3px;
+  overflow: hidden;
+  color: #243b5b;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pcv-context-toolbar button {
+  min-height: 31px;
+  margin: 0;
+  padding: 5px 8px;
+}
+.pcv-context-toolbar .pcv-context-close {
+  min-width: 31px;
+  margin-left: auto;
+  font-size: 18px;
+  line-height: 1;
+}
+.pcv-paper [data-selection-key] {
+  cursor: pointer;
+  transition: box-shadow .12s ease, background-color .12s ease;
+}
+.pcv-paper .pcv-document-section[data-selection-key]:hover,
+.pcv-paper .pcv-document-section[data-selection-key]:focus-visible {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--document-accent) 45%, transparent);
+}
+.pcv-paper .pcv-document-section[data-selected="true"] {
+  box-shadow: 0 0 0 2px var(--document-accent);
+  background: color-mix(in srgb, var(--document-accent) 4%, transparent);
+}
+.pcv-paper .pcv-paper-entry[data-selection-key]:hover,
+.pcv-paper .pcv-paper-entry[data-selection-key]:focus-visible {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--document-accent) 40%, transparent);
+}
+.pcv-paper .pcv-paper-entry[data-selected="true"] {
+  box-shadow: 0 0 0 2px var(--document-accent);
+  background: color-mix(in srgb, var(--document-accent) 7%, transparent);
+}
+.pcv-paper .pcv-direct-edit {
+  cursor: text;
+}
+@media(max-width:900px) {
+  .pcv-context-toolbar {
+    position: static;
+    min-height: 50px;
+    max-height: 50px;
+  }
+  .pcv-context-toolbar button {
+    min-height: 40px;
+  }
+}
+@media print {
+  .pcv-context-toolbar {
+    display: none !important;
+  }
+  .pcv-paper [data-selection-key] {
+    outline: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+  }
+}
