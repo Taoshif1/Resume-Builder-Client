@@ -1,4 +1,4 @@
-import { useContext, useEffect, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { WorkspaceContext } from "./workspaceContext";
 import { api, downloadBlob } from "./api";
@@ -8,6 +8,8 @@ import {
   saveWorkspace,
 } from "../resume/storage/workspaceStorage";
 import { createLegacyMigrationCandidate } from "../resume/data/legacyMigration";
+import { createSaveCoordinator } from "./save-workspace";
+import { createBeforeUnloadHandler } from "./navigation-safety";
 
 function WorkspaceLoading({ message, detail }) {
   return (
@@ -55,15 +57,17 @@ function AccountWorkspace({ uid, children }) {
   const { logout } = useContext(AuthContext);
   const [workspace, setWorkspace] = useState(null);
   const [saved, setSaved] = useState(null);
-  const [revision, setRevision] = useState(0);
+  const [, setRevision] = useState(0);
   const [account, setAccount] = useState(null);
   const [status, setStatus] = useState("Loading your workspace…");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [saveState, setSaveState] = useState("saved");
   const [legacy, setLegacy] = useState(null);
   const [localCandidate, setLocalCandidate] = useState(null);
   const [retry, setRetry] = useState(0);
   const latest = useRef(null);
+  const saveCoordinator = useRef(null);
   useEffect(() => {
     const controller = new AbortController();
     async function initialize() {
@@ -90,6 +94,24 @@ function AccountWorkspace({ uid, children }) {
         latest.current = cloud.workspace;
         setSaved(JSON.stringify(cloud.workspace));
         setRevision(cloud.revision);
+        saveCoordinator.current = createSaveCoordinator({
+          initialWorkspace: cloud.workspace,
+          initialRevision: cloud.revision,
+          getWorkspace: () => latest.current,
+          persist: (snapshot, currentRevision) =>
+            api("/workspace", {
+              method: "PUT",
+              body: { workspace: snapshot, revision: currentRevision },
+            }),
+          onChange: (next) => {
+            setSaving(next.state === "saving");
+            setSaveState(next.state);
+            setRevision(next.revision);
+            setSaved(next.saved);
+            setError(next.error?.message || "");
+            if (next.state === "saved") setStatus("Saved to cloud");
+          },
+        });
         setStatus(
           cloud.revision
             ? "Cloud workspace loaded"
@@ -111,12 +133,7 @@ function AccountWorkspace({ uid, children }) {
   }, [uid, retry]);
   const dirty = workspace && JSON.stringify(workspace) !== saved;
   useEffect(() => {
-    const guard = (event) => {
-      if (dirty) {
-        event.preventDefault();
-        event.returnValue = "";
-      }
-    };
+    const guard = createBeforeUnloadHandler(() => dirty);
     window.addEventListener("beforeunload", guard);
     return () => window.removeEventListener("beforeunload", guard);
   }, [dirty]);
@@ -126,12 +143,13 @@ function AccountWorkspace({ uid, children }) {
       assertWorkspace(value, uid);
       latest.current = value;
       setWorkspace(value);
+      saveCoordinator.current?.markChanged();
       try {
         saveWorkspace(value);
-        setError("");
         setStatus("Unsaved cloud changes · local backup saved");
       } catch (e) {
         setError(e.message);
+        setError("");
         setStatus("Unsaved changes");
       }
     } catch (e) {
@@ -143,27 +161,11 @@ function AccountWorkspace({ uid, children }) {
     setAccount(accountData);
     return accountData;
   }
-  async function save() {
-    if (saving) throw new Error("A save is already in progress.");
-    setSaving(true);
-    setError("");
-    const snapshot = latest.current;
-    try {
-      const result = await api("/workspace", {
-        method: "PUT",
-        body: { workspace: snapshot, revision },
-      });
-      setRevision(result.revision);
-      setSaved(JSON.stringify(snapshot));
-      setStatus("Saved to cloud");
-      return result;
-    } catch (e) {
-      setError(e.message);
-      throw e;
-    } finally {
-      setSaving(false);
-    }
-  }
+  const save = useCallback(() => {
+    if (!saveCoordinator.current)
+      return Promise.reject(new Error("Workspace is not ready to save."));
+    return saveCoordinator.current.save();
+  }, []);
   function backup(value = latest.current) {
     downloadBlob(
       new Blob([JSON.stringify(value, null, 2)], { type: "application/json" }),
@@ -210,7 +212,15 @@ function AccountWorkspace({ uid, children }) {
     <>
       <div className="pcv-savebar">
         <span role="status">
-          {saving ? "Saving…" : dirty ? "Unsaved cloud changes" : status}
+          {saving
+            ? "Saving…"
+            : saveState === "conflict"
+              ? "Conflict"
+              : saveState === "failed"
+                ? "Save failed"
+                : dirty
+                  ? "Unsaved cloud changes"
+                  : status}
         </span>
         <button
           disabled={saving || !dirty}
@@ -285,6 +295,7 @@ function AccountWorkspace({ uid, children }) {
         saving,
         dirty,
         status,
+        saveState,
         error,
         backup,
       }}

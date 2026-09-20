@@ -1,5 +1,5 @@
-import { createElement, useContext, useRef, useState } from "react";
-import { Link, NavLink, Outlet, useLocation } from "react-router";
+import { createElement, useContext, useEffect, useRef, useState } from "react";
+import { Link, NavLink, Outlet, useBlocker, useLocation } from "react-router";
 import {
   FiHome,
   FiUser,
@@ -13,6 +13,7 @@ import {
 } from "react-icons/fi";
 import { AuthContext } from "../context/AuthContext";
 import { useWorkspace } from "./workspaceContext";
+import { shouldBlockNavigation } from "./navigation-safety";
 
 export default function ProductLayout() {
   const { account, workspace, dirty, notices } = useWorkspace();
@@ -21,6 +22,14 @@ export default function ProductLayout() {
   const [openPath, setOpenPath] = useState(null);
   const [message, setMessage] = useState("");
   const toggle = useRef(null);
+  const bypassNavigation = useRef(false);
+  const blocker = useBlocker(
+    ({ currentLocation, nextLocation }) =>
+      shouldBlockNavigation(dirty, bypassNavigation.current) &&
+      (currentLocation.pathname !== nextLocation.pathname ||
+        currentLocation.search !== nextLocation.search ||
+        currentLocation.hash !== nextLocation.hash),
+  );
   const open = openPath === pathname;
   const name =
     workspace.profile.personalInfo.fullName ||
@@ -34,6 +43,17 @@ export default function ProductLayout() {
     ["Settings", "/dashboard/settings", FiSettings],
     ...(account.role === "owner" ? [["Admin", "/admin", FiShield]] : []),
   ];
+  useEffect(() => {
+    if (blocker.state !== "blocked") return;
+    if (
+      window.confirm(
+        "Leave this page with unsaved changes? Your local backup will remain on this device.",
+      )
+    )
+      blocker.proceed();
+    else blocker.reset();
+  }, [blocker]);
+
   async function signOut() {
     if (
       dirty &&
@@ -42,9 +62,11 @@ export default function ProductLayout() {
       )
     )
       return;
+    bypassNavigation.current = true;
     try {
       await logout();
     } catch (e) {
+      bypassNavigation.current = false;
       setMessage(e.message);
     }
   }

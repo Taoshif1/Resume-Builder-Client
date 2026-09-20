@@ -35,6 +35,14 @@ import {
 } from "./document-styles";
 import { api, downloadBlob } from "./api";
 import { applyVariantDirectEdit } from "./direct-edit";
+import { createAutosaveScheduler } from "./save-workspace";
+import {
+  editorShortcut,
+  emptyHistory,
+  recordHistory,
+  redoHistory,
+  undoHistory,
+} from "./editor-history";
 
 function SectionOrder({ id, children }) {
   const {
@@ -97,6 +105,7 @@ function DocumentEditor({
     saving,
     dirty,
     error,
+    saveState,
   variant,
   }) {
   const [tab, setTab] = useState("Basics");
@@ -106,10 +115,12 @@ function DocumentEditor({
   const [message, setMessage] = useState("");
   const [guidance, setGuidance] = useState(null);
   const [suggestion, setSuggestion] = useState(null);
-  const [history, setHistory] = useState({ undo: [], redo: [] });
+  const [history, setHistory] = useState(emptyHistory);
   const [autoSaveBlocked, setAutoSaveBlocked] = useState(false);
   const workspaceRef = useRef(workspace);
+  const historyRef = useRef(history);
   workspaceRef.current = workspace;
+  historyRef.current = history;
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
     useSensor(KeyboardSensor, {
@@ -121,10 +132,9 @@ function DocumentEditor({
   const checks = qualityChecks(model);
   const edit = (fn) => {
     const before = workspaceRef.current;
-    setHistory((current) => ({
-      undo: [...current.undo.slice(-49), before],
-      redo: [],
-    }));
+    const nextHistory = recordHistory(historyRef.current, before);
+    historyRef.current = nextHistory;
+    setHistory(nextHistory);
     setAutoSaveBlocked(false);
     update((w) =>
       mutateWorkspace(w, (n) => {
@@ -136,25 +146,21 @@ function DocumentEditor({
   };
 
   function undo() {
-    if (!history.undo.length) return;
-    const previous = history.undo.at(-1);
-    setHistory((current) => ({
-      undo: current.undo.slice(0, -1),
-      redo: [workspaceRef.current, ...current.redo].slice(0, 50),
-    }));
+    const result = undoHistory(historyRef.current, workspaceRef.current);
+    if (!result) return;
+    historyRef.current = result.history;
+    setHistory(result.history);
     setAutoSaveBlocked(false);
-    update(previous);
+    update(result.workspace);
   }
 
   function redo() {
-    if (!history.redo.length) return;
-    const next = history.redo[0];
-    setHistory((current) => ({
-      undo: [...current.undo, workspaceRef.current].slice(-50),
-      redo: current.redo.slice(1),
-    }));
+    const result = redoHistory(historyRef.current, workspaceRef.current);
+    if (!result) return;
+    historyRef.current = result.history;
+    setHistory(result.history);
     setAutoSaveBlocked(false);
-    update(next);
+    update(result.workspace);
   }
 
   function directEdit(change) {
@@ -168,22 +174,23 @@ function DocumentEditor({
 
   useEffect(() => {
     if (!dirty || saving || autoSaveBlocked) return undefined;
-    const timer = window.setTimeout(() => {
-      save().catch(() => setAutoSaveBlocked(true));
-    }, 1500);
-    return () => window.clearTimeout(timer);
+    const autosave = createAutosaveScheduler(save, {
+      onError: () => setAutoSaveBlocked(true),
+    });
+    autosave.schedule();
+    return autosave.cancel;
   }, [dirty, saving, autoSaveBlocked, workspace, save]);
 
   useEffect(() => {
     const handleShortcut = (event) => {
-      const command = event.ctrlKey || event.metaKey;
-      if (command && event.key.toLowerCase() === "s") {
-        event.preventDefault();
-        if (dirty && !saving) action(saveNow);
-      } else if (command && event.key.toLowerCase() === "z") {
-        event.preventDefault();
-        if (event.shiftKey) redo();
-        else undo();
+      const shortcut = editorShortcut(event);
+      if (shortcut) event.preventDefault();
+      if (shortcut === "save") {
+        if (dirty) action(saveNow);
+      } else if (shortcut === "redo") {
+        redo();
+      } else if (shortcut === "undo") {
+        undo();
       } else if (event.key === "Escape" && document.activeElement?.isContentEditable) {
         document.activeElement.blur();
       }
@@ -254,18 +261,18 @@ function DocumentEditor({
           <span className="pcv-editor-save-state" role="status">
             {saving
               ? "Saving…"
-              : error && /another tab|conflict/i.test(error)
-                ? "Conflict detected"
-                : error
+              : saveState === "conflict"
+                ? "Conflict"
+                : saveState === "failed"
                   ? "Save failed"
-                : dirty
-                  ? "Unsaved"
-                  : "Saved"}
+                  : dirty
+                    ? "Unsaved"
+                    : "Saved"}
           </span>
-          <button disabled={!history.undo.length || saving} onClick={undo} aria-label="Undo document change">
+          <button disabled={!history.undo.length} onClick={undo} aria-label="Undo document change">
             Undo
           </button>
-          <button disabled={!history.redo.length || saving} onClick={redo} aria-label="Redo document change">
+          <button disabled={!history.redo.length} onClick={redo} aria-label="Redo document change">
             Redo
           </button>
           <button
