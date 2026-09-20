@@ -1,6 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router";
 import {
+  FiArrowLeft,
+  FiDownload,
+  FiEye,
+  FiRotateCcw,
+  FiRotateCw,
+  FiSave,
+  FiSliders,
+  FiZoomIn,
+  FiZoomOut,
+} from "react-icons/fi";
+import {
   DndContext,
   KeyboardSensor,
   PointerSensor,
@@ -252,41 +263,129 @@ function DocumentEditor({
   return (
     <main className="pcv-editor" data-view={view}>
       <header className="pcv-editor-header">
-        <div>
-          <Link to="/dashboard/resumes">← Back to Resumes &amp; CVs</Link>
-          <h1>{variant.name}</h1>
-          <p>Edits here apply only to this {model.documentType === "cv" ? "CV" : "resume"}.</p>
+        <div className="pcv-editor-identity">
+          <Link
+            to="/dashboard/resumes"
+            className="pcv-editor-back"
+            aria-label="Back to Resumes and CVs"
+            title="Back to Resumes and CVs"
+          >
+            <FiArrowLeft aria-hidden="true" />
+            <span>Back</span>
+          </Link>
+          <div className="pcv-editor-title">
+            <div className="pcv-editor-meta">
+              <span className="pcv-document-type">
+                {model.documentType === "cv" ? "CV" : "Resume"}
+              </span>
+              <span
+                className={`pcv-editor-save-state is-${saveState}`}
+                role="status"
+                aria-live="polite"
+              >
+                {saving
+                  ? "Saving…"
+                  : saveState === "conflict"
+                    ? "Conflict"
+                    : saveState === "failed"
+                      ? "Save failed"
+                      : dirty
+                        ? "Unsaved"
+                        : "Saved"}
+              </span>
+            </div>
+            <h1 title={variant.name}>{variant.name}</h1>
+          </div>
         </div>
-        <div className="pcv-actions">
-          <span className="pcv-editor-save-state" role="status">
-            {saving
-              ? "Saving…"
-              : saveState === "conflict"
-                ? "Conflict"
-                : saveState === "failed"
-                  ? "Save failed"
-                  : dirty
-                    ? "Unsaved"
-                    : "Saved"}
-          </span>
-          <button disabled={!history.undo.length} onClick={undo} aria-label="Undo document change">
-            Undo
-          </button>
-          <button disabled={!history.redo.length} onClick={redo} aria-label="Redo document change">
-            Redo
+        <div className="pcv-editor-toolbar" role="toolbar" aria-label="Document actions">
+          <button
+            type="button"
+            disabled={!history.undo.length}
+            onClick={undo}
+            aria-label="Undo document change"
+            title="Undo (Ctrl or Cmd + Z)"
+          >
+            <FiRotateCcw aria-hidden="true" />
+            <span className="pcv-toolbar-label">Undo</span>
           </button>
           <button
+            type="button"
+            disabled={!history.redo.length}
+            onClick={redo}
+            aria-label="Redo document change"
+            title="Redo (Ctrl or Cmd + Shift + Z)"
+          >
+            <FiRotateCw aria-hidden="true" />
+            <span className="pcv-toolbar-label">Redo</span>
+          </button>
+          <button
+            type="button"
+            aria-pressed={tab === "Design"}
+            onClick={() => {
+              setTab("Design");
+              setView("edit");
+            }}
+            title="Open template and design controls"
+          >
+            <FiSliders aria-hidden="true" />
+            <span className="pcv-toolbar-label">Design</span>
+          </button>
+          <div className="pcv-toolbar-zoom" role="group" aria-label="Preview zoom">
+            <button
+              type="button"
+              onClick={() => setPreviewZoom((zoom) => Math.max(60, zoom - 10))}
+              disabled={previewZoom <= 60}
+              aria-label="Zoom out"
+              title="Zoom out"
+            >
+              <FiZoomOut aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              className="pcv-zoom-value"
+              onClick={() => setPreviewZoom(100)}
+              aria-label={`Reset zoom to 100 percent. Current zoom ${previewZoom} percent.`}
+              title="Reset zoom to 100%"
+            >
+              {previewZoom}%
+            </button>
+            <button
+              type="button"
+              onClick={() => setPreviewZoom((zoom) => Math.min(140, zoom + 10))}
+              disabled={previewZoom >= 140}
+              aria-label="Zoom in"
+              title="Zoom in"
+            >
+              <FiZoomIn aria-hidden="true" />
+            </button>
+          </div>
+          <button
+            type="button"
+            aria-pressed={view === "preview"}
+            onClick={() => setView("preview")}
+            title="Show document preview"
+          >
+            <FiEye aria-hidden="true" />
+            <span className="pcv-toolbar-label">Preview</span>
+          </button>
+          <button
+            type="button"
             disabled={saving || !dirty}
             onClick={() => action(saveNow)}
+            title={error ? "Retry saving this document" : "Save (Ctrl or Cmd + S)"}
           >
-            {error ? "Retry save" : "Save"}
+            <FiSave aria-hidden="true" />
+            <span className="pcv-toolbar-label">{error ? "Retry" : "Save"}</span>
           </button>
           <button
+            type="button"
             className="pcv-primary"
             disabled={busy || saving}
             onClick={exportPdf}
+            title="Export this document as PDF"
           >
-            {busy ? "Working…" : "Download PDF"}
+            <FiDownload aria-hidden="true" />
+            <span>{busy ? "Working…" : "Export PDF"}</span>
           </button>
         </div>
       </header>
@@ -1094,30 +1193,11 @@ function DocumentEditor({
           </section>
         </div>
         <div className="pcv-preview-wrap">
-          <div className="pcv-document-toolbar" aria-label="Document preview controls">
+          <div className="pcv-document-toolbar" aria-label="Document preview details">
             <span>
               Live preview · {model.paperSize} · PDF paginates automatically
             </span>
-            <div>
-              <button
-                type="button"
-                onClick={() => setPreviewZoom((z) => Math.max(60, z - 10))}
-                aria-label="Zoom out"
-              >
-                −
-              </button>
-              <span>{previewZoom}%</span>
-              <button
-                type="button"
-                onClick={() => setPreviewZoom((z) => Math.min(140, z + 10))}
-                aria-label="Zoom in"
-              >
-                +
-              </button>
-              <button type="button" onClick={() => setPreviewZoom(100)}>
-                100%
-              </button>
-            </div>
+            <span>{previewZoom}% zoom</span>
           </div>
           <div className="pcv-preview-canvas">
             <ResumePreview model={model} zoom={previewZoom} onEdit={directEdit} />

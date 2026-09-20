@@ -961,3 +961,175 @@ body:has(.pcv-editor) .pcv-savebar { display:none; }
 @font-face { font-family:PersonaMono; src:url(/fonts/NotoSansMono-Regular.ttf) format("truetype"); font-weight:400; font-display:swap; }
 
 @font-face { font-family:PersonaMono; src:url(/fonts/NotoSansMono-Bold.ttf) format("truetype"); font-weight:700; font-display:swap; }
+
+/* Compact document-editor command bar. */
+.pcv-editor {
+  padding-top: 0;
+}
+.pcv-editor-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  max-width: none;
+  margin: 0 -24px 20px;
+  padding: 10px 24px;
+  align-items: center;
+  flex-wrap: nowrap;
+  border-bottom: 1px solid #dce3ed;
+  background: #fffefaee;
+  backdrop-filter: blur(10px);
+}
+.pcv-editor-identity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 180px;
+  flex: 1 1 260px;
+}
+.pcv-editor-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex: 0 0 auto;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none !important;
+}
+.pcv-editor-title {
+  min-width: 0;
+}
+.pcv-editor-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 22px;
+}
+.pcv-document-type {
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: #e8eef7;
+  color: #345c94;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.pcv-editor-header .pcv-editor-save-state {
+  align-self: auto;
+  padding: 0;
+}
+.pcv-editor-save-state.is-failed,
+.pcv-editor-save-state.is-conflict {
+  color: #9b332d;
+  font-weight: 750;
+}
+.pcv-editor-title h1 {
+  max-width: min(36vw, 420px);
+  margin: 1px 0 0;
+  overflow: hidden;
+  font-size: 18px;
+  line-height: 1.25;
+  letter-spacing: -.25px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pcv-editor-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 5px;
+  min-width: 0;
+}
+.pcv-editor-toolbar > button,
+.pcv-toolbar-zoom button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 34px;
+  margin: 0;
+  padding: 7px 9px;
+  white-space: nowrap;
+}
+.pcv-editor-toolbar svg {
+  flex: 0 0 auto;
+  font-size: 15px;
+}
+.pcv-toolbar-zoom {
+  display: inline-flex;
+  align-items: center;
+  overflow: hidden;
+  border: 1px solid #bccbdd;
+  border-radius: 7px;
+  background: #fff;
+}
+.pcv-toolbar-zoom button {
+  min-width: 32px;
+  border: 0;
+  border-radius: 0;
+}
+.pcv-toolbar-zoom .pcv-zoom-value {
+  min-width: 50px;
+  border-right: 1px solid #d8e0ea;
+  border-left: 1px solid #d8e0ea;
+  color: #536176;
+  font-size: 11px;
+}
+.pcv-document-toolbar > span:last-child {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+@media(max-width:1100px) {
+  .pcv-editor-header {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  .pcv-editor-toolbar {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+  .pcv-editor-title h1 {
+    max-width: 70vw;
+  }
+}
+@media(max-width:640px) {
+  .pcv-editor-header {
+    margin: 0 -12px 14px;
+    padding: 9px 12px;
+  }
+  .pcv-editor-identity {
+    flex-basis: 100%;
+  }
+  .pcv-editor-back span,
+  .pcv-editor-toolbar .pcv-toolbar-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  .pcv-editor-title h1 {
+    max-width: calc(100vw - 100px);
+    font-size: 17px;
+  }
+  .pcv-editor-toolbar {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(34px, auto)) minmax(90px, 1fr);
+    width: 100%;
+  }
+  .pcv-editor-toolbar > button {
+    min-width: 0;
+  }
+  .pcv-toolbar-zoom {
+    grid-column: span 2;
+  }
+  .pcv-editor-toolbar .pcv-primary span {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip: auto;
+  }
+}
