@@ -155,6 +155,10 @@ try {
     409,
     "transaction IDs cannot be reused",
   );
+  const simultaneous = await Promise.all([1, 2].map(() => request(payer, "/api/payments", "POST", {
+    product: "document_pack", quantity: 1, method: "bkash", transactionId: "RACECHECK001",
+  })));
+  assert.deepEqual(simultaneous.map((r) => r.status).sort(), [200, 409], "Concurrent transaction replay is rejected atomically");
   const proRequest = await request(payer, "/api/payments", "POST", {
     product: "pro",
     period: "monthly",

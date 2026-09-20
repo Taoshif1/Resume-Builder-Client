@@ -19,7 +19,7 @@
   align-items: center;
 }
 .pcv-public-eyebrow {
-  color: #4a70a9;
+  color: #3d5f91;
   font-size: 11px;
   font-weight: 750;
   letter-spacing: 0.15em;
@@ -163,7 +163,7 @@
 }
 .pcv-toolkit > p:last-child {
   font-size: 11px;
-  color: #687486;
+  color: #536173;
 }
 .pcv-home-section {
   padding: 76px max(24px, calc((100% - 1160px) / 2));

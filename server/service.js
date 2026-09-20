@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import {
   assertWorkspace,
   createWorkspace,
@@ -289,8 +290,16 @@ export function createService(db, auth) {
       status: "pending",
       createdAt: new Date().toISOString(),
     };
-    const ref = paymentRequests.doc();
-    await ref.set(request);
+    // Atomic creation prevents simultaneous replay; the preceding lookup also
+    // protects transaction IDs in legacy requests with random document IDs.
+    const ref = paymentRequests.doc("txn-" + createHash("sha256").update(transactionId).digest("hex"));
+    try {
+      await ref.create(request);
+    } catch (error) {
+      if (error.code === 6 || error.code === "already-exists")
+        fail("This transaction ID has already been submitted.", 409);
+      throw error;
+    }
     return { request: { id: ref.id, ...request } };
   }
 

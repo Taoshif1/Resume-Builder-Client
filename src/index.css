@@ -39,7 +39,6 @@ html,
 body,
 #root {
   width: 100%;
-  overflow-x: hidden;
 }
 
 * {
@@ -47,7 +46,7 @@ body,
 }
 
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
 }
 
 /* glow effect */

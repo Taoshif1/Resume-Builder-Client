@@ -19,7 +19,10 @@ async function readBody(req) {
       throw Object.assign(new Error("Request too large."), { status: 413 });
   }
   try {
-    return JSON.parse(text || "{}");
+    const body = JSON.parse(text || "{}");
+    if (!body || typeof body !== "object" || Array.isArray(body))
+      throw new Error("Expected a JSON object.");
+    return body;
   } catch {
     throw Object.assign(new Error("Invalid JSON."), { status: 400 });
   }
@@ -64,6 +67,7 @@ export function createApp({
     projectConfigured: Boolean(auth),
     adminCredentialConfigured: Boolean(auth),
   },
+  requestLimit = 90,
   dist = resolve("dist"),
 }) {
   const limits = new Map();
@@ -148,7 +152,7 @@ export function createApp({
       if (limits.size > 10000)
         for (const [key, value] of limits)
           if (now - value.start > 60000) limits.delete(key);
-      if (bucket.count > 90) {
+      if (bucket.count > requestLimit) {
         res.setHeader("Retry-After", "60");
         return json(
           { error: "Too many requests. Try again in a minute." },
