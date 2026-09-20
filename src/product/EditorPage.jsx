@@ -66,6 +66,10 @@ import {
   selectionKey,
   setDocumentSectionHidden,
 } from "./document-interactions";
+import {
+  buildDocumentOutline,
+  scrollBehavior,
+} from "./document-outline";
 
 function SectionOrder({ id, children }) {
   const {
@@ -144,6 +148,7 @@ function DocumentEditor({
   const workspaceRef = useRef(workspace);
   const historyRef = useRef(history);
   const previewRef = useRef(null);
+  const outlineRef = useRef(null);
   workspaceRef.current = workspace;
   historyRef.current = history;
   const sensors = useSensors(
@@ -154,6 +159,19 @@ function DocumentEditor({
   );
 
   const model = resumeDocument(workspace, variant.id);
+  const outlineModel = resumeDocument(
+    {
+      ...workspace,
+      resumeVariants: workspace.resumeVariants.map((item) =>
+        item.id === variant.id ? { ...item, hiddenSections: [] } : item,
+      ),
+    },
+    variant.id,
+  );
+  const outlineItems = buildDocumentOutline(
+    outlineModel,
+    variant.hiddenSections,
+  );
   const checks = qualityChecks(model);
   const edit = (fn) => {
     const before = workspaceRef.current;
@@ -275,6 +293,36 @@ function DocumentEditor({
     edit(change);
     setSelection(nextSelection);
     focusSelection(nextSelection);
+  }
+
+  function navigateFromOutline(item) {
+    const nextSelection = sectionSelection(item.key);
+    if (item.hidden)
+      edit((currentVariant) =>
+        setDocumentSectionHidden(currentVariant, item.key, false),
+      );
+    setSelection(nextSelection);
+    setView("preview");
+    if (outlineRef.current) outlineRef.current.open = false;
+    window.requestAnimationFrame(() =>
+      window.requestAnimationFrame(() => {
+        const target = [
+          ...(previewRef.current?.querySelectorAll("[data-selection-key]") || []),
+        ].find((element) => element.dataset.selectionKey === item.targetKey);
+        if (!target) {
+          previewRef.current?.focus();
+          return;
+        }
+        const reducedMotion = window.matchMedia?.(
+          "(prefers-reduced-motion: reduce)",
+        ).matches;
+        target.scrollIntoView({
+          behavior: scrollBehavior(reducedMotion),
+          block: "start",
+        });
+        target.focus();
+      }),
+    );
   }
 
   function duplicateSelectedEntry() {
@@ -1254,7 +1302,34 @@ function DocumentEditor({
             <span>
               Live preview · {model.paperSize} · PDF paginates automatically
             </span>
-            <span>{previewZoom}% zoom</span>
+            <div className="pcv-document-toolbar-meta">
+              <details className="pcv-document-outline" ref={outlineRef}>
+                <summary>Outline</summary>
+                <nav aria-label="Document outline">
+                  {outlineItems.length ? (
+                    outlineItems.map((item) => (
+                      <button
+                        type="button"
+                        key={item.key}
+                        className={item.hidden ? "is-hidden" : ""}
+                        aria-current={
+                          !item.hidden && selection?.sectionKey === item.key
+                            ? "location"
+                            : undefined
+                        }
+                        onClick={() => navigateFromOutline(item)}
+                      >
+                        <span>{item.title}</span>
+                        {item.hidden && <small>Restore</small>}
+                      </button>
+                    ))
+                  ) : (
+                    <span>No document sections yet.</span>
+                  )}
+                </nav>
+              </details>
+              <span>{previewZoom}% zoom</span>
+            </div>
           </div>
           <div className="pcv-context-toolbar" role={selection ? "toolbar" : "status"} aria-label={selection ? "Selected document content actions" : undefined}>
             {!selection && <span>Select a section or entry for document actions.</span>}

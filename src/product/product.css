@@ -1219,3 +1219,102 @@ body:has(.pcv-editor) .pcv-savebar { display:none; }
     background: transparent !important;
   }
 }
+/* Lightweight document outline lives inside the preview toolbar. */
+.pcv-document-toolbar-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
+}
+.pcv-document-outline {
+  position: relative;
+}
+.pcv-document-outline summary {
+  min-height: 32px;
+  padding: 7px 10px;
+  border: 1px solid #bccbdd;
+  border-radius: 7px;
+  background: #fff;
+  color: #234b84;
+  cursor: pointer;
+  font-weight: 700;
+  list-style-position: inside;
+}
+.pcv-document-outline[open] summary {
+  border-color: #4a70a9;
+  background: #eaf1fb;
+}
+.pcv-document-outline nav {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 12;
+  display: grid;
+  gap: 3px;
+  width: min(270px, calc(100vw - 48px));
+  max-height: min(420px, 60vh);
+  overflow-y: auto;
+  padding: 8px;
+  border: 1px solid #cbd6e4;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 14px 35px #17203324;
+}
+.pcv-document-outline nav > span {
+  padding: 10px;
+  color: #66758a;
+}
+.pcv-document-outline nav button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 38px;
+  margin: 0;
+  padding: 8px 10px;
+  border-color: transparent;
+  text-align: left;
+}
+.pcv-document-outline nav button[aria-current="location"] {
+  border-color: #4a70a9;
+  background: #e4edf9;
+}
+.pcv-document-outline nav button[aria-current="location"]::after {
+  content: "Current";
+  color: #345c94;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+.pcv-document-outline nav button.is-hidden {
+  color: #687486;
+}
+.pcv-document-outline nav button small {
+  flex: 0 0 auto;
+  padding: 2px 5px;
+  border-radius: 999px;
+  background: #f0e7db;
+  color: #755535;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+.pcv-paper .pcv-document-section {
+  scroll-margin-top: 118px;
+}
+@media(max-width:900px) {
+  .pcv-document-toolbar-meta {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .pcv-document-outline nav {
+    right: auto;
+    left: 0;
+  }
+}
+@media print {
+  .pcv-document-outline {
+    display: none !important;
+  }
+}
