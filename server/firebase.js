@@ -7,6 +7,7 @@ import {
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
 import { readFileSync } from "node:fs";
+import { assertNoProductionEmulators, productionOrigin } from "../config/deployment.js";
 
 const clean = (value) => (typeof value === "string" ? value.trim() : "");
 const configurationError = (message) =>
@@ -63,8 +64,14 @@ export function resolveFirebaseProjectId(
   return candidates[0];
 }
 export function resolveFirebaseConfig(env = process.env) {
-  if ((env.NODE_ENV === "production" || env.VERCEL) && !clean(env.APP_ORIGIN))
-    throw configurationError("PersonaCV server APP_ORIGIN is not configured.");
+  if (env.NODE_ENV === "production" || env.VERCEL) {
+    try {
+      assertNoProductionEmulators(env);
+      productionOrigin(env.APP_ORIGIN);
+    } catch (error) {
+      throw configurationError(error.message);
+    }
+  }
   const emulators = Boolean(
     clean(env.FIREBASE_AUTH_EMULATOR_HOST) ||
     clean(env.FIRESTORE_EMULATOR_HOST),

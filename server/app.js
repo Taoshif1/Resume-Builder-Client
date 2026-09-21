@@ -131,7 +131,8 @@ export function createApp({
       }
       if (configurationError) throw configurationError;
       const origin = req.headers.origin;
-      if (origin && process.env.APP_ORIGIN && origin !== process.env.APP_ORIGIN)
+      const allowedOrigin = process.env.APP_ORIGIN ? new URL(process.env.APP_ORIGIN.trim()).origin : "";
+      if (origin && allowedOrigin && origin !== allowedOrigin)
         return json({ error: "Origin not allowed." }, 403);
       if (path === "/api/public-config" && req.method === "GET") {
         await readiness();
