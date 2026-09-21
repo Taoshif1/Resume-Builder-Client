@@ -1,0 +1,15 @@
+# CLI uploads must exclude local credentials, test evidence and build output.
+.env
+.env.*
+*service-account*.json
+*-adminsdk-*.json
+.artifacts
+artifacts
+dist
+dist-ssr
+node_modules
+.vercel
+.git
+*.log
+*.pdf
+*.tmp
