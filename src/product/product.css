@@ -820,10 +820,10 @@ body:has(.pcv-editor) .pcv-savebar { display:none; }
   margin:0;
 }
 .pcv-preview-canvas {
-  width:fit-content;
+  width:100%;
   min-width:100%;
   padding:4px 6px 24px;
-  overflow:visible;
+  overflow:auto;
 }
 .pcv-preview-canvas .pcv-paper {
   transition:transform 160ms ease;
@@ -909,7 +909,7 @@ body:has(.pcv-editor) .pcv-savebar { display:none; }
     grid-template-columns:minmax(90px,1fr) 68px auto;
   }
   .pcv-document-toolbar {
-    position:static;
+    position:relative;
     flex-direction:column;
     align-items:flex-start;
   }
@@ -1115,15 +1115,23 @@ body:has(.pcv-editor) .pcv-savebar { display:none; }
     font-size: 17px;
   }
   .pcv-editor-toolbar {
-    display: grid;
-    grid-template-columns: repeat(5, minmax(34px, auto)) minmax(90px, 1fr);
+    display: flex;
+    flex-wrap: wrap;
     width: 100%;
   }
   .pcv-editor-toolbar > button {
-    min-width: 0;
+    min-width: 44px;
+    min-height: 44px;
+    flex: 0 0 auto;
   }
   .pcv-toolbar-zoom {
-    grid-column: span 2;
+    flex: 0 0 auto;
+  }
+  .pcv-toolbar-zoom button {
+    min-height: 44px;
+  }
+  .pcv-editor-toolbar .pcv-primary {
+    min-width: 116px;
   }
   .pcv-editor-toolbar .pcv-primary span {
     position: static;
@@ -1140,11 +1148,9 @@ body:has(.pcv-editor) .pcv-savebar { display:none; }
   z-index: 5;
   display: flex;
   align-items: center;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   gap: 5px;
   min-height: 42px;
-  max-height: 42px;
-  overflow-x: auto;
   margin-bottom: 10px;
   padding: 5px 8px;
   border: 1px solid #dce3ed;
@@ -1166,6 +1172,8 @@ body:has(.pcv-editor) .pcv-savebar { display:none; }
   white-space: nowrap;
 }
 .pcv-context-toolbar button {
+  flex: 0 0 auto;
+  white-space: nowrap;
   min-height: 31px;
   margin: 0;
   padding: 5px 8px;
@@ -1203,10 +1211,9 @@ body:has(.pcv-editor) .pcv-savebar { display:none; }
   .pcv-context-toolbar {
     position: static;
     min-height: 50px;
-    max-height: 50px;
   }
   .pcv-context-toolbar button {
-    min-height: 40px;
+    min-height: 44px;
   }
 }
 @media print {
