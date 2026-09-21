@@ -1219,6 +1219,13 @@ body:has(.pcv-editor) .pcv-savebar { display:none; }
     background: transparent !important;
   }
 }
+/* Match the editor's 12px tablet padding; desktop's -24px margin overflows. */
+@media (min-width:641px) and (max-width:900px) {
+  .pcv-editor-header {
+    margin-inline: -12px;
+    padding-inline: 12px;
+  }
+}
 /* Lightweight document outline lives inside the preview toolbar. */
 .pcv-document-toolbar-meta {
   display: flex;

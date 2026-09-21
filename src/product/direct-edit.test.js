@@ -1,7 +1,32 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createWorkspace } from "../resume/data/workspace.js";
-import { applyVariantDirectEdit, normalizeDirectText } from "./direct-edit.js";
+import { applyVariantDirectEdit, editablePartKey, normalizeDirectText } from "./direct-edit.js";
+import { documentFixture } from "../../server/fixtures/document.js";
+import { resumeDocument } from "./document.js";
+
+test("projected editable fields have unique stable keys without changing source IDs", () => {
+  const workspace = documentFixture();
+  const original = structuredClone(workspace);
+  const model = resumeDocument(workspace, workspace.resumeVariants[0].id);
+  const groups = [model.contactItems];
+  for (const section of model.sections) {
+    for (const item of section.items) {
+      if (item.parts) groups.push(item.parts);
+      if (item.dateParts) groups.push(item.dateParts.map(part => ({
+        ...part,
+        source: { type: "entry", collection: item.sourceCollection, id: item.sourceId, field: part.field },
+      })));
+    }
+  }
+  for (const parts of groups) {
+    const keys = parts.map(editablePartKey);
+    assert.equal(new Set(keys).size, parts.length);
+    assert.deepEqual(parts.map(part => editablePartKey({ ...part, value: "edited" })), keys);
+    assert.deepEqual([...parts].reverse().map(editablePartKey), [...keys].reverse());
+  }
+  assert.deepEqual(workspace, original);
+});
 
 test("direct text normalization strips pasted layout whitespace and keeps plain lines", () => {
   assert.equal(normalizeDirectText("  Lead\n Engineer  "), "Lead Engineer");

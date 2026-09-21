@@ -1,6 +1,6 @@
 # PersonaCV final release audit
 
-Date: 2026-09-20  
+Date: 2026-09-21  
 Branch: `main`
 
 ## Release status
@@ -39,22 +39,28 @@ Public navigation exposes Features, Pricing, Contact, Get Started, Privacy, and 
 
 - Responsive matrix: 120/120 route/viewport combinations across 360×800 through 1920×1080; zero horizontal overflow.
 - Accessibility automation: zero detected violations on representative public/auth/workspace/editor/admin/error states at mobile, tablet, and desktop widths.
-- Browser journeys: 12 passed; zero unexpected console/page errors.
+- Browser journeys: 12 passed; 0 uncaught page errors and 0 captured React key warnings. Axe ran 45 route/viewport scans with 0 violations.
 - Reduced motion, keyboard navigation, Escape behavior, labels, status regions, and editor focus were verified.
-- Production build uses route-level lazy chunks. Final primary artifacts: application JS 442.38 kB (138.36 kB gzip), editor chunk 73.42 kB (22.90 kB gzip), CSS 109.06 kB (20.36 kB gzip), and the existing landing asset 296.85 kB.
+- Production build uses route-level lazy chunks. Current primary artifacts: application JS 447.79 kB (139.58 kB gzip), editor chunk 84.75 kB (25.90 kB gzip), CSS 118.57 kB (22.06 kB gzip), and the existing landing asset 296.85 kB.
 
 ## Final commands and exact results
 
 | Command/check | Result |
 | --- | --- |
-| `npm ci` | Passed; 465 packages installed, 466 audited, 0 vulnerabilities |
+| `npm ci` | Not rerun in Checkpoint G; recovered repository tooling and lockfile preserved |
 | `npm run lint` | Passed with no ESLint errors |
-| `npm test` | Passed: 77 tests, 0 failed, 0 skipped |
-| `npm run build` | Passed: 109 modules transformed |
+| `npm test` | Passed: 101 tests, 0 failed, 0 skipped |
+| `npm run build` | Passed: 114 modules transformed |
 | `npm audit --omit=dev --audit-level=high` | Passed: 0 vulnerabilities |
 | Firebase `emulators:exec` + `npm run test:integration` | Passed Auth → API → Firestore integration and rules suite |
 | Authenticated live Firebase smoke | Passed read-only account/workspace requests, logout/login, and unchanged workspace comparison |
-| Local browser release suite | Passed 12 journeys, 120 responsive combinations, 0 overflow, 0 detected accessibility violations, 0 unexpected console/page errors |
+| `npm run test:e2e` | Exit 0: 12 journeys, 120 responsive combinations, 0 overflow, 45 axe scans / 0 violations, 0 page errors, 0 React key warnings |
+
+Checkpoint G uses repository-owned Playwright, axe-core and Firebase CLI. Run `npm run test:e2e` with Java 21 available; `npm run test:e2e:install` installs Chromium when system Chrome is unavailable. The runner waits for API/web readiness and asserts emulator mode. The E2E API launcher requires `demo-personacv` and local Auth/Firestore emulators; its 1,000-request budget leaves production's 90 requests/minute default unchanged. Four negative startup probes rejected a non-demo project, either missing emulator, and a remote emulator host.
+
+The successful run follows fixes for duplicate React date-field keys and tablet header overflow. Generated screenshots/PDFs and JSON evidence remain under ignored `.artifacts/final-browser`.
+
+The editor includes contextual section/entry actions, a dedicated outline with current/hidden indicators, and Add/restore links to Master Profile. Focused browser verification of those newer capabilities is pending Checkpoint H. The separate integration command and live Firebase smoke entries above are historical results from the previous audit, not reruns in this checkpoint.
 
 ## Modified areas
 

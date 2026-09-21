@@ -1,6 +1,6 @@
 import { createElement } from "react";
 import { resolvedDocumentStyle } from "./document-styles.js";
-import { normalizeDirectText } from "./direct-edit.js";
+import { editablePartKey, normalizeDirectText } from "./direct-edit.js";
 import { entrySelection, sectionSelection, selectionKey } from "./document-interactions.js";
 
 function EditableText({ as = "span", value, onEdit, change, multiline = false, className }) {
@@ -50,7 +50,7 @@ function DocumentLinks({ links = [] }) {
 
 function EditableParts({ parts = [], onEdit, separator = " | " }) {
   return parts.map((part, index) => (
-    <span key={part.source?.id || part.field || index}>
+    <span key={editablePartKey(part)}>
       {index > 0 && <span aria-hidden="true">{separator}</span>}
       <EditableText
         value={part.value || part.placeholder || ""}

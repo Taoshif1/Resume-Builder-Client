@@ -13,6 +13,12 @@ const PERSONAL_FIELDS = new Set([
   "summary",
 ]);
 
+// Identity belongs to a field, not merely its source record (e.g. two dates).
+export function editablePartKey(part) {
+  const source = part.source || { type: "personal", field: part.field };
+  return JSON.stringify([source.type, source.collection || "", source.id || "", source.field]);
+}
+
 export function normalizeDirectText(value, multiline = false) {
   const text = String(value || "")
     .replace(/\u00a0/g, " ")
