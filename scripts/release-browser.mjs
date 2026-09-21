@@ -7,6 +7,7 @@ import {initializeApp,deleteApp} from 'firebase-admin/app';
 import {getFirestore} from 'firebase-admin/firestore';
 import {documentFixture} from '../server/fixtures/document.js';
 import {getDocument} from 'pdfjs-dist/legacy/build/pdf.mjs';
+import {verifyEditorInteractions} from './editor-browser.mjs';
 const base='http://127.0.0.1:5173';
 const health=await (await fetch('http://127.0.0.1:3000/api/health')).json();
 assert.equal(health.firebase?.emulator,true,'Requires isolated demo API');
@@ -62,6 +63,7 @@ try{
  for(let i=0;i<4;i++)await page.getByRole('button',{name:'Zoom out',exact:true}).click();
  for(let zoom=60;zoom<=140;zoom+=10){assert.ok((await page.locator('.pcv-document-toolbar').innerText()).includes(zoom+'%'));const bounds=await page.locator('.pcv-paper').evaluate(e=>({width:e.getBoundingClientRect().width,scroll:e.parentElement.scrollWidth}));assert.ok(bounds.width<=bounds.scroll+2);if(zoom<140)await page.getByRole('button',{name:'Zoom in',exact:true}).click()}
  record('Preview zoom 60 through 140 in 10 percent steps');await page.getByRole('button',{name:/^Reset zoom to 100 percent/}).click();
+ await verifyEditorInteractions({page,api,ready,record,editor});
  const routes=['/','/features','/pricing','/contact','/privacy-policy','/terms-of-service','/get-started','/dashboard','/dashboard/profile','/dashboard/projects','/dashboard/resumes','/dashboard/settings',editor,'/admin','/404'];
  for(const [width,height]of [[360,800],[390,844],[768,1024],[1024,768],[1280,800],[1366,900],[1440,1000],[1920,1080]]){
   await page.setViewportSize({width,height});
